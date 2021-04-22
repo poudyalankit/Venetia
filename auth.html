@@ -1,0 +1,154 @@
+<html>
+
+<head>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+
+    <style>
+        .keyAuthHeaderBackground {
+            position: absolute;
+            width: 700px;
+            height: 70px;
+            right: 0px;
+            top: 0px;
+            background: #1E202F;
+            -webkit-app-region: drag;
+        }
+        
+        .licenseKeyText {
+            position: absolute;
+            height: 27px;
+            left: 52px;
+            top: 133px;
+            font-family: Poppins;
+            font-style: normal;
+            font-weight: 400;
+            font-size: 18px;
+            line-height: 27px;
+            color: #FFFFFF;
+        }
+        
+        .keyEntry {
+            position: absolute;
+            width: 578px;
+            height: 45px;
+            left: 52px;
+            top: 163px;
+            background: #1E202F;
+            border-radius: 8px;
+            outline: none;
+            color: #FFFFFF;
+            font-style: normal;
+            font-weight: 400;
+            font-size: 18px;
+            border: none;
+            padding-left: 8px;
+            font-family: Poppins;
+        }
+        
+        .loginButton {
+            position: absolute;
+            width: 578px;
+            height: 52px;
+            left: 52px;
+            top: 237px;
+            background: #E06767;
+            border: 1px solid #000000;
+            box-sizing: border-box;
+            font-style: normal;
+            font-weight: 400;
+            cursor: pointer;
+            border-radius: 8px;
+            color: white;
+            outline: 0;
+            font-family: Poppins;
+            font-size: 18px;
+        }
+        
+        .loginButton:hover {
+            position: absolute;
+            width: 578px;
+            height: 52px;
+            left: 52px;
+            top: 237px;
+            background: #e28b8b;
+            border: 1px solid #000000;
+            box-sizing: border-box;
+            font-style: normal;
+            font-weight: 400;
+            cursor: pointer;
+            border-radius: 8px;
+            color: white;
+            outline: 0;
+            font-family: Poppins;
+            font-size: 18px;
+        }
+        
+        body {
+            overflow: hidden;
+            -webkit-user-select: none;
+        }
+        
+        .lockImg {
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            left: 293px;
+            top: 255px;
+        }
+        
+        .title {
+            position: absolute;
+            height: 36px;
+            left: 37px;
+            top: 16px;
+            font-family: Poppins;
+            font-style: normal;
+            font-weight: bold;
+            font-size: 24px;
+            line-height: 36px;
+            color: #FFFFFF;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="keyAuthHeaderBackground"></div>
+    <div class="title">Authentication</div>
+    <div class="licenseKeyText">License Key</div>
+    <input id="key" type="text" maxlength="19" placeholder="XXXX-XXXX-XXXX-XXXX" spellcheck="false" class="keyEntry">
+    <button class="loginButton" onclick="authKey()">Login</button>
+    <img class="lockImg" src="./images/lock.svg">
+    <script>
+        const electron = require('electron');
+        const ipcRenderer = electron.ipcRenderer;
+        var path = require('path')
+        const configDir = (electron.app || electron.remote.app).getPath('userData');
+        var fs = require('fs');
+
+        window.onload = function() {
+            document.getElementById("key").value = fs.readFileSync(path.join(configDir, '/userdata/key.txt'), 'utf8');
+            authKey()
+        };
+
+        function authKey() {
+            if (document.getElementById("key").value.length > 10) {
+                var key = document.getElementById("key").value
+                var fs = require('fs');
+                fs.writeFile(path.join(configDir, '/userdata/key.txt'), key, function(err) {
+                    if (err) {
+                        fs.writeFile(path.join(configDir, '/userdata/key.txt'), "", function(err) {})
+                        throw err;
+                    }
+                    console.log('Key saved!');
+                });
+                ipcRenderer.send('verify', key)
+            }
+        }
+
+        ipcRenderer.on('alert', (event, status) => {
+            alert(status)
+        })
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,56 @@
+{
+    "name": "Venetia",
+    "version": "0.3.9",
+    "author": "Toasty",
+    "description": "AIO Automation Software",
+    "main": "main.js",
+    "scripts": {
+        "start": "electron .",
+        "pack": "electron-builder --dir",
+        "dist": "electron-builder build",
+        "publish": "build -p always"
+    },
+    "dependencies": {
+        "2captcha": "^2.1.5-2",
+        "asarmor": "^1.4.1",
+        "chart.js": "^2.9.4",
+        "discord-rich-presence": "0.0.8",
+        "electron-updater": "^4.3.5",
+        "express": "^4.17.1",
+        "got": "^11.8.2",
+        "jquery": "^3.5.1",
+        "log-timestamp": "^0.3.0",
+        "node-adyen-encrypt": "^2.3.1",
+        "node-html-parser": "^2.0.2",
+        "playwright": "1.8.0",
+        "playwright-addons": "github:Niek/playwright-addons#master",
+        "public-ip": "^4.0.3",
+        "querystring": "^0.2.1",
+        "select2": "^4.1.0-rc.0",
+        "tough-cookie": "^4.0.0",
+        "tunnel": "0.0.6",
+        "uuidv4": "^6.2.6"
+    },
+    "devDependencies": {
+        "electron": "11.1.1",
+        "electron-builder": "^20.28.4",
+        "electron-prebuilt-compile": "8.2.0"
+    },
+    "build": {
+        "appId": "Venetia.AIO",
+        "afterPack": "./asar.js",
+        "win": {
+            "icon": "/images/logo2.png"
+        },
+        "mac": {
+            "category": "Venetia.AIO.Automation.Software"
+        },
+        "publish": [
+            {
+                "provider": "github",
+                "owner": "poudyalankit",
+                "repo": "venetia-update"
+            }
+        ]
+    }
+}

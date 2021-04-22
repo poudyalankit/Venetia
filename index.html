@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link href="src/css/select2.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="src/css/styles.css">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+    <script src="src/js/script.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+</head>
+
+<body>
+    <ul class='custom-menu'>
+        <li data-action="first">Create Group</li>
+        <li data-action="second">Delete Selected</li>
+    </ul>
+
+    <div class="tableTitle" id="analyticsTitle">
+
+    </div>
+
+    <div class="tableTitle" id="taskTitle" style="display: none; left: 99px; z-index: 1;">
+        Groups
+    </div>
+
+    <div class="tableTitle" id="profileTitle" style="display: none">
+        Profiles
+    </div>
+
+    <div class="tableTitle" id="settingsTitle" style="display: none">
+        Settings
+    </div>
+
+    <div class="tableTitle" id="proxiesTitle" style="display: none">
+        Proxies
+    </div>
+
+    <div class="tableTitle" id="accountsTitle" style="display: none">
+        Accounts
+    </div>
+
+    <div class="tableTitle" id="captchasTitle" style="display: none">
+        Captchas
+    </div>
+
+
+
+
+
+    <div class="sidebar" style="-webkit-app-region: drag">
+        <div class="minimize">
+            <a href="#" draggable="false" onclick="minimize()">
+                <img draggable="false" src="./images/minus.png">
+            </a>
+        </div>
+
+        <div class="close">
+            <a href="#" draggable="false" onclick="closeIt()">
+                <img draggable="false" src="./images/x.png">
+            </a>
+        </div>
+        <div class="logo">
+            <img draggable="false" src="./images/logo.png">
+        </div>
+
+
+        <div class="analytics">
+            <a href="#" onclick="analytics()">
+                <img draggable="false" id="analyticsIcon" src="./images/analytics.svg">
+            </a>
+        </div>
+
+
+        <div class="task">
+            <a href="#" onclick="tasks()">
+                <img draggable="false" id="taskIcon" src="./images/task.svg">
+            </a>
+        </div>
+
+        <div class="profile">
+            <a href="#" onclick="profile()">
+                <img draggable="false" id="profileIcon" src="./images/profile.svg">
+            </a>
+        </div>
+
+        <div class="proxy">
+            <a href="#" onclick="proxies()">
+                <img draggable="false" id="proxyIcon" src="./images/proxy.svg">
+            </a>
+        </div>
+
+        <div class="account">
+            <a href="#" onclick="accounts()">
+                <img draggable="false" id="accountIcon" src="./images/log-in.svg">
+            </a>
+        </div>
+
+        <div class="captcha">
+            <a href="#" onclick="captchas()">
+                <img draggable="false" id="captchaIcon" src="./images/columns.svg">
+            </a>
+        </div>
+
+        <div class="settings">
+            <a href="#" onclick="settings()">
+                <img draggable="false" id="settingsIcon" src="./images/settings.svg">
+            </a>
+        </div>
+
+        <div class="download">
+            <a href="#" onclick="update()">
+                <img draggable="false" src="./images/download.svg">
+            </a>
+        </div>
+
+        <img id="discordavatar" draggable="false" class="discordAvatar">
+
+
+        <div class="version">
+            0.3.9
+        </div>
+
+    </div>
+
+    <div id="analyticsView">
+        <div class="graph">
+            <canvas id="myChart"></canvas>
+        </div>
+        <div class="totalSpent">
+            <img draggable="false" class="checkoutsIcon" src="./images/spent.svg">
+            <div class="totalSpentText">
+                Total Spent
+            </div>
+            <div id="totalSpent" class="totalSpentAmount">
+                $0
+            </div>
+
+        </div>
+
+        <div class="totalCheckouts2"> <img draggable="false" class="checkoutsIcon" src="./images/totalcheckouts.svg">
+            <div class="totalCheckoutsText">
+                Total Checkouts
+            </div>
+            <div id="totalCheckouts2" class="totalCheckoutsAmount">
+                0
+            </div>
+        </div>
+        <div class="totalFails2"> <img draggable="false" class="failsIcon" src="./images/totalfails.svg">
+            <div class="totalFailuresText">
+                Total Failures
+            </div>
+            <div id="totalFailures2" class="totalFailuresAmount">
+                0
+            </div>
+        </div>
+
+        <div class="checkoutsTable">
+            <table id="checkoutsTable" rules=none>
+                <th class="product">Product</th>
+                <th class="site3">Site</th>
+                <th class="price">Price</th>
+                <th class="size3">Size</th>
+                <th class="date">Date</th>
+
+
+            </table>
+        </div>
+    </div>
+
+    <div id="taskView" style="display: none">
+        <input type="text" id="filterGroups" onkeyup="filterGroups()" class="groupFilter" placeholder="Search groups">
+
+        <div class="groupTable" rules=none menu="true">
+            <table id="groups" class="groups" menu="true">
+                <tbody menu="true">
+                </tbody>
+            </table>
+        </div>
+        <div>
+            <div class="tableTitle" style="left: 320px;">
+                Tasks
+            </div>
+            <input type="text" id="filterInput" onkeyup="filterTable()" class="taskFilter" placeholder="Search tasks"><br>
+            <button id="createButton" disabled class="createTask" onclick="taskCreator()">
+                        Create
+                    </button>
+            <button class="startTask" onclick="startSelected()">
+                Start
+            </button>
+            <button class="stopTask" onclick="stopSelected()">
+                Stop
+            </button>
+            <button class="deleteTask" onclick="deleteSelected()">
+               Delete
+            </button>
+            <button class="cloneTask" onclick="cloneSelected()">
+                Clone
+            </button>
+            <button class="editTask" id="editButton" disabled onclick="taskEditor()">
+                Edit
+            </button>
+            <div class="taskTable">
+                <table id="tasks" class="tasks" rules=none>
+                    <tr class="tasks">
+                        <th class="id">ID</th>
+                        <th class="site">Site</th>
+                        <th class="mode">Mode</th>
+                        <th class="link">Product</th>
+                        <th class="size">Size</th>
+                        <th class="profile3">Profile</th>
+                        <th class="proxy3">Proxies</th>
+                        <th class="status2">Status</th>
+                    </tr>
+
+                </table>
+            </div>
+        </div>
+        <div id="taskCreator" class="modal animate__animated animate__zoomIn animate__faster">
+            <div class="modal-content">
+                <div class="modalHeaderBackground">
+                    <div class="modalHeader">Task Creator</div>
+                </div>
+
+                <input type="checkbox" id="captchaLess" style="position: absolute; top: 510px; left:440px; display: none" class='selectCheckbox' onclick='changeColor(this, event)'>
+                <div id="captchaLessLabel" style="position: absolute; top: 515px; font-size: 12px; width: 200px; left: 480px; display: none; color: white;font-family: Poppins;">
+                    Captchaless
+                </div>
+                <div class="closeModal">
+                    <a onclick="closeModal()" href="#" draggable="false">
+                        <img draggable="false" src="./images/x.png">
+                    </a>
+                </div>
+                <div class="siteTaskTitle">
+                    Site
+                </div>
+                <div class="siteTaskEntry">
+                    <select id="siteTask" class="select2" style="width: 169px" onchange="modeChoices()">
+                            <option value=""></option>
+                            <option value="ChampsSports">ChampsSports</option>
+                            <option value="EastBay">EastBay</option>
+                            <option value="FootAction">FootAction</option>
+                            <option value="FootLocker">FootLocker</option>
+                            <option value="FootLockerCA">FootLockerCA</option>
+                            <option value="KidsFootLocker">KidsFootLocker</option>
+                            <option value="LadyFootLocker">LadyFootLocker</option>
+                            <option value="SSENSE">SSENSE</option>
+                            <option value="Supreme">Supreme</option>
+                          </select>
+                </div>
+                <div class="sizeTaskTitle">
+                    Size
+                </div>
+                <div class="modeTaskTitle">
+                    Mode
+                </div>
+                <div class="modeTaskEntry">
+                    <select disabled="true" style="width: 169px" class="select2" id="modeTask">
+                            <option value=""></option>
+                          </select>
+                </div>
+                <div class="sizeTaskEntry">
+                    <select disabled="true" class="select2" style="width: 169px" id="sizeTask">
+                            <option value=""></option>
+                            <option value="RS">Random</option>
+                            <option value="" disabled>Clothing</option>
+                            <option value="XXS">XXS</option>
+            <option value="XS">XS</option>
+            <option value="S">S</option>
+            <option value="M">M</option>
+            <option value="L">L</option>
+            <option value="XL">XL</option>
+            <option value="3">3</option>
+            <option value="3.5">3.5</option>
+            <option value="4">4</option>
+            <option value="4.5">4.5</option>
+            <option value="5">5</option>
+            <option value="5.5">5.5</option>
+            <option value="6">6</option>
+            <option value="6.5">6.5</option>
+            <option value="7">7</option>
+            <option value="7.5">7.5</option>
+            <option value="8">8</option>
+            <option value="8.5">8.5</option>
+            <option value="9">9</option>
+            <option value="9.5">9.5</option>
+            <option value="10">10</option>
+            <option value="10.5">10.5</option>
+            <option value="11">11</option>
+            <option value="11.5">11.5</option>
+            <option value="12">12</option>
+            <option value="12.5">12.5</option>
+            <option value="13">13</option>
+          </select>
+                </div>
+                <div class="linkTaskTitle">
+                    Link
+                </div>
+                <input disabled="true" type="text" placeholder="URL/PID" id="linkTask" class="linkTaskEntry"><br>
+                <div class="profileTaskTitle">
+                    Profile
+                </div>
+                <div class="profileTaskEntry">
+                    <select disabled="true" class="select2" style="width: 169px" id="profileTask">
+                          </select>
+                </div>
+                <div class="proxyTaskTitle">
+                    Proxies
+                </div>
+                <div class="proxyTaskEntry">
+                    <select disabled="true" class="select2" style="width: 169px" id="proxyTask">
+                         </select>
+                </div>
+                <div class="accountTaskTitle">
+                    Accounts
+                </div>
+                <div class="accountTaskEntry">
+                    <select disabled="true" class="select2" id="accountTask" style="width: 169px">
+          </select>
+                </div>
+                <div class="quantityTaskTitle">
+                    Quantity of Tasks
+                </div>
+                <input disabled="true" type="text" id="quantityTask" value="1" placeholder="1" class="quantityTaskEntry"><br>
+                <button class="addTaskButton" onclick="addTask()">Create Task</button>
+            </div>
+
+        </div>
+
+        <div id="taskEditor" class="modal animate__animated animate__zoomIn animate__faster">
+            <div class="modal-content">
+                <div class="modalHeaderBackground">
+                    <div class="modalHeader">Task Editor</div>
+                </div>
+
+                <input type="checkbox" id="captchaLess2" style="position: absolute; top: 510px; left:440px; display: none" class='selectCheckbox' onclick='changeColor(this, event)'>
+                <div id="captchaLessLabel2" style="position: absolute; top: 515px; font-size: 12px; width: 200px; left: 480px; display: none; color: white;font-family: Poppins;">
+                    Captchaless
+                </div>
+                <div class="closeModal">
+                    <a onclick="closeEditor()" href="#" draggable="false">
+                        <img draggable="false" src="./images/x.png">
+                    </a>
+                </div>
+                <div class="siteTaskTitle">
+                    Site
+                </div>
+                <div class="siteTaskEntry">
+                    <select id="siteTask2" class="select2" style="width: 169px" onchange="modeChoices2()">
+                            <option value=""></option>
+                            <option value="ChampsSports">ChampsSports</option>
+                            <option value="EastBay">EastBay</option>
+                            <option value="FootAction">FootAction</option>
+                            <option value="FootLocker">FootLocker</option>
+                            <option value="FootLockerCA">FootLockerCA</option>
+                            <option value="KidsFootLocker">KidsFootLocker</option>
+                            <option value="LadyFootLocker">LadyFootLocker</option>
+                            <option value="SSENSE">SSENSE</option>
+                            <option value="Supreme">Supreme</option>
+                          </select>
+                </div>
+                <div class="sizeTaskTitle">
+                    Size
+                </div>
+                <div class="modeTaskTitle">
+                    Mode
+                </div>
+                <div class="modeTaskEntry">
+                    <select style="width: 169px" class="select2" id="modeTask2">
+                            <option value=""></option>
+                          </select>
+                </div>
+                <div class="sizeTaskEntry">
+                    <select class="select2" style="width: 169px" id="sizeTask2">
+                            <option value=""></option>
+                            <option value="RS">Random</option>
+                            <option value="" disabled>Clothing</option>
+                            <option value="XXS">XXS</option>
+            <option value="XS">XS</option>
+            <option value="S">S</option>
+            <option value="M">M</option>
+            <option value="L">L</option>
+            <option value="XL">XL</option>
+            <option value="3">3</option>
+            <option value="3.5">3.5</option>
+            <option value="4">4</option>
+            <option value="4.5">4.5</option>
+            <option value="5">5</option>
+            <option value="5.5">5.5</option>
+            <option value="6">6</option>
+            <option value="6.5">6.5</option>
+            <option value="7">7</option>
+            <option value="7.5">7.5</option>
+            <option value="8">8</option>
+            <option value="8.5">8.5</option>
+            <option value="9">9</option>
+            <option value="9.5">9.5</option>
+            <option value="10">10</option>
+            <option value="10.5">10.5</option>
+            <option value="11">11</option>
+            <option value="11.5">11.5</option>
+            <option value="12">12</option>
+            <option value="12.5">12.5</option>
+            <option value="13">13</option>
+          </select>
+                </div>
+                <div class="linkTaskTitle">
+                    Link
+                </div>
+                <input type="text" placeholder="URL/PID" id="linkTask2" class="linkTaskEntry"><br>
+                <div class="profileTaskTitle">
+                    Profile
+                </div>
+                <div class="profileTaskEntry">
+                    <select class="select2" style="width: 169px" id="profileTask2">
+                          </select>
+                </div>
+                <div class="proxyTaskTitle">
+                    Proxies
+                </div>
+                <div class="proxyTaskEntry">
+                    <select class="select2" style="width: 169px" id="proxyTask2">
+                         </select>
+                </div>
+                <div class="accountTaskTitle">
+                    Accounts
+                </div>
+                <div class="accountTaskEntry">
+                    <select class="select2" id="accountTask2" style="width: 169px">
+          </select>
+                </div>
+                <div class="quantityTaskTitle">
+                    Quantity of Tasks
+                </div>
+                <input disabled="true" type="text" id="quantityTask2" value="1" placeholder="1" class="quantityTaskEntry"><br>
+                <button class="addTaskButton" onclick="editSelected()">Edit Task</button>
+            </div>
+
+        </div>
+    </div>
+
+    <form>
+        <div style="display: none" id="webhook">
+            <div class="webhook">
+                <label for="webhookLink">Webhook</label><br>
+            </div>
+            <input type="text" id="webhookLink" name="webhookLink" class="webhookEntry"><br>
+    </form>
+
+    <div class="webhookSubmit">
+        <a draggable="false" onclick="saveWebhook()">
+            <img draggable="false" src="./images/check.svg">
+        </a>
+    </div>
+
+
+    <div class="changelogText">
+        Changelog
+    </div>
+
+    <div class="changelogBox">
+
+
+        <h2> 0.3.9 </h2>
+        Harvesters: <br> - Fixed login bug <br> - Fixed user:pass proxy bug <br> <br> Supreme: <br> - Added rewritten Hybrid mode
+    </div>
+
+
+
+
+    </div>
+
+
+
+
+    <div style="display: none" id="profiles">
+        <form id="profilecreation">
+            <div class="fnameTitle">
+                First Name
+            </div>
+            <input type="text" id="firstname" class="fnameEntry" placeholder="John"><br>
+            <div class="lnameTitle">
+                Last Name
+            </div>
+            <input type="text" id="lastname" class="lnameEntry" placeholder="Smith"><br>
+            <div class="addressTitle">
+                Address
+            </div>
+            <input type="text" id="address" class="addressEntry" placeholder="Street 43"><br>
+            <div class="cityTitle">
+                City
+            </div>
+            <input type="text" id="city" class="cityEntry" placeholder="New York City"><br>
+            <div class="stateTitle">
+                State
+            </div>
+            <input type="text" id="state" class="stateEntry" placeholder="New York"><br>
+            <div class="countryTitle">
+                Country
+            </div>
+            <input type="text" id="country" class="countryEntry" placeholder="United States"><br>
+            <div class="zipcodeTitle">
+                Zipcode
+            </div>
+            <input type="text" id="zipcode" class="zipcodeEntry" placeholder="55129"><br>
+            <div class="cardTitle">
+                Card Number
+            </div>
+            <input type="text" id="cardnumber" class="cardEntry" placeholder="4444444444444444"><br>
+            <div class="expmonthTitle">
+                Expiration Month (mm)
+            </div>
+            <input type="text" id="expmonth" class="expmonthEntry" placeholder="12"><br>
+            <div class="expyearTitle">
+                Expiration Year (yyyy)
+            </div>
+            <input type="text" id="expyear" class="expyearEntry" placeholder="2022"><br>
+            <div class="cvvTitle">
+                CVV
+            </div>
+            <input type="text" id="cvv" class="cvvEntry" placeholder="933"><br>
+            <div class="profilenameTitle">
+                Profile Name
+            </div>
+            <input type="text" id="profilename" class="profilenameEntry" placeholder="Test Profile"><br>
+            <div class="onecheckoutTitle">
+                One Checkout
+            </div>
+            <select class="onecheckoutEntry" id="onecheckout">
+        <option value="false">False</option>
+        <option value="true">True</option>
+      </select>
+            <div class="emailTitle">
+                Email
+            </div>
+            <input type="text" id="email" class="emailEntry" placeholder="test@venetiabots.com"><br>
+            <div class="phoneTitle">
+                Phone Number
+            </div>
+            <input type="text" id="phone" class="phoneEntry" placeholder="7038203899"><br>
+        </form>
+        <button class="saveButton" onclick="createProfile()">Save Profile</button>
+        <label class="importButton" for="upload-photo" style="top: 525px;">Import Profile</label>
+        <input type="file" accept=".json" id="upload-photo" style="opacity:0;position: absolute;z-index: -1;">
+        <button class="clearFields" onclick="clearFields()">Clear Fields</button>
+        <button class="deleteProfile" onclick="deleteProfile()">Delete Profile</button>
+        <div class="profileTable">
+            <table id="profiles2" rules=none>
+
+                <th class="profile2">Profile Name</th>
+
+            </table>
+        </div>
+    </div>
+
+    <div style="display: none" id="proxies">
+        <textarea class="proxyBox" id="proxyListEntry"></textarea>
+        <button class="saveProxies" onclick="saveProxies()">Save Proxies</button>
+        <div class="proxiesTable">
+            <table id="proxies2" rules=none>
+
+                <th class="profile2">Proxy List</th>
+                <th class="profile2">Count</th>
+
+            </table>
+        </div>
+        <div class="proxyListNameTitle">
+            List Name
+        </div>
+        <input type="text" id="proxyListName" class="proxyListName"><br>
+        <button class="clearFields" onclick="clearProxyFields()">Clear Fields</button>
+        <button class="deleteProfile" onclick="deleteProxyList()">Delete Proxy List</button>
+    </div>
+
+    <div style="display: none" id="accounts">
+        <textarea class="proxyBox" id="accountListEntry"></textarea>
+        <button class="saveProxies" onclick="saveAccounts()">Save Accounts</button>
+        <div class="proxiesTable">
+            <table id="accounts2" rules=none>
+
+                <th class="profile2">Account List</th>
+                <th class="profile2">Count</th>
+
+            </table>
+        </div>
+        <div class="proxyListNameTitle">
+            List Name
+        </div>
+        <input type="text" id="accountListName" class="proxyListName"><br>
+        <button class="clearFields" onclick="clearAccountFields()">Clear Fields</button>
+        <button class="deleteProfile" onclick="deleteAccountList()">Delete Account List</button>
+    </div>
+
+    <div style="display: none" id="captchas">
+        <div class="harvesterNameTitle">
+            Harvester Name
+        </div>
+        <input type="text" id="harvesterName" class="harvesterNameEntry"><br>
+        <div class="proxyTitle">
+            Harvester Proxy
+        </div>
+        <div class="capMonster">
+            API Key
+        </div>
+        <select id="apiSelection" class="apiSelection" style="width: 169px">
+                    <option value="CapMonster">CapMonster</option>
+                    <option value="2Captcha">2Captcha</option>
+                  </select>
+        <div class="solvingService">
+            Solving Service
+        </div>
+        <input type="text" id="capMonsterKey" class="capMonsterEntry"><br>
+        <input type="text" id="harvesterProxy" class="proxyEntry"><br>
+        <button class="saveToken" onclick="saveToken()">Save Token</button>
+        <button class="clearFields" onclick="clearHarvesterFields()">Clear Fields</button>
+        <button class="saveProxies" onclick="saveHarvester()">Save Harvester</button>
+        <button class="deleteHarvester" onclick="deleteHarvester()">Delete Harvester</button>
+        <button class="launchHarvester" onclick="launchHarvester()">Launch Harvester</button>
+        <button class="googleSignIn" onclick="googleSignIn()">Youtube Login</button>
+
+
+        <div class="proxiesTable" style="width: 385px;">
+            <table id="captchas2" rules=none>
+
+                <th class="profile2">Harvester Name</th>
+
+            </table>
+        </div>
+    </div>
+
+
+
+
+
+</body>
+
+</html>

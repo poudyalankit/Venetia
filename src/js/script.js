@@ -1,0 +1,2236 @@
+const electron = require('electron');
+
+
+const { ipcRenderer } = electron;
+var path = require('path')
+
+
+const configDir = (electron.app || electron.remote.app).getPath('userData');
+
+var fs = require('fs');
+
+var statusCache = {}
+var titleCache = {}
+if (!fs.existsSync(configDir + "/userdata")) {
+    fs.mkdirSync(configDir + "/userdata");
+}
+
+
+const sleep = (waitTimeInMs) => new Promise(resolve => setTimeout(resolve, waitTimeInMs));
+Array.prototype.sample = function() {
+    return this[Math.floor(Math.random() * this.length)];
+}
+
+
+
+
+function filterTable() {
+    var input, filter;
+    input = document.getElementById("filterInput");
+    filter = input.value.toUpperCase();
+
+    for (i = 1; i < document.getElementById("tasks").rows.length; i++) {
+        if (document.getElementById("tasks").rows[i].cells[0].textContent.toUpperCase().indexOf(filter) > -1 || document.getElementById("tasks").rows[i].cells[1].textContent.toUpperCase().indexOf(filter) > -1 || document.getElementById("tasks").rows[i].cells[2].textContent.toUpperCase().indexOf(filter) > -1 || document.getElementById("tasks").rows[i].cells[3].textContent.toUpperCase().indexOf(filter) > -1 || document.getElementById("tasks").rows[i].cells[4].textContent.toUpperCase().indexOf(filter) > -1 || document.getElementById("tasks").rows[i].cells[5].textContent.toUpperCase().indexOf(filter) > -1 || document.getElementById("tasks").rows[i].cells[6].textContent.toUpperCase().indexOf(filter) > -1 || document.getElementById("tasks").rows[i].cells[7].textContent.toUpperCase().indexOf(filter) > -1) {
+            document.getElementById("tasks").rows[i].style.display = "";
+        } else {
+            document.getElementById("tasks").rows[i].style.display = "none";
+        }
+
+    }
+}
+
+function filterGroups() {
+    var input, filter;
+    input = document.getElementById("filterGroups");
+    filter = input.value.toUpperCase();
+
+    for (i = 0; i < document.getElementById("groups").rows.length; i++) {
+        if (document.getElementById("groups").rows[i].cells[0].children[0].value.toUpperCase().indexOf(filter) > -1) {
+            document.getElementById("groups").rows[i].style.display = "";
+        } else {
+            document.getElementById("groups").rows[i].style.display = "none";
+        }
+
+    }
+}
+
+
+function launchHarvester() {
+    for (var i = 1; i < document.getElementById('captchas2').rows.length; i++) {
+        if (document.getElementById('captchas2').rows[i].cells[0].style.background != '') {
+            var harvesterProxy = document.getElementById('harvesterProxy').value;
+            var harvesterName = document.getElementById('harvesterName').value;
+            ipcRenderer.send('launchHarvester', harvesterName, harvesterProxy)
+        }
+    }
+}
+
+function googleSignIn() {
+    for (var i = 1; i < document.getElementById('captchas2').rows.length; i++) {
+        if (document.getElementById('captchas2').rows[i].cells[0].style.background != '') {
+            var harvesterProxy = document.getElementById('harvesterProxy').value;
+            var harvesterName = document.getElementById('harvesterName').value;
+            ipcRenderer.send('googleSignIn', harvesterName, harvesterProxy)
+        }
+    }
+}
+
+
+function modeChoices() {
+    if (document.getElementById("siteTask").value === "FootLockerCA" || document.getElementById("siteTask").value === "LadyFootLocker" || document.getElementById("siteTask").value === "FootLocker" || document.getElementById("siteTask").value === "EastBay" || document.getElementById("siteTask").value === "ChampsSports" || document.getElementById("siteTask").value === "FootAction" || document.getElementById("siteTask").value === "KidsFootLocker") {
+        var select = document.getElementById("modeTask")
+        document.getElementById("captchaLess").checked = false;
+        document.getElementById("accountTask").disabled = false;
+        document.getElementById("modeTask").disabled = false;
+        document.getElementById("sizeTask").disabled = false;
+        document.getElementById("proxyTask").disabled = false;
+        document.getElementById("profileTask").disabled = false;
+        document.getElementById("quantityTask").disabled = false;
+        document.getElementById("linkTask").disabled = false;
+        select.options.length = 0;
+        select.options[select.options.length] = new Option("Release", "Release");
+        if (document.getElementById("proxyTask").value != "-") {
+            document.getElementById("captchaLessLabel").textContent = "Captchaless"
+            document.getElementById("captchaLess").style = "position: absolute; top: 510px; left:440px; display: block"
+            document.getElementById("captchaLessLabel").style = "position: absolute; top: 513px; font-size: 12px; width: 200px; left: 476px; display: block; color: white;font-family: Poppins;"
+        }
+    }
+
+    if (document.getElementById("siteTask").value === "SSENSE") {
+        var select = document.getElementById("modeTask")
+        document.getElementById("accountTask").disabled = false;
+        document.getElementById("modeTask").disabled = false;
+        document.getElementById("sizeTask").disabled = false;
+        document.getElementById("proxyTask").disabled = false;
+        document.getElementById("profileTask").disabled = false;
+        document.getElementById("quantityTask").disabled = false;
+        document.getElementById("linkTask").disabled = false;
+        select.options.length = 0;
+        select.options[select.options.length] = new Option("Safe", "Safe");
+        // select.options[select.options.length] = new Option("Fast", "Fast");
+        document.getElementById("captchaLess").style = "position: absolute; top: 510px; left:440px; display: block"
+        document.getElementById("captchaLessLabel").style = "position: absolute; top: 513px; font-size: 12px; width: 200px; left: 476px; display: block; color: white;font-family: Poppins;"
+        document.getElementById("captchaLess").checked = false;
+        document.getElementById("captchaLessLabel").textContent = "Card checkout"
+
+    }
+
+    if (document.getElementById("siteTask").value === "Supreme") {
+        var select = document.getElementById("modeTask")
+        document.getElementById("modeTask").disabled = false;
+        document.getElementById("proxyTask").disabled = false;
+        document.getElementById("profileTask").disabled = false;
+        document.getElementById("quantityTask").disabled = false;
+        document.getElementById("linkTask").disabled = false;
+        document.getElementById("sizeTask").disabled = false;
+        var accounts = document.getElementById("accountTask")
+        accounts.options.length = 0;
+        accounts.options[accounts.options.length] = new Option("No Account", "-")
+        select.options.length = 0;
+        select.options[select.options.length] = new Option("Hybrid", "Hybrid");
+        select.options[select.options.length] = new Option("Restock", "Restock");
+        document.getElementById("captchaLess").style = "display: none;"
+        document.getElementById("captchaLessLabel").style = "display: none;"
+        document.getElementById("captchaLess").checked = false;
+    }
+}
+
+function modeChoices2() {
+    if (document.getElementById("siteTask2").value === "FootLockerCA" || document.getElementById("siteTask2").value === "LadyFootLocker" || document.getElementById("siteTask2").value === "FootLocker" || document.getElementById("siteTask2").value === "EastBay" || document.getElementById("siteTask2").value === "ChampsSports" || document.getElementById("siteTask2").value === "FootAction" || document.getElementById("siteTask2").value === "KidsFootLocker") {
+        var select = document.getElementById("modeTask2")
+        document.getElementById("accountTask2").disabled = false;
+        document.getElementById("modeTask2").disabled = false;
+        document.getElementById("sizeTask2").disabled = false;
+        document.getElementById("proxyTask2").disabled = false;
+        document.getElementById("profileTask2").disabled = false;
+        document.getElementById("linkTask2").disabled = false;
+        select.options.length = 0;
+        select.options[select.options.length] = new Option("Release", "Release");
+        if (document.getElementById("proxyTask2").value != "-") {
+            document.getElementById("captchaLessLabel2").textContent = "Captchaless"
+            document.getElementById("captchaLess2").style = "position: absolute; top: 510px; left:440px; display: block"
+            document.getElementById("captchaLessLabel2").style = "position: absolute; top: 513px; font-size: 12px; width: 200px; left: 476px; display: block; color: white;font-family: Poppins;"
+            document.getElementById("captchaLess2").checked = false;
+        }
+    }
+
+    if (document.getElementById("siteTask2").value === "SSENSE") {
+        var select = document.getElementById("modeTask2")
+        document.getElementById("accountTask2").disabled = false;
+        document.getElementById("modeTask2").disabled = false;
+        document.getElementById("sizeTask2").disabled = false;
+        document.getElementById("proxyTask2").disabled = false;
+        document.getElementById("profileTask2").disabled = false;
+        document.getElementById("linkTask2").disabled = false;
+        select.options.length = 0;
+        select.options[select.options.length] = new Option("Safe", "Safe");
+        //select.options[select.options.length] = new Option("PayPal", "PayPal");
+        document.getElementById("captchaLessLabel2").textContent = "Card checkout"
+        document.getElementById("captchaLess2").style = "position: absolute; top: 510px; left:440px; display: block"
+        document.getElementById("captchaLessLabel2").style = "position: absolute; top: 513px; font-size: 12px; width: 200px; left: 476px; display: block; color: white;font-family: Poppins;"
+        document.getElementById("captchaLess2").checked = false;
+    }
+
+    if (document.getElementById("siteTask2").value === "Supreme") {
+        var select = document.getElementById("modeTask2")
+        document.getElementById("modeTask2").disabled = false;
+        document.getElementById("proxyTask2").disabled = false;
+        document.getElementById("profileTask2").disabled = false;
+        document.getElementById("linkTask2").disabled = false;
+        document.getElementById("sizeTask2").disabled = false;
+        var accounts = document.getElementById("accountTask2")
+        accounts.options.length = 0;
+        accounts.options[accounts.options.length] = new Option("No Account", "-")
+        select.options.length = 0;
+        select.options[select.options.length] = new Option("Hybrid", "Hybrid");
+        select.options[select.options.length] = new Option("Restock", "Restock");
+        document.getElementById("captchaLess2").style = "display: none;"
+        document.getElementById("captchaLessLabel2").style = "display: none;"
+        document.getElementById("captchaLess2").checked = false;
+    }
+
+}
+
+
+function minimize() {
+    const remote = require('electron').remote;
+    var window = remote.getCurrentWindow();
+    window.minimize();
+}
+
+function closeIt() {
+    const remote = require('electron').remote;
+    var window = remote.getCurrentWindow();
+    window.close();
+}
+
+function removeNulls(obj) {
+    var isArray = obj instanceof Array;
+    for (var k in obj) {
+        if (obj[k] === null) isArray ? obj.splice(k, 1) : delete obj[k];
+        else if (typeof obj[k] == "object") removeNulls(obj[k]);
+    }
+}
+
+function deleteSelected() {
+    stopSelected()
+    if (document.getElementById('tasks').rows.length === 1)
+        deleteGroup()
+    else {
+        var groupIndex;
+        var groupName;
+        var groups = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/tasks.json'), { encoding: 'utf8', flag: 'r' }));
+        for (var i = 0; i < document.getElementById("groups").rows.length; i++) {
+            if (document.getElementById('groups').rows[i].cells[0].style['border'] === "1px solid rgb(224, 103, 103)") {
+                groupIndex = i;
+                groupName = document.getElementById('groups').rows[i].cells[0].children[0].value
+                break;
+            }
+        }
+        var tasks = document.getElementById("tasks");
+        var rowCount = tasks.rows.length;
+        for (var x = rowCount - 1; x > 0; x--) {
+            if (document.getElementById('tasks').rows[x].cells[0].style['border-left'] === "1px solid rgb(224, 103, 103)") {
+                groups[groupIndex][groupName].splice([x - 1], 1)
+                tasks.deleteRow(x)
+            }
+        }
+        fs.writeFile(path.join(configDir, '/userdata/tasks.json'), JSON.stringify(groups), function(err) {
+            if (err) throw err;
+            console.log('Tasks saved!');
+        });
+
+        document.getElementById('groups').rows[groupIndex].cells[0].children[1].textContent = (document.getElementById('tasks').rows.length - 1).toString() + " tasks"
+    }
+}
+
+
+function taskEditor() {
+    if (document.getElementById('groups').rows.length > 0)
+        document.getElementById("taskEditor").style.display = "block";
+}
+
+
+function cloneSelected() {
+    var fs = require('fs');
+    var gname;
+    var gindex;
+    for (var i = 0; i < document.getElementById('groups').rows.length; i++) {
+        if (document.getElementById('groups').rows[i].cells[0].style['border-left'] === "1px solid rgb(224, 103, 103)") {
+            gname = document.getElementById('groups').rows[i].cells[0].children[0].value
+            gindex = i
+            break;
+        }
+    }
+    var groups = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/tasks.json'), { encoding: 'utf8', flag: 'r' }));
+    for (var i = 0; i < document.getElementById('tasks').rows.length; i++) {
+        if (document.getElementById('tasks').rows[i].cells[0].style['border-left'] === "1px solid rgb(224, 103, 103)") {
+            var id = makeid(5)
+            var task = {
+                [id]: {
+                    "site": document.getElementById('tasks').rows[i].cells[1].textContent,
+                    "mode": document.getElementById('tasks').rows[i].cells[2].textContent,
+                    "product": groups[gindex][gname][i - 1][document.getElementById('tasks').rows[i].cells[0].textContent]['product'],
+                    "size": document.getElementById('tasks').rows[i].cells[4].textContent,
+                    "profile": document.getElementById('tasks').rows[i].cells[5].textContent,
+                    "proxies": document.getElementById('tasks').rows[i].cells[6].textContent,
+                    "accounts": groups[gindex][gname][i - 1][document.getElementById('tasks').rows[i].cells[0].textContent]['accounts']
+                }
+            }
+            var tableRef = document.getElementById('tasks').getElementsByTagName('tbody')[0];
+            var row = tableRef.insertRow()
+            row.innerHTML =
+                "<td>" + id + "</td>" +
+                "<td>" + task[id].site + "</td>" +
+                "<td>" + task[id].mode + "</td>" + "<td class='link'>" + task[id].product + "</td>" +
+                "<td >" + task[id].size + "</td>" +
+                "<td>" + task[id].profile + "</td>" +
+                "<td>" + task[id].proxies + "</td>" +
+                "<td>" + 'Stopped' + "</td>"
+            row.setAttribute("onclick", "selectRow(this)")
+            groups[gindex][gname].push(task)
+        }
+    }
+    fs.writeFile(path.join(configDir, '/userdata/tasks.json'), JSON.stringify(groups), function(err) {
+        if (err) throw err;
+        console.log('Tasks saved!');
+    });
+
+    document.getElementById('groups').rows[gindex].cells[0].children[1].textContent = (document.getElementById('tasks').rows.length - 1).toString() + " tasks"
+
+}
+
+function update() {
+    ipcRenderer.send('update')
+}
+
+function deleteProfile() {
+    for (var i = 1; i < document.getElementById('profiles2').rows.length; i++) {
+        if (document.getElementById('profiles2').rows[i].cells[0].style.background != '') {
+            document.getElementById("profiles2").deleteRow(i);
+            var fs = require('fs')
+            fs.readFile(path.join(configDir, '/userdata/profiles.json'), 'utf-8', (err, data) => {
+                if (err) throw err;
+                x = JSON.parse(data);
+                for (var j = 0; j < x.length; j++) {
+
+                    if (x[j].name === document.getElementById("profilename").value) {
+
+                        x.splice(j, 1);
+                    }
+
+                }
+                clearFields()
+
+                fs.writeFile(path.join(configDir, '/userdata/profiles.json'), JSON.stringify(x), function(err) {
+                    if (err) throw err;
+                    console.log('The "data to append" was appended to file!');
+                });
+
+            });
+        }
+    }
+
+
+
+}
+
+
+function reverify() {
+    var fs = require('fs');
+    fs.readFile(path.join(configDir, '/userdata/key.txt'), 'utf-8', (err, data) => {
+        if (err) throw err;
+        var key = data;
+        ipcRenderer.send('reverify', key)
+    });
+}
+
+
+function handleNonLeftClick(e) {
+    // e.button will be 1 for the middle mouse button.
+    if (e.button === 1) {
+        e.preventDefault();
+
+    }
+}
+
+function stopOpen(e) {
+    if (e.button === 0 && e.ctrlKey) {
+        e.preventDefault();
+    }
+}
+
+
+
+window.onload = function() {
+    setInterval(reverify, 20000)
+    document.addEventListener("auxclick", handleNonLeftClick);
+    document.addEventListener("click", stopOpen);
+
+    document.addEventListener('keydown', function(event) {
+        //  if (event.ctrlKey && event.key === 'r') {
+        //      event.preventDefault()
+        //}
+
+        if (document.getElementById('taskView').style.display === "block") {
+            if (event.ctrlKey && event.key === 'f') {
+                if (document.getElementById("taskCreator").style.display != "block")
+                    if (document.getElementById('editButton').disabled === false)
+                        taskEditor()
+            }
+            if (event.ctrlKey && event.key === 'g') {
+                if (document.getElementById("taskCreator").style.display != "block")
+                    cloneSelected()
+            }
+            if (event.ctrlKey && event.key === 't') {
+                if (document.getElementById("taskCreator").style.display != "block")
+                    addGroup()
+            }
+            if (event.ctrlKey && event.key === 'w') {
+                event.preventDefault()
+                if (document.getElementById("taskCreator").style.display != "block")
+                    deleteGroup()
+                else if (document.getElementById("taskCreator").style.display != "none")
+                    closeModal()
+            }
+            if (event.ctrlKey && event.key === 'q') {
+                if (document.getElementById('createButton').disabled === false)
+                    taskCreator()
+            }
+            if (event.ctrlKey && event.key === 'x') {
+                if (document.getElementById("taskCreator").style.display != "block")
+                    stopSelected()
+            }
+            if (event.ctrlKey && event.key === 'z') {
+                if (document.getElementById("taskCreator").style.display != "block")
+                    startSelected()
+            }
+            if (event.ctrlKey && event.key === 'd') {
+                if (document.getElementById("taskCreator").style.display != "block")
+                    deleteSelected()
+            }
+            if (event.ctrlKey && event.key === 's') {
+                for (var i = 1; i < document.getElementById('tasks').rows.length; i++) {
+                    if (document.getElementById("taskCreator").style.display != "block")
+                        deselectAll(document.getElementById('tasks').rows[i])
+                }
+            }
+            if (event.ctrlKey && event.key === 'a') {
+                if (document.activeElement.tagName != "INPUT") {
+                    event.preventDefault()
+                    for (var i = 1; i < document.getElementById('tasks').rows.length; i++) {
+                        if (document.getElementById("taskCreator").style.display != "block")
+                            selectAll(document.getElementById('tasks').rows[i])
+                    }
+                }
+            }
+        }
+    });
+
+
+    window.$ = window.jQuery = require('jquery');
+    const shell = require('electron').shell;
+
+    $(document).bind("contextmenu", function(event) {
+
+        event.preventDefault();
+        if ($(event.target).is("[menu]")) {
+            $(".custom-menu").finish().toggle(100).
+
+            css({
+                top: event.pageY + "px",
+                left: event.pageX + "px"
+            });
+        }
+    });
+
+
+    $(document).bind("mousedown", function(e) {
+        if (!$(e.target).parents(".custom-menu").length > 0) {
+
+            $(".custom-menu").hide(100);
+        }
+    });
+
+
+    $(".custom-menu li").click(function() {
+
+        switch ($(this).attr("data-action")) {
+
+            // A case for each action. Your actions here
+            case "first":
+                addGroup()
+                break;
+            case "second":
+                deleteGroup();
+                break;
+        }
+
+        $(".custom-menu").hide(100);
+    });
+    $(document).on('click', 'a[href^="http"]', function(event) {
+        event.preventDefault();
+        shell.openExternal(this.href);
+    });
+    require('select2')($);
+
+
+    $('#siteTask').select2({
+        placeholder: "Select site"
+    });
+
+    $('#accountTask').select2({
+        placeholder: "Select accounts"
+    });
+
+    $('#modeTask').select2({
+        placeholder: "Select mode"
+    });
+
+    $('#sizeTask').select2({
+        placeholder: "Select size"
+    });
+
+    $('#profileTask').select2({
+        placeholder: "Select profile"
+    });
+
+    $('#proxyTask').select2({
+        placeholder: "Select proxies"
+    });
+
+
+    $('#siteTask2').select2({
+        placeholder: "Select site"
+    });
+
+    $('#accountTask2').select2({
+        placeholder: "Select accounts"
+    });
+
+    $('#modeTask2').select2({
+        placeholder: "Select mode"
+    });
+
+    $('#sizeTask2').select2({
+        placeholder: "Select size"
+    });
+
+    $('#profileTask2').select2({
+        placeholder: "Select profile"
+    });
+
+    $('#proxyTask2').select2({
+        placeholder: "Select proxies"
+    });
+
+
+
+    const inputElement = document.getElementById("upload-photo");
+    inputElement.addEventListener("change", getFile);
+
+    function getFile(event) {
+        const input = event.target
+        if ('files' in input && input.files.length > 0) {
+            placeFileContent(input.files[0])
+        }
+    }
+
+    function placeFileContent(file) {
+        readFileContent(file).then(content => {
+            fs.readFile(path.join(configDir, '/userdata/profiles.json'), 'utf-8', (err, data) => {
+                if (err) throw err;
+                x = JSON.parse(data);
+                for (var i = 0; i < JSON.parse(content).length; i++) {
+                    x.push(JSON.parse(content)[i])
+                    var tableRef = document.getElementById('profiles2').getElementsByTagName('tbody')[0];
+                    tableRef.insertRow().innerHTML =
+                        "<td onclick='showProfile(this.textContent)' style='padding-bottom: 5px'>" + JSON.parse(content)[i].name + "</td>"
+
+                }
+                fs.writeFile(path.join(configDir, '/userdata/profiles.json'), JSON.stringify(x), function(err) {
+                    if (err) throw err;
+                    console.log('The "data to append" was appended to file!');
+
+                });
+
+            });
+        }).catch(error => console.log(error))
+    }
+
+    function readFileContent(file) {
+        const reader = new FileReader()
+        return new Promise((resolve, reject) => {
+            reader.onload = event => resolve(event.target.result)
+            reader.onerror = error => reject(error)
+            reader.readAsText(file)
+        })
+    }
+
+
+    var fs = require('fs');
+
+
+
+    fs.readFile(path.join(configDir, '/userdata/profiles.json'), 'utf-8', (err, data) => {
+        if (err) {
+            fs.writeFile(path.join(configDir, '/userdata/profiles.json'), JSON.stringify([]), function(err) {})
+            throw err;
+        }
+        var x = JSON.parse(data);
+        for (var i = 0; i < x.length; i++) {
+
+            var tableRef = document.getElementById('profiles2').getElementsByTagName('tbody')[0];
+            tableRef.insertRow().innerHTML =
+                "<td onclick='showProfile(this.textContent)' style='padding-bottom: 5px'>" + x[i].name + "</td>"
+        }
+
+    });
+
+
+
+
+
+
+    fs.readFile(path.join(configDir, '/userdata/proxies.json'), 'utf-8', (err, data) => {
+        if (err) {
+            fs.writeFile(path.join(configDir, '/userdata/proxies.json'), JSON.stringify([]), function(err) {})
+
+            throw err;
+        }
+        var x = JSON.parse(data);
+        for (var i = 0; i < x.length; i++) {
+            var tableRef = document.getElementById('proxies').getElementsByTagName('tbody')[0];
+            tableRef.insertRow().innerHTML =
+                "<td onclick='showProxies(this.textContent)' style='padding-bottom: 5px'>" + x[i].name + "</td>" +
+                "<td onclick='showProxiesbyCount(this)' style='padding-bottom: 5px'>" + x[i].proxies.length + "</td>"
+        }
+    });
+
+    fs.readFile(path.join(configDir, '/userdata/accounts.json'), 'utf-8', (err, data) => {
+        if (err) {
+            fs.writeFile(path.join(configDir, '/userdata/accounts.json'), JSON.stringify([]), function(err) {})
+
+            throw err;
+        }
+        var x = JSON.parse(data);
+        for (var i = 0; i < x.length; i++) {
+            var tableRef = document.getElementById('accounts').getElementsByTagName('tbody')[0];
+            tableRef.insertRow().innerHTML =
+                "<td onclick='showAccounts(this.textContent)' style='padding-bottom: 5px'>" + x[i].name + "</td>" +
+                "<td onclick='showAccountsbyCount(this)' style='padding-bottom: 5px'>" + x[i].account.length + "</td>"
+        }
+    });
+
+    fs.readFile(path.join(configDir, '/userdata/harvesters.json'), 'utf-8', (err, data) => {
+        if (err) {
+            fs.writeFile(path.join(configDir, '/userdata/harvesters.json'), JSON.stringify([]), function(err) {})
+            throw err;
+        }
+        var x = JSON.parse(data);
+        for (var i = 0; i < x.length; i++) {
+
+            var tableRef = document.getElementById('captchas2').getElementsByTagName('tbody')[0];
+            tableRef.insertRow().innerHTML =
+                "<td onclick='showHarvesters(this.textContent)' style='padding-bottom: 5px'>" + x[i].name + "</td>"
+        }
+
+    });
+
+    fs.readFile(path.join(configDir, '/userdata/logs.txt'), 'utf-8', (err, data) => {
+        if (err) {
+            fs.writeFile(path.join(configDir, '/userdata/logs.txt'), "", function(err) {})
+            throw err;
+        }
+    })
+
+    fs.readFile(path.join(configDir, '/userdata/tasks.json'), 'utf-8', (err, data) => {
+        if (err) {
+            fs.writeFile(path.join(configDir, '/userdata/tasks.json'), JSON.stringify([]), function(err) {})
+            throw err;
+        }
+        var tasks = JSON.parse(data);
+        for (var i = 0; i < tasks.length; i++) {
+            var tableRef = document.getElementById('groups').getElementsByTagName('tbody')[0];
+            var row = tableRef.insertRow()
+            var edit = "this.readOnly='';"
+            var onblur = "this.readOnly='true';"
+            var edit2 = "editGroup(this);"
+            row.innerHTML =
+                "<td menu='true'>" +
+                "<input class='groupNameInput' type='text' onblur=" + onblur + edit2 + " readonly='true' ondblclick=" + edit + " menu='true' value='" + Object.keys(tasks[i])[0] + "'>" +
+                "<div class='groupTaskAmount' menu='true'>" + tasks[i][Object.keys(tasks[i])[0]].length + " tasks</div>" +
+                "</td>"
+            row.setAttribute("onclick", "viewGroup(this)")
+        }
+    })
+
+
+    fs.readFile(path.join(configDir, '/userdata/webhook.txt'), 'utf-8', (err, data) => {
+        if (err) {
+            fs.writeFile(path.join(configDir, '/userdata/webhook.txt'), "", function(err) {})
+            throw err;
+        }
+        var webhookLink = data;
+        document.getElementById("webhookLink").value = webhookLink;
+    });
+
+    fs.readFile(path.join(configDir, '/userdata/apiKey.json'), 'utf-8', (err, data) => {
+        if (err) {
+            fs.writeFile(path.join(configDir, '/userdata/apiKey.json'), JSON.stringify([{ "service": '', "apiKey": '' }]), function(err) {})
+            throw err;
+        }
+        data = JSON.parse(data)
+        document.getElementById("capMonsterKey").value = data[0].apiKey;
+        document.getElementById("apiSelection").value = data[0].service;
+    });
+
+    analytics()
+};
+
+function updateAnalytics() {
+    var fs = require('fs');
+    const got = require('got');
+    var key = fs.readFileSync(path.join(configDir, '/userdata/key.txt'), 'utf8');
+
+
+    got({
+            method: 'get',
+            url: 'https://venetiabots.com/api/analytics?key=' + key,
+            responseType: 'json'
+        }).then(response => {
+            let declines = response.body.declines
+            let success = response.body.success
+            document.getElementById("totalFailures2").textContent = declines.length.toString()
+            document.getElementById("totalCheckouts2").textContent = success.length.toString()
+            var total = 0;
+            for (var i = success.length - 1; i >= 0; i--) {
+                total += success[i]['Price']
+                var tableRef = document.getElementById('checkoutsTable').getElementsByTagName('tbody')[0];
+                var d = new Date(success[i]['Date'])
+                var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+                var checkoutDate = months[d.getMonth()] + " " + d.getDay()
+                tableRef.insertRow().innerHTML =
+                    "<td class='checkouts'>" + success[i]['Product'] + "</td>" + "<td>" + success[i]['Site'] + "</td>" + "<td>" + success[i]['Price'] + "</td>" +
+                    "<td>" + success[i]['Size'] + "</td>" + "<td>" + checkoutDate + "</td>"
+            }
+            document.getElementById("totalSpent").textContent = "$" + total.toString()
+            var checkouts = [0, 0, 0, 0]
+            for (var i = 1; i < document.getElementById('checkoutsTable').rows.length; i++) {
+                if (document.getElementById('checkoutsTable').rows[i].cells[4].textContent.includes("Jan"))
+                    checkouts[0]++
+                    else if (document.getElementById('checkoutsTable').rows[i].cells[4].textContent.includes("Feb"))
+                        checkouts[1]++
+                        else if (document.getElementById('checkoutsTable').rows[i].cells[4].textContent.includes("Mar"))
+                            checkouts[2]++
+                            else if (document.getElementById('checkoutsTable').rows[i].cells[4].textContent.includes("Apr"))
+                                checkouts[3]++
+            }
+            const Chart = require('chart.js')
+            var ctx = document.getElementById('myChart').getContext('2d');
+            var myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr'],
+                    datasets: [{
+                        label: 'Checkouts per Month',
+                        data: checkouts,
+                        backgroundColor: [
+                            'rgba(224, 103, 103, 0.1)'
+                        ],
+                        borderColor: [
+                            'rgba(224, 103, 103, 1)'
+                        ],
+                        pointBackgroundColor: [
+                            'rgba(224, 103, 103, 1)'
+                        ],
+                        pointHoverBackgroundColor: [
+                            'rgba(224, 103, 103, 1)'
+                        ],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    scales: {
+                        yAxes: [{
+                            ticks: {
+                                beginAtZero: true
+                            }
+                        }]
+                    }
+                }
+            });
+        })
+        .catch(error => {
+            console.log(error)
+        })
+}
+
+
+function makeid(length) {
+    var result = '';
+    var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    var charactersLength = characters.length;
+    for (var i = 0; i < length; i++) {
+        result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
+}
+
+
+function showProfile(profileName) {
+    var fs = require('fs');
+    fs.readFile(path.join(configDir, '/userdata/profiles.json'), 'utf-8', (err, data) => {
+        if (err) throw err;
+        x = JSON.parse(data);
+
+        for (var i = 0; i < x.length; i++) {
+            document.getElementById('profiles2').rows[i + 1].cells[0].style.background = '';
+        }
+
+        for (var i = 0; i < x.length; i++) {
+            if (x[i].name === profileName) {
+                document.getElementById('profiles2').rows[i + 1].cells[0].style.background = '#181a26';
+                document.getElementById('firstname').value = x[i].delivery.firstName;
+                document.getElementById('lastname').value = x[i].delivery.lastName;
+                document.getElementById('address').value = x[i].delivery.address1;
+                document.getElementById('city').value = x[i].delivery.city;
+                document.getElementById('zipcode').value = x[i].delivery.zip;
+                document.getElementById('country').value = x[i].delivery.country;
+                document.getElementById('state').value = x[i].delivery.state;
+                document.getElementById('cardnumber').value = x[i].card.number;
+                document.getElementById('expmonth').value = x[i].card.expiryMonth;
+                document.getElementById('expyear').value = x[i].card.expiryYear;
+                document.getElementById('cvv').value = x[i].card.cvv;
+                document.getElementById('profilename').value = x[i].name;
+                document.getElementById('onecheckout').value = x[i].singleCheckout;
+                document.getElementById('email').value = x[i].email;
+                document.getElementById('phone').value = x[i].phone;
+                break;
+            }
+        }
+    });
+}
+
+
+
+function showHarvesters(harvesterName) {
+    clearHarvesterFields()
+    var fs = require('fs');
+    fs.readFile(path.join(configDir, '/userdata/harvesters.json'), 'utf-8', (err, data) => {
+        if (err) throw err;
+        x = JSON.parse(data);
+
+        for (var i = 0; i < x.length; i++) {
+            document.getElementById('captchas2').rows[i + 1].cells[0].style.background = '';
+        }
+
+        for (var i = 0; i < x.length; i++) {
+            if (x[i].name === harvesterName) {
+                document.getElementById('captchas2').rows[i + 1].cells[0].style.background = '#181a26';
+                document.getElementById('harvesterName').value = x[i].name;
+                document.getElementById('harvesterProxy').value = x[i].proxy;
+                break;
+            }
+        }
+    });
+}
+
+function showAccounts(accountName) {
+    clearAccountFields();
+    document.getElementById('accountListName').value = accountName;
+    var fs = require('fs');
+    fs.readFile(path.join(configDir, '/userdata/accounts.json'), 'utf-8', (err, data) => {
+        if (err) throw err;
+        x = JSON.parse(data);
+        for (var i = 0; i < x.length; i++) {
+            document.getElementById('accounts2').rows[i + 1].cells[0].style.background = '';
+            document.getElementById('accounts2').rows[i + 1].cells[1].style.background = ''
+        }
+
+        for (var i = 0; i < x.length; i++) {
+            if (x[i].name === accountName) {
+                document.getElementById('accounts2').rows[i + 1].cells[0].style.background = '#181a26'
+                document.getElementById('accounts2').rows[i + 1].cells[1].style.background = '#181a26'
+                for (var j = 0; j < x[i].account.length; j++) {
+                    document.getElementById("accountListEntry").value += x[i].account[j].email + ":" + x[i].account[j].password
+                    if (j != x[i].account.length - 1) {
+                        document.getElementById("accountListEntry").value += "\n"
+                    }
+                }
+                break;
+            }
+        }
+    });
+}
+
+function showProxies(proxyName) {
+    clearProxyFields();
+    document.getElementById('proxyListName').value = proxyName;
+    var fs = require('fs');
+
+
+
+    fs.readFile(path.join(configDir, '/userdata/proxies.json'), 'utf-8', (err, data) => {
+        if (err) throw err;
+        x = JSON.parse(data);
+
+        for (var i = 0; i < x.length; i++) {
+            document.getElementById('proxies2').rows[i + 1].cells[0].style.background = '';
+            document.getElementById('proxies2').rows[i + 1].cells[1].style.background = ''
+        }
+
+        for (var i = 0; i < x.length; i++) {
+            if (x[i].name === proxyName) {
+                document.getElementById('proxies2').rows[i + 1].cells[0].style.background = '#181a26'
+                document.getElementById('proxies2').rows[i + 1].cells[1].style.background = '#181a26'
+                for (var j = 0; j < x[i].proxies.length; j++) {
+                    document.getElementById("proxyListEntry").value += x[i].proxies[j].ip + ":" + x[i].proxies[j].port
+                    if (x[i].proxies[j].username != null || x[i].proxies[j].password != null) {
+                        document.getElementById("proxyListEntry").value += ":" + x[i].proxies[j].username + ":" + x[i].proxies[j].password;
+                    }
+                    if (j != x[i].proxies.length - 1) {
+                        document.getElementById("proxyListEntry").value += "\n"
+                    }
+                }
+            }
+        }
+
+
+    });
+}
+
+function showProxiesbyCount(proxyCount) {
+    var x = proxyCount.closest("tr")
+    showProxies(x.cells[0].textContent)
+}
+
+function showAccountsbyCount(accountCount) {
+    var x = accountCount.closest("tr")
+    showAccounts(x.cells[0].textContent)
+}
+
+function changeColor(row, event) {
+
+    /*  if (event.shiftKey) {
+          var startRowIndex;
+          for (var i = 0; i < document.getElementById("tasks").rows.length; i++) {
+              if (document.getElementById("tasks").rows[i].cells[0].children[0].checked == true) {
+                  startRowIndex = i;
+                  break;
+              }
+          }
+          console.log(row.closest("tr").rowIndex)
+          if (startRowIndex < row.closest("tr").rowIndex)
+              for (var j = startRowIndex; j <= row.closest("tr").rowIndex; j++) {
+                  if (document.getElementById('tasks').rows[j].style.display != "none") {
+                      document.getElementById("tasks").rows[j].cells[0].children[0].checked = true;
+                      document.getElementById("tasks").rows[j].cells[0].children[0].style.background = "#e06767";
+                  }
+              }
+          else {
+              for (var i = 0; i < document.getElementById("tasks").rows.length; i++) {
+                  if (document.getElementById("tasks").rows[i].cells[0].children[0].checked == true && i != row.closest("tr").rowIndex) {
+                      startRowIndex = i;
+                      break;
+                  }
+              }
+              for (var j = row.closest("tr").rowIndex; j <= startRowIndex; j++) {
+                  if (document.getElementById('tasks').rows[j].style.display != "none") {
+                      document.getElementById("tasks").rows[j].cells[0].children[0].checked = true;
+                      document.getElementById("tasks").rows[j].cells[0].children[0].style.background = "#e06767";
+                  }
+              }
+          }
+      }*/
+    if (row.checked == true) {
+        row.style.background = "#e06767"
+    }
+
+    if (row.checked == false) {
+        row.style.background = "#292c3f"
+    }
+
+}
+
+
+function saveWebhook() {
+    var fs = require('fs');
+    var webhookLink = document.getElementById("webhookLink").value;
+    fs.writeFile(path.join(configDir, '/userdata/webhook.txt'), webhookLink, function(err) {
+        if (err) throw err;
+        console.log('Webhook saved!');
+    });
+
+    const got = require('got');
+    var webhooks = webhookLink.split(",")
+    for (var i = 0; i < webhooks.length; i++) {
+        got({
+                method: 'post',
+                url: webhooks[i].trim(),
+                json: {
+                    "content": null,
+                    "embeds": [{
+                        "title": "Venetia Test Notification! :tada:",
+                        "color": 5230481,
+                        "fields": [{
+                                "name": "Site",
+                                "value": "FootLocker"
+                            },
+                            {
+                                "name": "Mode",
+                                "value": "Release"
+                            },
+                            {
+                                "name": "Product",
+                                "value": "Nike Air Force 1 07 LE Low - Women's",
+                                "inline": true
+                            },
+                            {
+                                "name": "Query",
+                                "value": 'D8959100',
+                                "inline": true
+                            },
+                            {
+                                "name": "Size",
+                                "value": 'Random'
+                            },
+                            {
+                                "name": "Price",
+                                "value": '90'
+                            },
+                            {
+                                "name": "Profile",
+                                "value": '||TEST||'
+                            },
+                            {
+                                "name": "Proxy List",
+                                "value": "||LEAF||"
+                            }
+                        ],
+                        "footer": {
+                            "text": "Powered by Venetia",
+                            "icon_url": "https://i.imgur.com/6h06tuW.png"
+                        },
+                        "timestamp": new Date(Date.now()).toISOString(),
+                        "thumbnail": {
+                            "url": "https://images.footlocker.com/pi/D8959100/large/D8959100.jpeg"
+                        }
+                    }],
+                    "username": "Venetia",
+                    "avatar_url": "https://i.imgur.com/6h06tuW.png"
+                }
+            }).then(response => {
+                console.log("Finished sending webhook")
+            })
+            .catch(error => {
+                console.log(error)
+            })
+    }
+
+}
+
+function saveToken() {
+    var fs = require('fs');
+    var x = JSON.stringify([{ "service": document.getElementById("apiSelection").value, "apiKey": document.getElementById("capMonsterKey").value }])
+    fs.writeFile(path.join(configDir, '/userdata/apiKey.json'), x, function(err) {
+        if (err) throw err;
+        console.log('Saved!');
+    });
+}
+
+
+
+function createProfile() {
+    var fs = require('fs');
+
+    var profile;
+    var x;
+    fs.readFile(path.join(configDir, '/userdata/profiles.json'), 'utf-8', (err, data) => {
+        if (err) throw err;
+        x = JSON.parse(data);
+        profile = x;
+
+        for (var i = 0; i < x.length; i++) {
+            if (x[i].name === document.getElementById('profilename').value) {
+                profile[i].delivery.firstName = document.getElementById('firstname').value;
+                profile[i].delivery.lastName = document.getElementById('lastname').value
+                profile[i].delivery.address1 = document.getElementById('address').value;
+                profile[i].delivery.city = document.getElementById('city').value;
+                profile[i].delivery.zip = document.getElementById('zipcode').value;
+                profile[i].delivery.country = document.getElementById('country').value;
+                profile[i].delivery.state = document.getElementById('state').value;
+                profile[i].card.number = document.getElementById('cardnumber').value;
+                profile[i].card.expiryMonth = document.getElementById('expmonth').value;
+                profile[i].card.expiryYear = document.getElementById('expyear').value;
+                profile[i].card.cvv = document.getElementById('cvv').value;
+                profile[i].name = document.getElementById('profilename').value;
+                profile[i].singleCheckout = document.getElementById('onecheckout').value;
+                profile[i].email = document.getElementById('email').value;
+                profile[i].phone = document.getElementById('phone').value;
+
+                var checker = true;
+
+                fs.writeFile(path.join(configDir, '/userdata/profiles.json'), JSON.stringify(profile), function(err) {
+                    if (err) throw err;
+                });
+            }
+        }
+        if (!checker) {
+            var firstname = document.getElementById('firstname').value;
+            var lastname = document.getElementById('lastname').value
+            var address = document.getElementById('address').value;
+            var city = document.getElementById('city').value;
+            var zipcode = document.getElementById('zipcode').value;
+            var country = document.getElementById('country').value;
+            var state = document.getElementById('state').value;
+            var cardnumber = document.getElementById('cardnumber').value;
+            var expmonth = document.getElementById('expmonth').value;
+            var expyear = document.getElementById('expyear').value;
+            var cvv = document.getElementById('cvv').value;
+            var profilename = document.getElementById('profilename').value;
+            var singleCheckout = document.getElementById('onecheckout').value
+            var email = document.getElementById('email').value
+            var phone = document.getElementById('phone').value
+            var jsonStr = { "name": profilename, "email": email, "phone": phone, "singleCheckout": singleCheckout, "billingDifferent": false, "card": { "number": cardnumber, "expiryMonth": expmonth, "expiryYear": expyear, "cvv": cvv }, "delivery": { "firstName": firstname, "lastName": lastname, "address1": address, "address2": null, "zip": zipcode, "city": city, "country": country, "state": state }, "billing": { "firstName": null, "lastName": null, "address1": null, "address2": null, "zip": null, "city": null, "country": null, "state": null } }
+
+            fs.readFile(path.join(configDir, '/userdata/profiles.json'), 'utf-8', (err, data) => {
+                if (err) throw err;
+                x = JSON.parse(data);
+                x.push(jsonStr)
+
+                fs.writeFile(path.join(configDir, '/userdata/profiles.json'), JSON.stringify(x), function(err) {
+                    if (err) throw err;
+                    console.log('The "data to append" was appended to file!');
+                    var tableRef = document.getElementById('profiles2').getElementsByTagName('tbody')[0];
+                    tableRef.insertRow().innerHTML =
+                        "<td onclick='showProfile(this.textContent)' style='padding-bottom: 5px'>" + profilename + "</td>"
+                });
+
+            });
+
+
+
+        }
+    });
+
+
+}
+
+function selectRow(row) {
+    if (row.children[0].style['border-left'] === "1px solid rgb(224, 103, 103)") {
+        row.children[0].style.border = "0"
+        row.children[1].style.border = "0"
+        row.children[2].style.border = "0"
+        row.children[3].style.border = "0"
+        row.children[4].style.border = "0"
+        row.children[5].style.border = "0"
+        row.children[6].style.border = "0"
+        row.children[7].style.border = "0"
+    } else {
+        row.children[0].style['border-left'] = "1px solid #e06767"
+        row.children[0].style['border-bottom'] = "1px solid #e06767"
+        row.children[0].style['border-top'] = "1px solid #e06767"
+        row.children[7].style['border-right'] = "1px solid #e06767"
+        row.children[7].style['border-top'] = "1px solid #e06767"
+        row.children[7].style['border-bottom'] = "1px solid #e06767"
+        row.children[1].style['border-top'] = "1px solid #e06767"
+        row.children[1].style['border-bottom'] = "1px solid #e06767"
+        row.children[2].style['border-top'] = "1px solid #e06767"
+        row.children[2].style['border-bottom'] = "1px solid #e06767"
+        row.children[3].style['border-top'] = "1px solid #e06767"
+        row.children[3].style['border-bottom'] = "1px solid #e06767"
+        row.children[4].style['border-top'] = "1px solid #e06767"
+        row.children[4].style['border-bottom'] = "1px solid #e06767"
+        row.children[5].style['border-top'] = "1px solid #e06767"
+        row.children[5].style['border-bottom'] = "1px solid #e06767"
+        row.children[6].style['border-top'] = "1px solid #e06767"
+        row.children[6].style['border-bottom'] = "1px solid #e06767"
+    }
+}
+
+
+function selectAll(row) {
+    row.children[0].style['border-left'] = "1px solid #e06767"
+    row.children[0].style['border-bottom'] = "1px solid #e06767"
+    row.children[0].style['border-top'] = "1px solid #e06767"
+    row.children[7].style['border-right'] = "1px solid #e06767"
+    row.children[7].style['border-top'] = "1px solid #e06767"
+    row.children[7].style['border-bottom'] = "1px solid #e06767"
+    row.children[1].style['border-top'] = "1px solid #e06767"
+    row.children[1].style['border-bottom'] = "1px solid #e06767"
+    row.children[2].style['border-top'] = "1px solid #e06767"
+    row.children[2].style['border-bottom'] = "1px solid #e06767"
+    row.children[3].style['border-top'] = "1px solid #e06767"
+    row.children[3].style['border-bottom'] = "1px solid #e06767"
+    row.children[4].style['border-top'] = "1px solid #e06767"
+    row.children[4].style['border-bottom'] = "1px solid #e06767"
+    row.children[5].style['border-top'] = "1px solid #e06767"
+    row.children[5].style['border-bottom'] = "1px solid #e06767"
+    row.children[6].style['border-top'] = "1px solid #e06767"
+    row.children[6].style['border-bottom'] = "1px solid #e06767"
+}
+
+
+function deselectAll(row) {
+    row.children[0].style.border = "0"
+    row.children[1].style.border = "0"
+    row.children[2].style.border = "0"
+    row.children[3].style.border = "0"
+    row.children[4].style.border = "0"
+    row.children[5].style.border = "0"
+    row.children[6].style.border = "0"
+    row.children[7].style.border = "0"
+}
+
+
+function saveAccounts() {
+    var fs = require('fs');
+    var checker;
+    var accounts;
+    var x;
+    fs.readFile(path.join(configDir, '/userdata/accounts.json'), 'utf-8', (err, data) => {
+        if (err) throw err;
+        x = JSON.parse(data);
+        var accounts = []
+        overallaccounts = x;
+
+        for (var i = 0; i < x.length; i++) {
+            if (x[i].name === document.getElementById('accountListName').value) {
+                checker = true;
+                overallaccounts[i].account.length = 0;
+                var accountsbyLines = document.getElementById('accountListEntry').value.split(/\n/)
+                for (var j = 0; j < accountsbyLines.length; j++) {
+                    var accountsbyColon = accountsbyLines[j].split(':');
+                    var jsonStr = {
+                        "email": accountsbyColon[0],
+                        "password": accountsbyColon[1]
+                    }
+                    overallaccounts[i].account.push(jsonStr)
+                }
+                fs.writeFile(path.join(configDir, '/userdata/accounts.json'), JSON.stringify(overallaccounts), function(err) {
+                    if (err) throw err;
+                });
+                document.getElementById('accounts2').rows[i + 1].cells[1].textContent = overallaccounts[i].account.length;
+                break;
+            }
+        }
+        if (!checker) {
+            var accountListName = document.getElementById('accountListName').value;
+            var x2 = {
+                "name": accountListName,
+                "account": []
+            }
+
+
+            var accountbyLines = document.getElementById('accountListEntry').value.split(/\n/)
+            for (var j = 0; j < accountbyLines.length; j++) {
+                var accountbyColon = accountbyLines[j].split(':');
+                var jsonStr = {
+                    "email": accountbyColon[0],
+                    "password": accountbyColon[1]
+                }
+                x2.account.push(jsonStr)
+            }
+
+            fs.readFile(path.join(configDir, '/userdata/accounts.json'), 'utf-8', (err, data) => {
+                if (err) throw err;
+                x3 = JSON.parse(data);
+                x3.push(x2)
+
+                fs.writeFile(path.join(configDir, '/userdata/accounts.json'), JSON.stringify(x3), function(err) {
+                    if (err) throw err;
+                    console.log('The "data to append" was appended to file!');
+                    var tableRef = document.getElementById('accounts2').getElementsByTagName('tbody')[0];
+                    tableRef.insertRow().innerHTML =
+                        "<td onclick='showAccounts(this.textContent)' style='padding-bottom: 5px'>" + accountListName + "</td>" +
+                        "<td onclick='showAccountsbyCount(this)' style='padding-bottom: 5px'>" + accountbyLines.length + "</td>"
+                });
+            });
+        }
+    });
+}
+
+function saveHarvester() {
+    var fs = require('fs');
+    var checker;
+    var harvester;
+    var x;
+    fs.readFile(path.join(configDir, '/userdata/harvesters.json'), 'utf-8', (err, data) => {
+        if (err) throw err;
+        x = JSON.parse(data);
+        harvester = x;
+
+        for (var i = 0; i < x.length; i++) {
+            if (x[i].name === document.getElementById('harvesterName').value) {
+                harvester[i].name = document.getElementById('harvesterName').value;
+                harvester[i].proxy = document.getElementById('harvesterProxy').value;
+
+                checker = true;
+
+                fs.writeFile(path.join(configDir, '/userdata/harvesters.json'), JSON.stringify(harvester), function(err) {
+                    if (err) throw err;
+                });
+            }
+        }
+        if (!checker) {
+            var harvesterName = document.getElementById('harvesterName').value;
+            var harvesterProxy = document.getElementById('harvesterProxy').value;
+            var jsonStr = { "name": harvesterName, "proxy": harvesterProxy }
+
+            fs.readFile(path.join(configDir, '/userdata/harvesters.json'), 'utf-8', (err, data) => {
+                if (err) throw err;
+                x = JSON.parse(data);
+                x.push(jsonStr)
+
+                fs.writeFile(path.join(configDir, '/userdata/harvesters.json'), JSON.stringify(x), function(err) {
+                    if (err) throw err;
+                    console.log('The "data to append" was appended to file!');
+                    var tableRef = document.getElementById('captchas2').getElementsByTagName('tbody')[0];
+                    tableRef.insertRow().innerHTML =
+                        "<td onclick='showHarvesters(this.textContent)' style='padding-bottom: 5px'>" + harvesterName + "</td>"
+                });
+
+            });
+
+
+
+        }
+    });
+}
+
+function renameKey(obj, oldKey, newKey) {
+    obj[newKey] = obj[oldKey];
+    delete obj[oldKey];
+}
+
+
+function editGroup(group) {
+    var groups = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/tasks.json'), { encoding: 'utf8', flag: 'r' }));
+    var index = group.parentElement.parentElement.rowIndex
+    var gname = group.value
+    groups[index] = {
+        [gname]: groups[index][Object.keys(groups[index])[0]]
+    }
+    fs.writeFile(path.join(configDir, '/userdata/tasks.json'), JSON.stringify(groups), function(err) {
+        if (err) throw err;
+        console.log('Groups saved!');
+    });
+}
+
+function viewGroup(group) {
+    document.getElementById('createButton').disabled = false
+    document.getElementById('editButton').disabled = false
+    var groupindex;
+    var groupName = group.cells[0].children[0].value
+    for (var i = 0; i < document.getElementById('groups').rows.length; i++) {
+        document.getElementById('groups').rows[i].cells[0].style.border = "0"
+    }
+    document.getElementById('groups').rows[group.rowIndex].cells[0].style['border'] = "1px solid #e06767"
+
+    $("#tasks tr:gt(0)").remove();
+    var groups = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/tasks.json'), { encoding: 'utf8', flag: 'r' }));
+    for (var i = 0; i < groups.length; i++) {
+        if (Object.keys(groups[i])[0] === groupName) {
+            groupindex = i;
+            break;
+        }
+    }
+    for (var i = 0; i < groups[groupindex][groupName].length; i++) {
+        var tableRef = document.getElementById('tasks').getElementsByTagName('tbody')[0];
+        var row = tableRef.insertRow()
+        var id = Object.keys(groups[groupindex][groupName][i])[0]
+        if (typeof statusCache[id] != 'undefined') {
+            var status = statusCache[id]
+        } else
+            var status = 'Stopped'
+        if (typeof titleCache[id] != 'undefined') {
+            var product = titleCache[id]
+        } else var product = groups[groupindex][groupName][i][id].product
+        row.innerHTML =
+            "<td>" + id + "</td>" +
+            "<td>" + groups[groupindex][groupName][i][id].site + "</td>" +
+            "<td>" + groups[groupindex][groupName][i][id].mode + "</td>" + "<td class='link'>" + product + "</td>" +
+            "<td >" + groups[groupindex][groupName][i][id].size + "</td>" +
+            "<td>" + groups[groupindex][groupName][i][id].profile + "</td>" +
+            "<td>" + groups[groupindex][groupName][i][id].proxies + "</td>" +
+            "<td>" + status + "</td>"
+        row.setAttribute("onclick", "selectRow(this)")
+        if (status.toUpperCase().includes("ERROR") || status === "Checkout failed") {
+            document.getElementById('tasks').rows[row.rowIndex].cells[7].style.color = "#e06767"
+        } else if (status === "Check email" || status === "Check webhook") {
+            document.getElementById('tasks').rows[row.rowIndex].cells[7].style.color = "#4fcf91"
+        }
+    }
+    filterTable()
+}
+
+function addGroup() {
+    tableRef = document.getElementById("groups").getElementsByTagName('tbody')[0]
+    var row = tableRef.insertRow()
+    var id = makeid(4)
+    var edit = "this.readOnly='';"
+    var onblur = "this.readOnly='true';"
+    var edit2 = "editGroup(this);"
+    row.innerHTML =
+        "<td menu='true'>" +
+        "<input class='groupNameInput'type='text' onblur=" + onblur + edit2 + " readonly='true' ondblclick=" + edit + " menu='true' value=" + "'Group " + id + "'" + ">" +
+        "<div class='groupTaskAmount' menu='true'>0 tasks</div>" +
+        "</td>"
+
+    row.setAttribute("onclick", "viewGroup(this)")
+    var groups = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/tasks.json'), { encoding: 'utf8', flag: 'r' }));
+    var groupName = "Group " + id;
+    var group = {
+        [groupName]: []
+    }
+    groups.push(group)
+    fs.writeFile(path.join(configDir, '/userdata/tasks.json'), JSON.stringify(groups), function(err) {
+        if (err) throw err;
+        console.log('Groups saved!');
+    });
+}
+
+function deleteGroup() {
+    if (document.activeElement.tagName != 'INPUT') {
+        var groups = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/tasks.json'), { encoding: 'utf8', flag: 'r' }));
+        for (var i = 1; i < document.getElementById("tasks").rows.length; i++) {
+            selectAll(document.getElementById('tasks').rows[i])
+        }
+        stopSelected()
+        $("#tasks tr:gt(0)").remove();
+        var tableref = document.getElementById('groups')
+        var groupindex;
+        for (var i = 0; i < tableref.rows.length; i++) {
+            if (tableref.rows[i].cells[0].style['border-left'] === "1px solid rgb(224, 103, 103)") {
+                tableref.deleteRow(i);
+                groupindex = i;
+                break;
+            }
+        }
+        groups.splice(groupindex, 1)
+        fs.writeFile(path.join(configDir, '/userdata/tasks.json'), JSON.stringify(groups), function(err) {
+            if (err) throw err;
+            console.log('Groups saved!');
+        });
+        document.getElementById('createButton').disabled = true
+        document.getElementById('editButton').disabled = true
+    }
+}
+
+
+
+
+
+
+function editSelected() {
+    var fs = require('fs');
+    var groups = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/tasks.json'), { encoding: 'utf8', flag: 'r' }));
+    var gname;
+    var gindex;
+    for (var i = 0; i < document.getElementById('groups').rows.length; i++) {
+        if (document.getElementById('groups').rows[i].cells[0].style['border-left'] === "1px solid rgb(224, 103, 103)") {
+            gname = document.getElementById('groups').rows[i].cells[0].children[0].value
+            gindex = i
+            break;
+        }
+    }
+    var site = document.getElementById("siteTask2").value;
+    var mode = document.getElementById("modeTask2").value;
+    var link = document.getElementById("linkTask2").value;
+    var profile = document.getElementById("profileTask2").value;
+    var proxies = document.getElementById("proxyTask2").value;
+    var accounts = document.getElementById("accountTask2").value;
+    var size = document.getElementById("sizeTask2").value;
+    var quantity = document.getElementById("quantityTask2").value;
+    if (document.getElementById("captchaLess").checked == true && document.getElementById("captchaLessLabel").innerHTML === "Card checkout")
+        mode += "-C"
+    else
+    if (document.getElementById("captchaLess").checked == true)
+        mode += "-NC"
+
+    for (var i = 0; i < document.getElementById('tasks').rows.length; i++) {
+        if (document.getElementById('tasks').rows[i].cells[0].style['border-left'] === "1px solid rgb(224, 103, 103)") {
+            if (site != "") {
+                document.getElementById("tasks").rows[i].cells[1].textContent = site;
+                groups[gindex][gname][i - 1][document.getElementById('tasks').rows[i].cells[0].textContent]['site'] = site
+            }
+
+            if (mode != "") {
+                document.getElementById("tasks").rows[i].cells[2].textContent = mode;
+                groups[gindex][gname][i - 1][document.getElementById('tasks').rows[i].cells[0].textContent]['mode'] = mode
+            }
+            if (link != "") {
+                document.getElementById("tasks").rows[i].cells[3].textContent = link;
+                groups[gindex][gname][i - 1][document.getElementById('tasks').rows[i].cells[0].textContent]['product'] = link
+            }
+            if (profile != "") {
+                document.getElementById("tasks").rows[i].cells[5].textContent = profile;
+                groups[gindex][gname][i - 1][document.getElementById('tasks').rows[i].cells[0].textContent]['profile'] = profile
+            }
+            if (size != "") {
+                document.getElementById("tasks").rows[i].cells[4].textContent = size;
+                groups[gindex][gname][i - 1][document.getElementById('tasks').rows[i].cells[0].textContent]['size'] = size
+            }
+            if (accounts != "") {
+                groups[gindex][gname][i - 1][document.getElementById('tasks').rows[i].cells[0].textContent]['accounts'] = accounts
+            }
+
+            if (proxies != "") {
+                document.getElementById("tasks").rows[i].cells[6].textContent = proxies;
+                groups[gindex][gname][i - 1][document.getElementById('tasks').rows[i].cells[0].textContent]['proxies'] = proxies
+            }
+        }
+    }
+
+    fs.writeFile(path.join(configDir, '/userdata/tasks.json'), JSON.stringify(groups), function(err) {
+        if (err) throw err;
+        console.log('Tasks saved!');
+    });
+    closeEditor()
+    stopSelected()
+}
+
+
+function addTask() {
+    var fs = require('fs');
+    var gname;
+    var gindex;
+    for (var i = 0; i < document.getElementById('groups').rows.length; i++) {
+        if (document.getElementById('groups').rows[i].cells[0].style['border-left'] === "1px solid rgb(224, 103, 103)") {
+            gname = document.getElementById('groups').rows[i].cells[0].children[0].value
+            gindex = i
+            break;
+        }
+    }
+    var site = document.getElementById("siteTask").value;
+    var mode = document.getElementById("modeTask").value;
+    var link = document.getElementById("linkTask").value;
+    var profile = document.getElementById("profileTask").value;
+    var proxies = document.getElementById("proxyTask").value;
+    var accounts = document.getElementById("accountTask").value;
+    var size = document.getElementById("sizeTask").value;
+    var quantity = document.getElementById("quantityTask").value;
+    if (document.getElementById("captchaLess").checked == true && site === "SSENSE")
+        mode += "-C"
+    else
+    if (document.getElementById("captchaLess").checked == true)
+        mode += "-NC"
+
+    if (accounts === "")
+        accounts = "-"
+    var tasks = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/tasks.json'), { encoding: 'utf8', flag: 'r' }));
+    if (size != "" && link != "" && mode != "" && site != "" && proxies != "" && profile != "") {
+        if (profile === "Use All Profiles") {
+            for (var i = 1; i < document.getElementById('profiles2').rows.length; i++) {
+                console.log(document.getElementById('profiles2').rows.length)
+                for (var j = 0; j < quantity; j++) {
+                    profile = document.getElementById("profiles2").rows[i].cells[0].textContent
+                    var id = makeid(5)
+                    var tableRef = document.getElementById('tasks').getElementsByTagName('tbody')[0];
+                    var row = tableRef.insertRow()
+                    row.innerHTML =
+                        "<td>" + id + "</td>" +
+                        "<td>" + site + "</td>" +
+                        "<td>" + mode + "</td>" + "<td class='link'>" + link + "</td>" +
+                        "<td >" + size + "</td>" +
+                        "<td>" + profile + "</td>" +
+                        "<td>" + proxies + "</td>" +
+                        "<td>" + 'Stopped' + "</td>"
+                    row.setAttribute("onclick", "selectRow(this)")
+                    var task = {
+                        [id]: {
+                            "site": site,
+                            "mode": mode,
+                            "product": link,
+                            "size": size,
+                            "profile": profile,
+                            "proxies": proxies,
+                            "accounts": accounts
+                        }
+                    }
+                    tasks[gindex][gname].push(task)
+                }
+            }
+        } else {
+            for (var i = 0; i < quantity; i++) {
+                var id = makeid(5)
+                var tableRef = document.getElementById('tasks').getElementsByTagName('tbody')[0];
+                var row = tableRef.insertRow()
+                row.innerHTML =
+                    "<td>" + id + "</td>" +
+                    "<td>" + site + "</td>" +
+                    "<td>" + mode + "</td>" + "<td class='link'>" + link + "</td>" +
+                    "<td >" + size + "</td>" +
+                    "<td>" + profile + "</td>" +
+                    "<td>" + proxies + "</td>" +
+                    "<td>" + 'Stopped' + "</td>"
+                row.setAttribute("onclick", "selectRow(this)")
+                var task = {
+                    [id]: {
+                        "site": site,
+                        "mode": mode,
+                        "product": link,
+                        "size": size,
+                        "profile": profile,
+                        "proxies": proxies,
+                        "accounts": accounts
+                    }
+                }
+                tasks[gindex][gname].push(task)
+            }
+        }
+    }
+    fs.writeFile(path.join(configDir, '/userdata/tasks.json'), JSON.stringify(tasks), function(err) {
+        if (err) throw err;
+        console.log('Tasks saved!');
+    });
+
+    document.getElementById('groups').rows[gindex].cells[0].children[1].textContent = (document.getElementById('tasks').rows.length - 1).toString() + " tasks"
+
+
+}
+
+function closeEditor() {
+    document.getElementById("taskEditor").classList.add('animate__zoomOut')
+    document.getElementById("taskEditor").addEventListener('animationend', () => {
+        document.getElementById("taskEditor").classList.remove('animate__zoomOut')
+        document.getElementById('taskEditor').style.display = "none"
+    }, { once: true });
+}
+
+
+function taskCreator() {
+    if (document.getElementById('groups').rows.length > 0)
+        document.getElementById("taskCreator").style.display = "block";
+}
+
+function closeModal() {
+    document.getElementById("taskCreator").classList.add('animate__zoomOut')
+    document.getElementById("taskCreator").addEventListener('animationend', () => {
+        document.getElementById("taskCreator").classList.remove('animate__zoomOut')
+        document.getElementById('taskCreator').style.display = "none"
+    }, { once: true });
+}
+
+
+
+async function startSelected() {
+    var groupName;
+    var groupIndex;
+    for (var i = 0; i < document.getElementById('groups').rows.length; i++) {
+        if (document.getElementById('groups').rows[i].cells[0].style.border === "1px solid rgb(224, 103, 103)") {
+            groupName = document.getElementById('groups').rows[i].cells[0].children[0].value;
+            groupIndex = i;
+            break;
+        }
+    }
+    for (var i = 1; i < document.getElementById('tasks').rows.length; i++) {
+        if (document.getElementById('tasks').rows[i].cells[0].style['border-left'] === "1px solid rgb(224, 103, 103)" && document.getElementById('tasks').rows[i].cells[7].textContent === "Stopped") {
+            var task = {
+                "taskID": document.getElementById('tasks').rows[i].cells[0].textContent,
+                "taskIndex": i - 1,
+                "groupName": groupName,
+                "groupIndex": groupIndex
+            }
+            ipcRenderer.send('taskinfo', task)
+        }
+    }
+}
+
+
+
+async function stopSelected() {
+    for (var i = 1; i < document.getElementById('tasks').rows.length; i++) {
+        if (document.getElementById('tasks').rows[i].cells[0].style['border-left'] === "1px solid rgb(224, 103, 103)") {
+            delete statusCache[document.getElementById('tasks').rows[i].cells[0].textContent]
+            delete titleCache[document.getElementById('tasks').rows[i].cells[0].textContent]
+            var task = { "taskID": document.getElementById('tasks').rows[i].cells[0].textContent }
+            ipcRenderer.send('stopTask', task)
+        }
+    }
+}
+
+
+ipcRenderer.on('updateStatus', (event, taskNumber, status) => {
+    statusCache[taskNumber] = status
+    var path = require('path')
+    var groups = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/tasks.json'), { encoding: 'utf8', flag: 'r' }));
+    for (var i = 0; i < groups.length; i++) {
+        for (var j = 0; j < groups[i][Object.keys(groups[i])[0]].length; j++) {
+            if (Object.keys(groups[i][Object.keys(groups[i])[0]][j])[0] === taskNumber) {
+                groupIndex = i;
+                break;
+            }
+        }
+    }
+    if (document.getElementById('groups').rows[groupIndex].cells[0].style.border === "1px solid rgb(224, 103, 103)") {
+        for (var i = 0; i < document.getElementById('tasks').rows.length; i++) {
+            if (document.getElementById("tasks").rows[i].cells[0].textContent === taskNumber) {
+                taskNumber = i;
+                break;
+            }
+        }
+        document.getElementById("tasks").rows[taskNumber].cells[7].textContent = status;
+        if (status === "Check email" || status === "Check webhook") {
+            document.getElementById("tasks").rows[taskNumber].cells[7].style.color = "#4fcf91";
+
+            var audio = new Audio(path.join(__dirname, 'images/checkoutsound.mp3'));
+            audio.play();
+        } else if (status === "Checkout failed") {
+            document.getElementById("tasks").rows[taskNumber].cells[7].style.color = "#e06767";
+
+        } else if (status.toUpperCase().includes("ERROR")) {
+            document.getElementById("tasks").rows[taskNumber].cells[7].style.color = "#e06767";
+        } else
+            document.getElementById("tasks").rows[taskNumber].cells[7].style.color = "#FFFFFF";
+    } else {
+        if (status === "Check email" || status === "Check webhook") {
+            var audio = new Audio(path.join(__dirname, 'images/checkoutsound.mp3'));
+            audio.play();
+        }
+    }
+});
+
+ipcRenderer.on('updateStats', (event, stat) => {
+    /* if (stat === "checkouts") {
+         var checkouts = parseInt(document.getElementById("totalCheckouts").textContent.split("checkouts")[0])
+         checkouts++;
+         document.getElementById("totalCheckouts").textContent = checkouts.toString() + " checkouts"
+     } else if (stat === "carts") {
+         var carts = parseInt(document.getElementById("totalCarts").textContent.split("carts")[0])
+         carts++;
+         document.getElementById("totalCarts").textContent = carts.toString() + " carts"
+     } else if (stat === "fails") {
+         var fails = parseInt(document.getElementById("totalFails").textContent.split("fails")[0])
+         fails++;
+         document.getElementById("totalFails").textContent = fails.toString() + " fails"
+     }*/
+});
+
+ipcRenderer.on('updateProductTitle', (event, taskID, title) => {
+    titleCache[taskID] = title
+    var path = require('path')
+    var groups = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/tasks.json'), { encoding: 'utf8', flag: 'r' }));
+    for (var i = 0; i < groups.length; i++) {
+        for (var j = 0; j < groups[i][Object.keys(groups[i])[0]].length; j++) {
+            if (Object.keys(groups[i][Object.keys(groups[i])[0]][j])[0] === taskID) {
+                groupIndex = i;
+                break;
+            }
+        }
+    }
+    if (document.getElementById('groups').rows[groupIndex].cells[0].style.border === "1px solid rgb(224, 103, 103)") {
+        for (var i = 0; i < document.getElementById('tasks').rows.length; i++) {
+            if (document.getElementById('tasks').rows[i].cells[0].textContent === taskID) {
+                document.getElementById('tasks').rows[i].cells[3].textContent = title;
+                break;
+            }
+        }
+    }
+});
+
+
+ipcRenderer.on('verified', (event) => {
+    analytics()
+});
+
+
+ipcRenderer.on('alert', (event, alert2) => {
+    alert(alert2)
+});
+
+
+
+function saveProxies() {
+    var fs = require('fs');
+    var checker;
+    var profile;
+    var x;
+    fs.readFile(path.join(configDir, '/userdata/proxies.json'), 'utf-8', (err, data) => {
+        if (err) throw err;
+        x = JSON.parse(data);
+        var proxies = []
+        overallproxies = x;
+
+        for (var i = 0; i < x.length; i++) {
+            if (x[i].name === document.getElementById('proxyListName').value) {
+                checker = true;
+                overallproxies[i].proxies.length = 0;
+                var proxybyLines = document.getElementById('proxyListEntry').value.split(/\n/)
+                if (proxybyLines[proxybyLines.length - 1].length < 1)
+                    proxybyLines.pop();
+                for (var j = 0; j < proxybyLines.length; j++) {
+                    var proxybyColon = proxybyLines[j].split(':');
+                    if (proxybyColon.length == 2) {
+                        var jsonStr = {
+                            "ip": proxybyColon[0],
+                            "port": proxybyColon[1],
+                            "username": null,
+                            "password": null
+                        }
+                        overallproxies[i].proxies.push(jsonStr)
+                    } else {
+                        var jsonStr = {
+                            "ip": proxybyColon[0],
+                            "port": proxybyColon[1],
+                            "username": proxybyColon[2],
+                            "password": proxybyColon[3]
+                        }
+                        overallproxies[i].proxies.push(jsonStr)
+                    }
+                }
+                fs.writeFile(path.join(configDir, '/userdata/proxies.json'), JSON.stringify(overallproxies), function(err) {
+                    if (err) throw err;
+                });
+                document.getElementById('proxies2').rows[i + 1].cells[1].textContent = overallproxies[i].proxies.length;
+            }
+        }
+        if (!checker) {
+            var proxyListName = document.getElementById('proxyListName').value;
+            var x2 = {
+                "name": proxyListName,
+                "favorite": false,
+                "proxies": []
+            }
+
+
+            var proxybyLines = document.getElementById('proxyListEntry').value.split(/\n/)
+            if (proxybyLines[proxybyLines.length - 1].length < 1)
+                proxybyLines.pop();
+            for (var j = 0; j < proxybyLines.length; j++) {
+                var proxybyColon = proxybyLines[j].split(':');
+                if (proxybyColon.length == 2) {
+                    var jsonStr = {
+                        "ip": proxybyColon[0],
+                        "port": proxybyColon[1],
+                        "username": null,
+                        "password": null
+                    }
+                    x2.proxies.push(jsonStr)
+                } else {
+                    var jsonStr = {
+                        "ip": proxybyColon[0],
+                        "port": proxybyColon[1],
+                        "username": proxybyColon[2],
+                        "password": proxybyColon[3]
+                    }
+                    x2.proxies.push(jsonStr)
+                }
+            }
+
+            fs.readFile(path.join(configDir, '/userdata/proxies.json'), 'utf-8', (err, data) => {
+                if (err) throw err;
+                x3 = JSON.parse(data);
+                x3.push(x2)
+
+                fs.writeFile(path.join(configDir, '/userdata/proxies.json'), JSON.stringify(x3), function(err) {
+                    if (err) throw err;
+                    console.log('The "data to append" was appended to file!');
+                    var tableRef = document.getElementById('proxies2').getElementsByTagName('tbody')[0];
+                    tableRef.insertRow().innerHTML =
+                        "<td onclick='showProxies(this.textContent)' style='padding-bottom: 5px'>" + proxyListName + "</td>" +
+                        "<td onclick='showProxiesbyCount(this)' style='padding-bottom: 5px'>" + proxybyLines.length + "</td>"
+                });
+            });
+        }
+    });
+}
+
+
+function clearFields() {
+    document.getElementById('firstname').value = ''
+    document.getElementById('lastname').value = ''
+    document.getElementById('address').value = ''
+    document.getElementById('city').value = ''
+    document.getElementById('zipcode').value = ''
+    document.getElementById('country').value = ''
+    document.getElementById('state').value = ''
+    document.getElementById('cardnumber').value = ''
+    document.getElementById('expmonth').value = ''
+    document.getElementById('expyear').value = ''
+    document.getElementById('cvv').value = ''
+    document.getElementById('profilename').value = ''
+    document.getElementById('onecheckout').value = ''
+    document.getElementById('email').value = ''
+    document.getElementById('phone').value = '';
+
+    for (var i = 1; i < document.getElementById('profiles2').rows.length; i++) {
+        document.getElementById('profiles2').rows[i].cells[0].style.background = '';
+    }
+}
+
+function clearProxyFields() {
+    document.getElementById('proxyListEntry').value = ''
+    document.getElementById('proxyListName').value = '';
+    for (var i = 1; i < document.getElementById('proxies2').rows.length; i++) {
+        document.getElementById('proxies2').rows[i].cells[0].style.background = '';
+        document.getElementById('proxies2').rows[i].cells[1].style.background = '';
+    }
+}
+
+
+function clearHarvesterFields() {
+    document.getElementById('harvesterName').value = ''
+    document.getElementById('harvesterProxy').value = '';
+    for (var i = 1; i < document.getElementById('captchas2').rows.length; i++) {
+        document.getElementById('captchas2').rows[i].cells[0].style.background = '';
+    }
+}
+
+function clearAccountFields() {
+    document.getElementById('accountListEntry').value = ''
+    document.getElementById('accountListName').value = '';
+    for (var i = 1; i < document.getElementById('accounts2').rows.length; i++) {
+        document.getElementById('accounts2').rows[i].cells[0].style.background = '';
+        document.getElementById('accounts2').rows[i].cells[1].style.background = '';
+    }
+}
+
+function deleteProxyList() {
+    for (var i = 1; i < document.getElementById('proxies2').rows.length; i++) {
+        if (document.getElementById('proxies2').rows[i].cells[0].style.background != '') {
+            document.getElementById("proxies2").deleteRow(i);
+            var fs = require('fs')
+            fs.readFile(path.join(configDir, '/userdata/proxies.json'), 'utf-8', (err, data) => {
+                if (err) throw err;
+                x = JSON.parse(data);
+                for (var j = 0; j < x.length; j++) {
+                    if (x[j].name === document.getElementById("proxyListName").value) {
+                        x.splice(j, 1);
+
+                    }
+                }
+
+                clearProxyFields()
+
+                fs.writeFile(path.join(configDir, '/userdata/proxies.json'), JSON.stringify(x), function(err) {
+                    if (err) throw err;
+                    console.log('The "data to append" was appended to file!');
+                });
+            });
+        }
+    }
+}
+
+function deleteHarvester() {
+    for (var i = 1; i < document.getElementById('captchas2').rows.length; i++) {
+        if (document.getElementById('captchas2').rows[i].cells[0].style.background != '') {
+            document.getElementById("captchas2").deleteRow(i);
+            var fs = require('fs')
+            fs.readFile(path.join(configDir, '/userdata/harvesters.json'), 'utf-8', (err, data) => {
+                if (err) throw err;
+                x = JSON.parse(data);
+                for (var j = 0; j < x.length; j++) {
+                    if (x[j].name === document.getElementById("harvesterName").value) {
+                        x.splice(j, 1);
+
+                    }
+                }
+
+                clearHarvesterFields()
+
+                fs.writeFile(path.join(configDir, '/userdata/harvesters.json'), JSON.stringify(x), function(err) {
+                    if (err) throw err;
+                    console.log('The "data to append" was appended to file!');
+                });
+            });
+        }
+    }
+}
+
+function deleteAccountList() {
+    for (var i = 1; i < document.getElementById('accounts2').rows.length; i++) {
+        if (document.getElementById('accounts2').rows[i].cells[0].style.background != '') {
+            document.getElementById("accounts2").deleteRow(i);
+            var fs = require('fs')
+            fs.readFile(path.join(configDir, '/userdata/accounts.json'), 'utf-8', (err, data) => {
+                if (err) throw err;
+                x = JSON.parse(data);
+                for (var j = 0; j < x.length; j++) {
+                    if (x[j].name === document.getElementById("accountListName").value) {
+                        x.splice(j, 1);
+                        //console.log(x);
+                    }
+                }
+
+                clearAccountFields()
+
+                fs.writeFile(path.join(configDir, '/userdata/accounts.json'), JSON.stringify(x), function(err) {
+                    if (err) throw err;
+                    console.log('The "data to append" was appended to file!');
+                });
+            });
+        }
+    }
+}
+
+
+function profile() {
+    clearFields();
+    document.getElementById("settingsIcon").style.opacity = 0.3
+    document.getElementById("taskIcon").style.opacity = 0.3
+    document.getElementById("analyticsIcon").style.opacity = 0.3
+    document.getElementById("accountIcon").style.opacity = 0.3
+    document.getElementById("captchaIcon").style.opacity = 0.3
+    document.getElementById("profileIcon").style.opacity = 1.0
+    document.getElementById("proxyIcon").style.opacity = 0.3
+    document.getElementById('taskView').style.display = "none";
+    document.getElementById('webhook').style.display = "none";
+    document.getElementById('taskTitle').style.display = "none";
+    document.getElementById('profileTitle').style.display = "block";
+    document.getElementById('settingsTitle').style.display = "none";
+    document.getElementById('profiles').style.display = "block";
+    document.getElementById('proxiesTitle').style.display = "none";
+    document.getElementById('proxies').style.display = "none";
+    document.getElementById('accountsTitle').style.display = "none";
+    document.getElementById('accounts').style.display = "none";
+    document.getElementById('analyticsView').style.display = "none";
+    document.getElementById('analyticsTitle').style.display = "none";
+    document.getElementById('firstname').value = ''
+    document.getElementById('lastname').value = ''
+    document.getElementById('address').value = ''
+    document.getElementById('city').value = ''
+    document.getElementById('zipcode').value = ''
+    document.getElementById('country').value = ''
+    document.getElementById('state').value = ''
+    document.getElementById('cardnumber').value = ''
+    document.getElementById('expmonth').value = ''
+    document.getElementById('expyear').value = ''
+    document.getElementById('cvv').value = ''
+    document.getElementById('profilename').value = ''
+    document.getElementById('onecheckout').value = ''
+    document.getElementById('email').value = ''
+    document.getElementById('phone').value = '';
+    document.getElementById('captchasTitle').style.display = "none";
+    document.getElementById('captchas').style.display = "none";
+}
+
+function setProfilePicture() {
+    var fs = require('fs');
+    const got = require('got');
+    fs.readFile(path.join(configDir, '/userdata/key.txt'), 'utf-8', (err, data) => {
+        if (err) throw err;
+        var key = data;
+        got({
+            method: 'get',
+            url: "https://venetiabots.com/api/activate?key=" + key,
+            responseType: 'json'
+        }).then(response => {
+            var x = response.body.Avatar.split("?")
+            document.getElementById("discordavatar").src = x[0] + "?size=64";
+        }).catch(error => {
+            console.log(error)
+        })
+    });
+}
+
+
+function tasks() {
+    var select = document.getElementById('profileTask');
+    select.options.length = 0;
+    select.options[select.options.length] = new Option('', '')
+    select.options[select.options.length + 1] = new Option('Use All Profiles', 'Use All Profiles')
+    for (var i = 1; i < document.getElementById('profiles2').rows.length; i++) {
+        select.options[select.options.length] = new Option(document.getElementById('profiles2').rows[i].cells[0].textContent, document.getElementById('profiles2').rows[i].cells[0].textContent);
+    }
+
+    var select = document.getElementById('proxyTask');
+    select.options.length = 0;
+    select.options[select.options.length] = new Option('', '')
+    select.options[select.options.length + 1] = new Option('No Proxy', '-')
+    for (var i = 1; i < document.getElementById('proxies2').rows.length; i++) {
+        select.options[select.options.length] = new Option(document.getElementById('proxies2').rows[i].cells[0].textContent, document.getElementById('proxies2').rows[i].cells[0].textContent);
+    }
+
+    var select = document.getElementById('accountTask');
+    select.options.length = 0;
+    select.options[select.options.length] = new Option('', '')
+    select.options[select.options.length + 1] = new Option('No Account', '-')
+    for (var i = 1; i < document.getElementById('accounts2').rows.length; i++) {
+        select.options[select.options.length] = new Option(document.getElementById('accounts2').rows[i].cells[0].textContent, document.getElementById('accounts2').rows[i].cells[0].textContent);
+    }
+
+    var select = document.getElementById('profileTask2');
+    select.options.length = 0;
+    select.options[select.options.length] = new Option('', '')
+    select.options[select.options.length + 1] = new Option('Use All Profiles', 'Use All Profiles')
+    for (var i = 1; i < document.getElementById('profiles2').rows.length; i++) {
+        select.options[select.options.length] = new Option(document.getElementById('profiles2').rows[i].cells[0].textContent, document.getElementById('profiles2').rows[i].cells[0].textContent);
+    }
+
+    var select = document.getElementById('proxyTask2');
+    select.options.length = 0;
+    select.options[select.options.length] = new Option('', '')
+    select.options[select.options.length + 1] = new Option('No Proxy', '-')
+    for (var i = 1; i < document.getElementById('proxies2').rows.length; i++) {
+        select.options[select.options.length] = new Option(document.getElementById('proxies2').rows[i].cells[0].textContent, document.getElementById('proxies2').rows[i].cells[0].textContent);
+    }
+
+    var select = document.getElementById('accountTask2');
+    select.options.length = 0;
+    select.options[select.options.length] = new Option('', '')
+    select.options[select.options.length + 1] = new Option('No Account', '-')
+    for (var i = 1; i < document.getElementById('accounts2').rows.length; i++) {
+        select.options[select.options.length] = new Option(document.getElementById('accounts2').rows[i].cells[0].textContent, document.getElementById('accounts2').rows[i].cells[0].textContent);
+    }
+    document.getElementById("settingsIcon").style.transition = "0.3s"
+    document.getElementById("taskIcon").style.transition = "0.3s"
+    document.getElementById("accountIcon").style.transition = "0.3s"
+    document.getElementById("proxyIcon").style.transition = "0.3s"
+    document.getElementById("captchaIcon").style.transition = "0.3s"
+    document.getElementById("profileIcon").style.transition = "0.3s"
+    document.getElementById("analyticsIcon").style.opacity = 0.3
+    document.getElementById("settingsIcon").style.opacity = 0.3
+    document.getElementById("accountIcon").style.opacity = 0.3
+    document.getElementById("captchaIcon").style.opacity = 0.3
+    document.getElementById("profileIcon").style.opacity = 0.3
+    document.getElementById('analyticsView').style.display = "none";
+    document.getElementById("proxyIcon").style.opacity = 0.3
+    document.getElementById("taskIcon").style.opacity = 1.0
+    document.getElementById('webhook').style.display = "none";
+    document.getElementById('taskTitle').style.display = "block";
+    document.getElementById('settingsTitle').style.display = "none";
+    document.getElementById('taskView').style.display = "block";
+    document.getElementById('analyticsTitle').style.display = "none";
+    document.getElementById('profileTitle').style.display = "none";
+    document.getElementById('profiles').style.display = "none";
+    document.getElementById('proxiesTitle').style.display = "none";
+    document.getElementById('proxies').style.display = "none";
+    document.getElementById('accountsTitle').style.display = "none";
+    document.getElementById('accounts').style.display = "none";
+    document.getElementById('captchasTitle').style.display = "none";
+    document.getElementById('captchas').style.display = "none";
+}
+
+function settings() {
+    document.getElementById("settingsIcon").style.opacity = 1.0
+    document.getElementById("analyticsIcon").style.opacity = 0.3
+    document.getElementById("accountIcon").style.opacity = 0.3
+    document.getElementById("captchaIcon").style.opacity = 0.3
+    document.getElementById("profileIcon").style.opacity = 0.3
+    document.getElementById("proxyIcon").style.opacity = 0.3
+    document.getElementById("taskIcon").style.opacity = 0.3
+    document.getElementById('analyticsView').style.display = "none";
+    document.getElementById('taskView').style.display = "none";
+    document.getElementById('webhook').style.display = "none";
+    document.getElementById('taskTitle').style.display = "none";
+    document.getElementById('profileTitle').style.display = "none";
+    document.getElementById('settingsTitle').style.display = "block";
+    document.getElementById('webhook').style.display = "block";
+    document.getElementById('profiles').style.display = "none";
+    document.getElementById('proxiesTitle').style.display = "none";
+    document.getElementById('proxies').style.display = "none";
+    document.getElementById('accountsTitle').style.display = "none";
+    document.getElementById('accounts').style.display = "none";
+    document.getElementById('captchasTitle').style.display = "none";
+    document.getElementById('analyticsTitle').style.display = "none";
+    document.getElementById('captchas').style.display = "none";
+}
+
+function proxies() {
+    clearProxyFields();
+    document.getElementById("settingsIcon").style.opacity = 0.3
+    document.getElementById("taskIcon").style.opacity = 0.3
+    document.getElementById("accountIcon").style.opacity = 0.3
+    document.getElementById("captchaIcon").style.opacity = 0.3
+    document.getElementById("profileIcon").style.opacity = 0.3
+    document.getElementById("proxyIcon").style.opacity = 1.0
+    document.getElementById("analyticsIcon").style.opacity = 0.3
+    document.getElementById('taskView').style.display = "none";
+    document.getElementById('webhook').style.display = "none";
+    document.getElementById('taskTitle').style.display = "none";
+    document.getElementById('profileTitle').style.display = "none";
+    document.getElementById('settingsTitle').style.display = "none";
+    document.getElementById('webhook').style.display = "none";
+    document.getElementById('profiles').style.display = "none";
+    document.getElementById('proxiesTitle').style.display = "block";
+    document.getElementById('analyticsView').style.display = "none";
+    document.getElementById('analyticsTitle').style.display = "none";
+    document.getElementById('proxies').style.display = "block";
+    document.getElementById('accountsTitle').style.display = "none";
+    document.getElementById('accounts').style.display = "none";
+    document.getElementById('captchasTitle').style.display = "none";
+    document.getElementById('captchas').style.display = "none";
+}
+
+function accounts() {
+    clearAccountFields();
+    document.getElementById("settingsIcon").style.opacity = 0.3
+    document.getElementById("taskIcon").style.opacity = 0.3
+    document.getElementById("accountIcon").style.opacity = 1.0
+    document.getElementById("captchaIcon").style.opacity = 0.3
+    document.getElementById("profileIcon").style.opacity = 0.3
+    document.getElementById("analyticsIcon").style.opacity = 0.3
+    document.getElementById("proxyIcon").style.opacity = 0.3
+    document.getElementById('taskView').style.display = "none";
+    document.getElementById('webhook').style.display = "none";
+    document.getElementById('taskTitle').style.display = "none";
+    document.getElementById('profileTitle').style.display = "none";
+    document.getElementById('settingsTitle').style.display = "none";
+    document.getElementById('webhook').style.display = "none";
+    document.getElementById('profiles').style.display = "none";
+    document.getElementById('proxiesTitle').style.display = "none";
+    document.getElementById('proxies').style.display = "none";
+    document.getElementById('accountsTitle').style.display = "block";
+    document.getElementById('accounts').style.display = "block";
+    document.getElementById('analyticsView').style.display = "none"
+    document.getElementById('analyticsTitle').style.display = "none";;
+    document.getElementById('captchasTitle').style.display = "none";
+    document.getElementById('captchas').style.display = "none";
+}
+
+function captchas() {
+    clearHarvesterFields()
+    document.getElementById("settingsIcon").style.opacity = 0.3
+    document.getElementById("taskIcon").style.opacity = 0.3
+    document.getElementById("analyticsIcon").style.opacity = 0.3
+    document.getElementById("accountIcon").style.opacity = 0.3
+    document.getElementById("captchaIcon").style.opacity = 1.0
+    document.getElementById("profileIcon").style.opacity = 0.3
+    document.getElementById("proxyIcon").style.opacity = 0.3
+    document.getElementById('taskView').style.display = "none";
+    document.getElementById('webhook').style.display = "none";
+    document.getElementById('taskTitle').style.display = "none";
+    document.getElementById('profileTitle').style.display = "none";
+    document.getElementById('settingsTitle').style.display = "none";
+    document.getElementById('analyticsView').style.display = "none";
+    document.getElementById('analyticsTitle').style.display = "none";
+    document.getElementById('webhook').style.display = "none";
+    document.getElementById('profiles').style.display = "none";
+    document.getElementById('proxiesTitle').style.display = "none";
+    document.getElementById('proxies').style.display = "none";
+    document.getElementById('accountsTitle').style.display = "none";
+    document.getElementById('accounts').style.display = "none";
+    document.getElementById('captchasTitle').style.display = "block";
+    document.getElementById('captchas').style.display = "block";
+
+}
+
+function analytics() {
+    $("#checkoutsTable tr:gt(0)").remove();
+    updateAnalytics()
+    setProfilePicture();
+    document.getElementById("settingsIcon").style.opacity = 0.3
+    document.getElementById("taskIcon").style.opacity = 0.3
+    document.getElementById("analyticsIcon").style.opacity = 1.0
+    document.getElementById('profileTitle').style.display = "none";
+    document.getElementById('profiles').style.display = "none";
+    document.getElementById("accountIcon").style.opacity = 0.3
+    document.getElementById("captchaIcon").style.opacity = 0.3
+    document.getElementById("profileIcon").style.opacity = 0.3
+    document.getElementById('analyticsTitle').style.display = "block";
+    document.getElementById("proxyIcon").style.opacity = 0.3
+    document.getElementById('analyticsView').style.display = "block";
+    document.getElementById('taskView').style.display = "none";
+    document.getElementById('webhook').style.display = "none";
+    document.getElementById('taskTitle').style.display = "none";
+    document.getElementById('settingsTitle').style.display = "none";
+    document.getElementById('webhook').style.display = "none";
+    document.getElementById('proxiesTitle').style.display = "none";
+    document.getElementById('proxies').style.display = "none";
+    document.getElementById('accountsTitle').style.display = "none";
+    document.getElementById('accounts').style.display = "none";
+    document.getElementById('captchasTitle').style.display = "none";
+    document.getElementById('captchas').style.display = "none";
+}

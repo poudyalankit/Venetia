@@ -1,0 +1,2316 @@
+.webhook {
+    position: absolute;
+    width: 113px;
+    height: 36px;
+    left: 118px;
+    top: 90px;
+    font-family: 'Poppins';
+    font-size: 13px;
+    line-height: 36px;
+    font-weight: 600;
+    color: #FFFFFF;
+    -webkit-user-select: none;
+}
+
+.custom-menu {
+    display: none;
+    z-index: 1000;
+    position: absolute;
+    overflow: hidden;
+    white-space: nowrap;
+    font-family: Poppins;
+    background: #1e202f;
+    color: white;
+    border-radius: 5px;
+    padding: 0;
+    font-size: 14px;
+}
+
+.custom-menu li {
+    padding: 8px 12px;
+    cursor: pointer;
+    list-style-type: none;
+    transition: all .3s ease;
+    user-select: none;
+}
+
+.custom-menu li:hover {
+    background-color: #181a26;
+}
+
+.changelogText {
+    position: absolute;
+    width: 73px;
+    height: 20px;
+    left: 118px;
+    top: 152px;
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: 600;
+    font-size: 13px;
+    line-height: 36px;
+    color: #FFFFFF;
+    -moz-user-select: none;
+    -khtml-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.time {
+    position: absolute;
+    width: 300px;
+    height: 18px;
+    left: 600px;
+    -webkit-user-select: none;
+    top: 13px;
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: normal;
+    font-size: 12px;
+    line-height: 18px;
+    color: #FFFFFF;
+}
+
+.selectCheckbox {
+    -webkit-appearance: none;
+    background-color: #292c3f;
+    padding: 8px;
+    border-radius: 150px;
+    display: inline-block;
+    cursor: pointer;
+    outline: 0;
+    position: relative;
+}
+
+.graph {
+    position: absolute;
+    width: 640px;
+    height: 378px;
+    left: 130px;
+    top: 40px;
+    background: #1e202f;
+    border-radius: 8px;
+}
+
+.discordAvatar {
+    position: absolute;
+    width: 32px;
+    height: 32px;
+    -webkit-user-select: none;
+    left: 28px;
+    top: 690px;
+    border-radius: 50%;
+}
+
+.download {
+    position: absolute;
+    width: 32px;
+    height: 32px;
+    -webkit-user-select: none;
+    left: 32px;
+    -webkit-app-region: no-drag;
+    top: 640px;
+}
+
+.changelogBox {
+    position: absolute;
+    width: 501px;
+    -webkit-user-select: none;
+    height: 374px;
+    left: 117px;
+    top: 184px;
+    font-family: 'Poppins';
+    color: white;
+    resize: none;
+    overflow-y: auto;
+    padding-left: 8px;
+    background: #1e202f;
+    border-radius: 15px;
+    font-size: 12px;
+    border: 0;
+    outline: 0;
+}
+
+.staggerStartLabel {
+    left: 40px;
+    width: 150px;
+    top: 25px;
+    position: absolute
+}
+
+.logo {
+    position: absolute;
+    left: 25px;
+    top: 40px;
+    -webkit-user-select: none;
+}
+
+.proxies {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    left: 32px;
+    top: 206px;
+}
+
+.proxiesTable {
+    position: absolute;
+    width: 650px;
+    height: 372px;
+    left: 550px;
+    top: 100px;
+    overflow-y: auto;
+    border-radius: 8px;
+    background: #1e202f;
+}
+
+.deleteProfile {
+    position: absolute;
+    width: 170px;
+    height: 25px;
+    left: 800px;
+    top: 485px;
+    font-family: 'Poppins';
+    color: #e06767;
+    background: transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    outline: 0;
+    border: 1px solid #e06767;
+}
+
+.deleteHarvester {
+    position: absolute;
+    width: 170px;
+    height: 25px;
+    left: 550px;
+    top: 485px;
+    font-family: 'Poppins';
+    color: #e06767;
+    background: transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    outline: 0;
+    border: 1px solid #e06767;
+}
+
+.launchHarvester {
+    position: absolute;
+    width: 170px;
+    height: 25px;
+    left: 758px;
+    top: 485px;
+    font-family: 'Poppins';
+    color: #4fcf91;
+    background: transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    outline: 0;
+    border: 1px solid #4fcf91;
+}
+
+.googleSignIn {
+    position: absolute;
+    width: 170px;
+    height: 25px;
+    left: 758px;
+    top: 530px;
+    font-family: 'Poppins';
+    color: #5DA9FF;
+    background: transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    outline: 0;
+    border: 1px solid #5DA9FF;
+}
+
+.version {
+    position: absolute;
+    width: 24px;
+    height: 18px;
+    left: 30px;
+    -webkit-user-select: none;
+    top: 740px;
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: normal;
+    font-size: 12px;
+    line-height: 18px;
+    color: #FFFFFF;
+}
+
+.analytics {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    left: 32px;
+    top: 123px;
+    -webkit-app-region: no-drag;
+    -webkit-user-select: none;
+    opacity: 1;
+    padding-right: 5px;
+    transition: 0.3s;
+}
+
+.task {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    left: 32px;
+    top: 173px;
+    -webkit-app-region: no-drag;
+    -webkit-user-select: none;
+    opacity: 1;
+    transition: 0.3s;
+}
+
+.proxy {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    left: 32px;
+    top: 276px;
+    -webkit-app-region: no-drag;
+    -webkit-user-select: none;
+    opacity: 1;
+    transition: 0.3s;
+}
+
+.webhookEntry {
+    position: absolute;
+    width: 501px;
+    height: 18px;
+    left: 118px;
+    top: 120px;
+    background: #1e202f;
+    color: white;
+    font-family: 'Poppins';
+    font-size: 12px;
+    outline: 0;
+    border: 0;
+    border-radius: 8px;
+}
+
+.proxyBox:focus {
+    outline: none;
+}
+
+.fnameTitle {
+    position: absolute;
+    left: 121px;
+    top: 103px;
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: normal;
+    font-size: 12px;
+    line-height: 18px;
+    color: #FFFFFF;
+}
+
+.fnameEntry {
+    position: absolute;
+    width: 169px;
+    height: 17px;
+    left: 121px;
+    top: 121px;
+    color: #FFFFFF;
+    font-family: 'Poppins';
+    border: 0;
+    outline: 0;
+    border-radius: 8px;
+    background: #1e202f;
+}
+
+.lnameTitle {
+    position: absolute;
+    width: 69px;
+    height: 21px;
+    left: 121px;
+    top: 160px;
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: normal;
+    font-size: 13px;
+    line-height: 19px;
+    color: #FFFFFF;
+}
+
+.addressTitle {
+    position: absolute;
+    width: 69px;
+    height: 21px;
+    left: 121px;
+    top: 211px;
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: normal;
+    font-size: 13px;
+    line-height: 19px;
+    color: #FFFFFF;
+}
+
+.addressEntry {
+    position: absolute;
+    width: 169px;
+    height: 17px;
+    left: 121px;
+    top: 231px;
+    font-family: 'Poppins';
+    color: #FFFFFF;
+    border: 0;
+    outline: 0;
+    border-radius: 8px;
+    background: #1e202f;
+}
+
+.lnameEntry {
+    position: absolute;
+    width: 169px;
+    height: 17px;
+    left: 121px;
+    border: 0;
+    outline: 0;
+    border-radius: 8px;
+    background: #1e202f;
+    top: 182px;
+    font-family: 'Poppins';
+    color: white;
+}
+
+.cityTitle {
+    position: absolute;
+    width: 69px;
+    height: 21px;
+    left: 121px;
+    top: 260px;
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: normal;
+    font-size: 13px;
+    line-height: 19px;
+    color: #FFFFFF;
+}
+
+.cityEntry {
+    position: absolute;
+    width: 169px;
+    height: 17px;
+    left: 121px;
+    top: 281px;
+    border: 0;
+    outline: 0;
+    border-radius: 8px;
+    background: #1e202f;
+    font-family: 'Poppins';
+    color: white;
+}
+
+.stateTitle {
+    position: absolute;
+    width: 69px;
+    height: 21px;
+    left: 121px;
+    top: 315px;
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: normal;
+    font-size: 13px;
+    line-height: 19px;
+    color: #FFFFFF;
+}
+
+.stateEntry {
+    position: absolute;
+    width: 169px;
+    height: 17px;
+    left: 121px;
+    top: 336px;
+    border: 0;
+    outline: 0;
+    border-radius: 8px;
+    background: #1e202f;
+    font-family: 'Poppins';
+    color: white;
+}
+
+.countryTitle {
+    position: absolute;
+    width: 69px;
+    height: 21px;
+    left: 121px;
+    top: 375px;
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: normal;
+    font-size: 13px;
+    line-height: 19px;
+    color: #FFFFFF;
+}
+
+.countryEntry {
+    position: absolute;
+    width: 169px;
+    height: 17px;
+    left: 121px;
+    top: 397px;
+    border: 0;
+    outline: 0;
+    border-radius: 8px;
+    background: #1e202f;
+    font-family: 'Poppins';
+    color: white;
+}
+
+.zipcodeTitle {
+    position: absolute;
+    width: 69px;
+    height: 21px;
+    left: 121px;
+    top: 435px;
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: normal;
+    font-size: 13px;
+    line-height: 19px;
+    color: #FFFFFF;
+}
+
+.zipcodeEntry {
+    position: absolute;
+    width: 169px;
+    height: 17px;
+    left: 121px;
+    top: 455px;
+    border: 0;
+    outline: 0;
+    border-radius: 8px;
+    background: #1e202f;
+    font-family: 'Poppins';
+    color: white;
+}
+
+.cardTitle {
+    position: absolute;
+    width: 105px;
+    height: 21px;
+    left: 324px;
+    top: 100px;
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: normal;
+    font-size: 13px;
+    line-height: 19px;
+    color: #FFFFFF;
+}
+
+.cardEntry {
+    position: absolute;
+    width: 169px;
+    height: 17px;
+    left: 324px;
+    top: 121px;
+    border: 0;
+    outline: 0;
+    border-radius: 8px;
+    background: #1e202f;
+    font-family: 'Poppins';
+    color: white;
+}
+
+.expmonthTitle {
+    position: absolute;
+    width: 152px;
+    height: 21px;
+    left: 324px;
+    top: 160px;
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: normal;
+    font-size: 13px;
+    line-height: 19px;
+    color: #FFFFFF;
+}
+
+.clearFields {
+    position: absolute;
+    width: 170px;
+    height: 25px;
+    left: 123px;
+    top: 619px;
+    font-family: 'Poppins';
+    color: #5DA9FF;
+    background: transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    outline: 0;
+    border: 1px solid #5DA9FF;
+}
+
+.expmonthEntry {
+    position: absolute;
+    width: 169px;
+    height: 17px;
+    left: 324px;
+    top: 182px;
+    border: 0;
+    outline: 0;
+    border-radius: 8px;
+    background: #1e202f;
+    font-family: 'Poppins';
+    color: white;
+}
+
+.expyearTitle {
+    position: absolute;
+    width: 144px;
+    height: 21px;
+    left: 324px;
+    top: 211px;
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: normal;
+    font-size: 13px;
+    line-height: 19px;
+    color: #FFFFFF;
+}
+
+.expyearEntry {
+    position: absolute;
+    width: 169px;
+    height: 17px;
+    left: 324px;
+    top: 231px;
+    border: 0;
+    outline: 0;
+    border-radius: 8px;
+    background: #1e202f;
+    font-family: 'Poppins';
+    color: white;
+}
+
+.cvvTitle {
+    position: absolute;
+    width: 119px;
+    height: 21px;
+    left: 324px;
+    top: 260px;
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: normal;
+    font-size: 13px;
+    line-height: 19px;
+    color: #FFFFFF;
+}
+
+.cvvEntry {
+    position: absolute;
+    width: 169px;
+    height: 17px;
+    left: 324px;
+    top: 281px;
+    border: 0;
+    outline: 0;
+    border-radius: 8px;
+    background: #1e202f;
+    font-family: 'Poppins';
+    color: white;
+}
+
+.profilenameTitle {
+    position: absolute;
+    width: 119px;
+    height: 21px;
+    left: 324px;
+    top: 315px;
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: normal;
+    font-size: 13px;
+    line-height: 19px;
+    color: #FFFFFF;
+}
+
+.profilenameEntry {
+    position: absolute;
+    width: 169px;
+    height: 17px;
+    left: 324px;
+    top: 336px;
+    border: 0;
+    outline: 0;
+    border-radius: 8px;
+    background: #1e202f;
+    font-family: 'Poppins';
+    color: white;
+}
+
+.onecheckoutTitle {
+    position: absolute;
+    width: 119px;
+    height: 21px;
+    left: 324px;
+    top: 375px;
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: normal;
+    font-size: 13px;
+    line-height: 19px;
+    color: #FFFFFF;
+}
+
+.onecheckoutEntry {
+    position: absolute;
+    width: 172px;
+    height: 19px;
+    left: 324px;
+    top: 397px;
+    border: 0;
+    outline: 0;
+    border-radius: 8px;
+    background: #1e202f;
+    font-family: 'Poppins';
+    color: white;
+}
+
+.saveButton {
+    position: absolute;
+    width: 170px;
+    height: 25px;
+    left: 123px;
+    top: 538px;
+    font-family: 'Poppins';
+    color: #4fcf91;
+    background: transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    outline: 0;
+    border: 1px solid #4fcf91;
+}
+
+.importButton {
+    position: absolute;
+    width: 170px;
+    height: 21px;
+    text-align: center;
+    left: 800px;
+    border-radius: 5px;
+    top: 525px;
+    color: white;
+    background: transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    outline: 0;
+    padding-top: 1px;
+    border: 1px solid #5DA9FF;
+    font-family: 'Poppins';
+    color: #5DA9FF;
+    font-size: 13px;
+}
+
+.phoneTitle {
+    position: absolute;
+    width: 111px;
+    height: 21px;
+    left: 121px;
+    top: 481px;
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: normal;
+    font-size: 13px;
+    line-height: 19px;
+    color: #FFFFFF;
+}
+
+.phoneEntry {
+    position: absolute;
+    width: 169px;
+    height: 17px;
+    left: 121px;
+    top: 503px;
+    border: 0;
+    outline: 0;
+    border-radius: 8px;
+    background: #1e202f;
+    font-family: 'Poppins';
+    color: white;
+}
+
+.emailEntry {
+    position: absolute;
+    width: 169px;
+    height: 17px;
+    left: 324px;
+    top: 455px;
+    border: 0;
+    outline: 0;
+    border-radius: 8px;
+    background: #1e202f;
+    font-family: 'Poppins';
+    color: white;
+}
+
+.saveProxies {
+    position: absolute;
+    width: 169px;
+    left: 219px;
+    top: 485px;
+    height: 26px;
+    font-family: 'Poppins';
+    color: #4fcf91;
+    background: transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    outline: 0;
+    border: 1px solid #4fcf91;
+}
+
+.saveToken {
+    position: absolute;
+    width: 169px;
+    left: 1018px;
+    top: 485px;
+    height: 26px;
+    font-family: 'Poppins';
+    color: #4fcf91;
+    background: transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    outline: 0;
+    border: 1px solid #4fcf91;
+}
+
+.profileTable {
+    position: absolute;
+    border-radius: 8px;
+    width: 650px;
+    height: 372px;
+    left: 550px;
+    top: 100px;
+    overflow-y: auto;
+    background: #1e202f;
+}
+
+th.profile2 {
+    width: 650px;
+    text-align: center;
+    top: 0;
+    position: sticky;
+}
+
+.nameEntry:focus {
+    outline: none;
+}
+
+.emailTitle {
+    position: absolute;
+    width: 69px;
+    height: 21px;
+    left: 324px;
+    top: 435px;
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: normal;
+    font-size: 13px;
+    line-height: 19px;
+    color: #FFFFFF;
+}
+
+.settings {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    left: 32px;
+    top: 433px;
+    -webkit-app-region: no-drag;
+    -webkit-user-select: none;
+    transition: 0.3s;
+}
+
+.harvesterNameTitle {
+    position: absolute;
+    width: 120px;
+    font-weight: 600;
+    height: 21px;
+    left: 125px;
+    top: 100px;
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: 600;
+    font-size: 13px;
+    line-height: 19px;
+    color: #FFFFFF;
+}
+
+.harvesterNameEntry {
+    position: absolute;
+    width: 169px;
+    height: 17px;
+    left: 245px;
+    top: 102px;
+    border-radius: 8px;
+    background: #1e202f;
+    color: white;
+    font-family: 'Poppins';
+    font-size: 12px;
+    border: 0;
+    outline: 0;
+}
+
+.proxyTitle {
+    position: absolute;
+    width: 120px;
+    height: 21px;
+    left: 125px;
+    top: 127px;
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: 600;
+    font-size: 13px;
+    line-height: 19px;
+    color: #FFFFFF;
+}
+
+.capMonster {
+    position: absolute;
+    width: 120px;
+    height: 21px;
+    left: 1080px;
+    top: 102px;
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: 600;
+    font-size: 13px;
+    line-height: 19px;
+    color: #FFFFFF;
+}
+
+.solvingService {
+    position: absolute;
+    width: 120px;
+    height: 21px;
+    left: 1055px;
+    top: 155px;
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: 600;
+    font-size: 13px;
+    line-height: 19px;
+    color: #FFFFFF;
+}
+
+.capMonsterEntry {
+    position: absolute;
+    width: 169px;
+    height: 17px;
+    left: 1018px;
+    top: 127px;
+    border-radius: 8px;
+    background: #1e202f;
+    color: white;
+    font-family: 'Poppins';
+    font-size: 12px;
+    border: 0;
+    outline: 0;
+}
+
+.apiSelection {
+    position: absolute;
+    width: 169px;
+    height: 23px;
+    left: 1018px;
+    top: 180px;
+    border-radius: 8px;
+    background: #1e202f;
+    color: white;
+    font-family: 'Poppins';
+    font-size: 12px;
+    border: 0;
+    outline: 0;
+}
+
+.proxyEntry {
+    position: absolute;
+    width: 169px;
+    height: 17px;
+    left: 245px;
+    top: 131px;
+    border-radius: 8px;
+    background: #1e202f;
+    color: white;
+    font-family: 'Poppins';
+    font-size: 12px;
+    border: 0;
+    outline: 0;
+}
+
+.captcha {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    left: 32px;
+    top: 379px;
+    -webkit-app-region: no-drag;
+    -webkit-user-select: none;
+    opacity: 1;
+    transition: 0.3s;
+}
+
+.account {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    left: 32px;
+    top: 327px;
+    -webkit-app-region: no-drag;
+    -webkit-user-select: none;
+    opacity: 1;
+    transition: 0.3s;
+}
+
+a {
+    color: #292c3f;
+}
+
+.minimize {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    left: 20px;
+    top: 7px;
+    -webkit-app-region: no-drag;
+    -webkit-user-select: none;
+}
+
+.close {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    left: 5px;
+    top: 7px;
+    -webkit-app-region: no-drag;
+    -webkit-user-select: none;
+}
+
+.keyAuthBackground {
+    position: absolute;
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center center;
+    width: 600px;
+    height: 272px;
+    border-radius: 8px;
+    background: #181a26;
+    top: 250px;
+    left: 350px;
+}
+
+.keyAuthHeaderBackground {
+    position: absolute;
+    width: 600px;
+    height: 65px;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    background: #e06767;
+    -webkit-app-region: drag
+}
+
+.modalHeaderBackground {
+    position: absolute;
+    width: 485px;
+    height: 60px;
+    background: #1e202f;
+}
+
+.modalHeader {
+    position: absolute;
+    width: 252px;
+    -webkit-user-select: none;
+    height: 36px;
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: bold;
+    font-size: 20px;
+    line-height: 39px;
+    color: #FFFFFF;
+    left: 20px;
+    top: 13px;
+}
+
+.keyauthHeader {
+    position: absolute;
+    width: 252px;
+    -webkit-user-select: none;
+    height: 36px;
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: bold;
+    font-size: 24px;
+    line-height: 39px;
+    color: #FFFFFF;
+    left: 20px;
+    top: 13px;
+}
+
+.keyAuthEntryText {
+    position: absolute;
+    height: 27px;
+    left: 39px;
+    top: 101px;
+    font-family: 'Poppins';
+    -webkit-user-select: none;
+    font-style: normal;
+    font-weight: bold;
+    font-size: 18px;
+    line-height: 27px;
+    color: #FFFFFF;
+}
+
+body {
+    overflow: hidden;
+    -webkit-app-region: no-drag;
+    -webkit-user-select: none;
+}
+
+.tableTitle {
+    position: absolute;
+    height: 36px;
+    left: 117px;
+    top: 13px;
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: bold;
+    -webkit-app-region: no-drag;
+    -webkit-user-select: none;
+    font-size: 24px;
+    line-height: 36px;
+    color: #FFFFFF;
+}
+
+.totalCheckouts {
+    position: absolute;
+    width: 122px;
+    height: 30px;
+    left: 132px;
+    top: 92px;
+    border-radius: 10px;
+    background: #4fcf91;
+    border: 0;
+    outline: 0;
+}
+
+.totalCheckoutsNumber {
+    position: absolute;
+    width: 120px;
+    height: 21px;
+    left: 141px;
+    top: 97px;
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: normal;
+    font-size: 14px;
+    line-height: 21px;
+    color: #FFFFFF;
+    -webkit-user-select: none;
+}
+
+.totalCarts {
+    position: absolute;
+    width: 122px;
+    height: 30px;
+    left: 277px;
+    top: 92px;
+    border-radius: 10px;
+    background: #5DA9FF;
+    border: 0;
+    outline: 0;
+}
+
+.totalCartsNumber {
+    position: absolute;
+    width: 120px;
+    height: 21px;
+    left: 286px;
+    top: 97px;
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: normal;
+    font-size: 14px;
+    line-height: 21px;
+    color: #FFFFFF;
+    -webkit-user-select: none;
+}
+
+.totalFails {
+    position: absolute;
+    width: 122px;
+    height: 30px;
+    left: 422px;
+    top: 92px;
+    border-radius: 10px;
+    background: #e06767;
+    border: 0;
+    outline: 0;
+}
+
+.totalFailsNumber {
+    position: absolute;
+    width: 120px;
+    height: 21px;
+    left: 431px;
+    top: 97px;
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: normal;
+    font-size: 14px;
+    line-height: 21px;
+    color: #FFFFFF;
+    -webkit-user-select: none;
+}
+
+::-webkit-input-placeholder {
+    font-family: 'Poppins';
+    font-weight: bold;
+}
+
+.taskFilter {
+    position: absolute;
+    width: 260px;
+    height: 25px;
+    left: 320px;
+    top: 54px;
+    color: white;
+    font-family: 'Poppins';
+    font-size: 12px;
+    outline: 0;
+    border-radius: 8px;
+    background: #1e202f;
+    border: 0;
+    padding-left: 8px;
+    transition-property: box-shadow;
+    transition-duration: 0.4s;
+}
+
+.groupFilter {
+    color: white;
+    font-family: 'Poppins';
+    font-size: 12px;
+    outline: 0;
+    border-radius: 8px;
+    background: #1e202f;
+    border: 0;
+    position: absolute;
+    padding-left: 8px;
+    top: 54px;
+    height: 25px;
+    width: 160px;
+    left: 99px;
+    transition-property: box-shadow;
+    transition-duration: 0.4s;
+}
+
+.groupFilter:focus {
+    border-color: #e06767;
+    box-shadow: 0 0 0 1pt #e06767;
+}
+
+.groupFilter:hover {
+    border-color: #e06767;
+    box-shadow: 0 0 0 1pt #e06767;
+}
+
+.taskFilter:focus {
+    border-color: #e06767;
+    box-shadow: 0 0 0 1pt #e06767;
+}
+
+.taskFilter:hover {
+    border-color: #e06767;
+    box-shadow: 0 0 0 1pt #e06767;
+}
+
+.groupTable {
+    position: absolute;
+    width: 150px;
+    height: 640px;
+    overflow-x: hidden;
+    top: 85px;
+    left: 99px;
+    overflow-y: scroll;
+    table-layout: fixed;
+    padding-right: 35px;
+    background: transparent;
+}
+
+.delayInput {
+    position: absolute;
+    width: 100px;
+    height: 21px;
+    left: 850px;
+    top: 60px;
+    background: #292c3f;
+    color: white;
+    font-family: 'Poppins';
+    font-size: 12px;
+    border: none;
+    outline: 0;
+}
+
+.keyAuthEntry {
+    position: absolute;
+    width: 523px;
+    height: 37px;
+    left: 39px;
+    top: 136px;
+    font-size: 18px;
+    background: #1e202f;
+    border-radius: 8px;
+    color: white;
+    font-family: 'Poppins';
+    border: none;
+    outline: 0;
+}
+
+.keySubmit {
+    position: absolute;
+    width: 68px;
+    height: 42px;
+    left: 506px;
+    top: 212px;
+    background: #e06767;
+    border-radius: 11px;
+    border: none;
+    outline: 0;
+    -webkit-app-region: no-drag;
+    -webkit-user-select: none;
+    cursor: pointer;
+}
+
+.modeSelectionText {
+    position: absolute;
+    width: 37px;
+    height: 25px;
+    left: 388px;
+    top: 66px;
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: normal;
+    font-size: 13px;
+    line-height: 19px;
+    color: #FFFFFF;
+}
+
+.modeEntry {
+    position: absolute;
+    width: 51px;
+    height: 15px;
+    left: 388px;
+    top: 88px;
+}
+
+table.tasks {
+    border-collapse: separate;
+    border-spacing: 0 10px;
+}
+
+table.groups {
+    border-collapse: separate;
+    border-spacing: 0 10px;
+}
+
+table.groups td {
+    cursor: pointer;
+    transition-property: border;
+    transition-duration: 0.4s;
+}
+
+table.tasks td {
+    cursor: pointer;
+}
+
+.taskTable {
+    position: absolute;
+    position: absolute;
+    width: 912px;
+    height: 640px;
+    top: 85px;
+    left: 320px;
+    background: #181a26;
+    overflow-y: auto;
+    table-layout: fixed;
+    overflow-x: hidden;
+    padding-right: 10px;
+    white-space: nowrap;
+}
+
+td,
+th {
+    color: white;
+    font-family: 'Poppins';
+    font-weight: lighter;
+    font-size: 14px;
+    text-align: center;
+}
+
+.webhookSubmit {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    left: 640px;
+    top: 120px;
+    opacity: 1;
+    transition: 0.3s;
+}
+
+.webhookSubmit:hover {
+    opacity: 0.3
+}
+
+th.select {
+    width: 40px;
+    max-width: 40px;
+    background-color: #292c3f;
+}
+
+th.id {
+    width: 60px;
+    max-width: 60px;
+    background-color: #292c3f;
+}
+
+th.site {
+    width: 80px;
+    max-width: 80px;
+    background-color: #292c3f;
+}
+
+th.mode {
+    width: 60px;
+    max-width: 60px;
+    background-color: #292c3f;
+}
+
+th.link {
+    width: 300px;
+    max-width: 300px;
+    background-color: #292c3f;
+}
+
+th.size {
+    width: 10px;
+    max-width: 10px;
+    background-color: #292c3f;
+}
+
+th.profile3 {
+    width: 70px;
+    max-width: 70px;
+    background-color: #292c3f;
+}
+
+th.proxy3 {
+    width: 70px;
+    max-width: 70px;
+    background-color: #292c3f;
+}
+
+th.status2 {
+    width: 180px;
+    max-width: 180px;
+    background-color: #292c3f;
+}
+
+.siteTaskTitle {
+    position: absolute;
+    width: 34px;
+    height: 21px;
+    left: 440px;
+    top: 260px;
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: normal;
+    font-size: 12px;
+    line-height: 19px;
+    color: #FFFFFF;
+}
+
+.select2-search {
+    background-color: #1e202f !important;
+    font-family: 'Poppins';
+    color: white;
+    font-style: normal;
+    font-weight: normal;
+    outline: none;
+    font-size: 12px;
+}
+
+.select2-search input {
+    background-color: #1e202f !important;
+    font-family: 'Poppins';
+    color: white;
+    border: 0;
+    font-style: normal;
+    font-weight: normal;
+    outline: none;
+    font-size: 12px;
+}
+
+.select2-results {
+    background-color: #1e202f !important;
+    color: white;
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: normal;
+    font-size: 12px;
+}
+
+.select2-results__option[aria-selected=true] {
+    color: white;
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: normal;
+    font-size: 12px;
+}
+
+.select2-selection__rendered {
+    color: white;
+}
+
+.select2-choice {
+    background-color: #1e202f !important;
+    font-family: 'Poppins';
+    color: white;
+    font-style: normal;
+    font-weight: normal;
+    outline: none;
+    font-size: 13px;
+}
+
+.select2-container--default .select2-selection--single {
+    background-color: #1e202f !important;
+    font-family: 'Poppins';
+    color: white;
+    font-style: normal;
+    font-weight: normal;
+    outline: none;
+    font-size: 13px;
+}
+
+.siteTaskEntry {
+    position: absolute;
+    width: 169px;
+    height: 23px;
+    left: 440px;
+    top: 285px;
+    background: #292c3f;
+    color: white;
+    font-family: 'Poppins';
+    font-size: 12px;
+    border: 0;
+    outline: 0;
+    border-radius: 5px;
+}
+
+.sizeTaskTitle {
+    position: absolute;
+    width: 34px;
+    height: 21px;
+    left: 650px;
+    top: 440px;
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: normal;
+    font-size: 13px;
+    line-height: 19px;
+    color: #FFFFFF;
+}
+
+.sizeTaskEntry {
+    position: absolute;
+    width: 169px;
+    height: 23px;
+    left: 650px;
+    border-radius: 5px;
+    top: 465px;
+    background: #292c3f;
+    color: white;
+    font-family: 'Poppins';
+    font-size: 12px;
+    border: 0;
+    outline: 0;
+}
+
+.linkTaskTitle {
+    position: absolute;
+    width: 34px;
+    height: 21px;
+    left: 440px;
+    top: 320px;
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: normal;
+    font-size: 13px;
+    line-height: 19px;
+    color: #FFFFFF;
+}
+
+.linkTaskEntry {
+    position: absolute;
+    height: 23px;
+    left: 440px;
+    width: 158px;
+    padding-left: 8px;
+    top: 345px;
+    background: #1e202f;
+    color: white;
+    font-family: 'Poppins';
+    font-size: 12px;
+    border: 0;
+    outline: 0;
+}
+
+.modeTaskTitle {
+    position: absolute;
+    width: 45px;
+    height: 21px;
+    left: 650px;
+    top: 260px;
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: normal;
+    font-size: 13px;
+    line-height: 19px;
+    color: #FFFFFF;
+}
+
+.modeTaskEntry {
+    position: absolute;
+    left: 650px;
+    border-radius: 5px;
+    width: 169px;
+    top: 285px;
+    background: #292c3f;
+    color: white;
+    font-family: 'Poppins';
+    font-size: 12px;
+    border: 0;
+    outline: 0;
+}
+
+.profileTaskTitle {
+    position: absolute;
+    width: 53px;
+    height: 23px;
+    left: 440px;
+    top: 380px;
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: normal;
+    font-size: 13px;
+    line-height: 19px;
+    color: #FFFFFF;
+}
+
+.profileTaskEntry {
+    position: absolute;
+    width: 169px;
+    height: 23px;
+    border-radius: 5px;
+    left: 440px;
+    top: 405px;
+    background: #292c3f;
+    color: white;
+    font-family: 'Poppins';
+    font-size: 12px;
+    border: 0;
+    outline: 0;
+}
+
+.proxyTaskTitle {
+    position: absolute;
+    width: 53px;
+    height: 21px;
+    left: 440px;
+    top: 440px;
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: normal;
+    font-size: 13px;
+    line-height: 19px;
+    color: #FFFFFF;
+}
+
+.proxyTaskEntry {
+    position: absolute;
+    border-radius: 5px;
+    width: 169px;
+    height: 23px;
+    left: 440px;
+    top: 465px;
+    background: #292c3f;
+    color: white;
+    font-family: 'Poppins';
+    font-size: 12px;
+    border: 0;
+    outline: 0;
+}
+
+.sizeTaskEntry2 {
+    position: absolute;
+    width: 169px;
+    height: 23px;
+    left: 650px;
+    top: 405px;
+    background: #292c3f;
+    color: white;
+    font-family: 'Poppins';
+    font-size: 12px;
+    border: 0;
+    outline: 0;
+}
+
+.accountTaskTitle {
+    position: absolute;
+    width: 65px;
+    height: 21px;
+    left: 650px;
+    top: 380px;
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: normal;
+    font-size: 13px;
+    line-height: 19px;
+    color: #FFFFFF;
+}
+
+.accountTaskEntry {
+    position: absolute;
+    width: 169px;
+    height: 23px;
+    left: 650px;
+    top: 405px;
+    border-radius: 5px;
+    background: #292c3f;
+    color: white;
+    font-family: 'Poppins';
+    font-size: 12px;
+    border: 0;
+    outline: 0;
+}
+
+.quantityTaskTitle {
+    position: absolute;
+    width: 138px;
+    height: 21px;
+    left: 650px;
+    top: 320px;
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: normal;
+    font-size: 13px;
+    line-height: 19px;
+    color: #FFFFFF;
+}
+
+.quantityTaskEntry {
+    position: absolute;
+    width: 158px;
+    padding-left: 8px;
+    height: 23px;
+    left: 650px;
+    top: 345px;
+    background: #1e202f;
+    color: white;
+    font-family: 'Poppins';
+    font-size: 12px;
+    border: 0;
+    outline: 0;
+}
+
+button {
+    border-radius: 5px;
+}
+
+.addTaskButton {
+    position: absolute;
+    width: 169px;
+    height: 26px;
+    left: 650px;
+    top: 540px;
+    font-family: 'Poppins';
+    color: #4fcf91;
+    background: transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    outline: 0;
+    border: 1px solid #4fcf91;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    opacity: 1;
+    background-color: rgba(0, 0, 0, 0.4);
+    outline: 0;
+    width: 1260px;
+    right: 1px;
+    bottom: 1px;
+    height: 781px;
+}
+
+.modal-hide {
+    display: none;
+}
+
+.modal-content {
+    background-color: #181a26;
+    margin: 15% auto;
+    width: 485px;
+    height: 391px;
+    -webkit-user-select: none;
+}
+
+.closeModal {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    left: 850px;
+    top: 198px;
+}
+
+table.tasks td.link {
+    overflow: hidden;
+    white-space: nowrap;
+    max-width: 295px;
+}
+
+table.tasks td:first-child {
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
+}
+
+table.tasks td:last-child {
+    border-bottom-right-radius: 10px;
+    border-top-right-radius: 10px;
+}
+
+table.tasks th:first-child {
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
+}
+
+table.tasks th:last-child {
+    border-bottom-right-radius: 10px;
+    border-top-right-radius: 10px;
+}
+
+table.groups td:first-child {
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
+}
+
+table.groups td:last-child {
+    border-bottom-right-radius: 10px;
+    border-top-right-radius: 10px;
+}
+
+td {
+    font-weight: 100;
+    font-size: 13px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    background-color: #1e202f;
+}
+
+th.size {
+    width: 6%;
+}
+
+th.product {
+    width: 45%;
+}
+
+th.site3 {
+    width: 15%;
+}
+
+th.price {
+    width: 10%;
+}
+
+th.size3 {
+    width: 10%;
+}
+
+td.checkouts {
+    padding-top: 20px;
+    padding-bottom: 20px;
+}
+
+.groupNameInput {
+    background: transparent;
+    outline: none;
+    border: none;
+    font-family: 'Poppins';
+    top: 0px;
+    padding-left: 8px;
+    color: white;
+}
+
+.groupTaskAmount {
+    color: grey;
+    font-family: 'Poppins';
+    width: 100px;
+    padding-top: 2px;
+    text-align: left;
+    padding-left: 8px;
+    height: 20px;
+}
+
+th.date {
+    width: 140px;
+}
+
+th {
+    text-align: center;
+    top: 0;
+    height: 30px;
+    position: sticky;
+    z-index: 1;
+    font-weight: 600 !important;
+    background-color: #292c3f;
+}
+
+::-webkit-scrollbar {
+    width: 4px;
+}
+
+::-webkit-scrollbar-track {
+    box-shadow: inset 0 0 5px #292c3f;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #e06767;
+    border-radius: 10px;
+}
+
+tr {
+    opacity: 1;
+    transition: 0.3;
+    -webkit-app-region: no-drag;
+    -webkit-user-select: none;
+}
+
+tr:hover {
+    opacity: 1;
+    background: #292c3f;
+}
+
+.checkoutsIcon {
+    position: absolute;
+    left: 300px;
+    top: 50px;
+}
+
+.totalCheckoutsAmount {
+    position: absolute;
+    height: 36px;
+    left: 23px;
+    top: 110px;
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: bold;
+    -webkit-app-region: no-drag;
+    -webkit-user-select: none;
+    font-size: 42px;
+    line-height: 36px;
+    color: #FFFFFF;
+}
+
+.totalFailuresAmount {
+    position: absolute;
+    height: 36px;
+    left: 23px;
+    top: 110px;
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: bold;
+    -webkit-app-region: no-drag;
+    -webkit-user-select: none;
+    font-size: 42px;
+    line-height: 36px;
+    color: #FFFFFF;
+}
+
+.totalSpentText {
+    position: absolute;
+    height: 36px;
+    left: 25px;
+    top: 40px;
+    font-family: 'Poppins';
+    font-weight: lighter;
+    -webkit-app-region: no-drag;
+    -webkit-user-select: none;
+    font-size: 20px;
+    line-height: 36px;
+    color: #FFFFFF;
+}
+
+.totalCheckoutsText {
+    position: absolute;
+    height: 36px;
+    left: 25px;
+    top: 40px;
+    font-family: 'Poppins';
+    font-weight: lighter;
+    -webkit-app-region: no-drag;
+    -webkit-user-select: none;
+    font-size: 20px;
+    line-height: 36px;
+    color: #FFFFFF;
+}
+
+.totalFailuresText {
+    position: absolute;
+    height: 36px;
+    left: 25px;
+    top: 40px;
+    font-family: 'Poppins';
+    font-weight: lighter;
+    -webkit-app-region: no-drag;
+    -webkit-user-select: none;
+    font-size: 20px;
+    line-height: 36px;
+    color: #FFFFFF;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.documentation {
+    position: absolute;
+    width: 300px;
+    height: 18px;
+    left: 1100px;
+    -webkit-user-select: none;
+    top: 685px;
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: lighter;
+    font-size: 12px;
+    line-height: 18px;
+    color: #FFFFFF;
+}
+
+.logs {
+    position: absolute;
+    width: 300px;
+    height: 18px;
+    left: 1220px;
+    -webkit-user-select: none;
+    top: 685px;
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: lighter;
+    font-size: 12px;
+    line-height: 18px;
+    color: #FFFFFF;
+}
+
+.totalSpentAmount {
+    position: absolute;
+    height: 36px;
+    left: 23px;
+    top: 110px;
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: bold;
+    -webkit-app-region: no-drag;
+    -webkit-user-select: none;
+    font-size: 42px;
+    line-height: 36px;
+    color: #FFFFFF;
+}
+
+.failsIcon {
+    position: absolute;
+    left: 300px;
+    top: 50px;
+}
+
+.totalSpent {
+    position: absolute;
+    background: #5DA9FF;
+    border-radius: 8px;
+    width: 384px;
+    height: 204px;
+    left: 819px;
+    top: 40px;
+}
+
+.totalCheckouts2 {
+    position: absolute;
+    width: 384px;
+    height: 204px;
+    left: 819px;
+    top: 288px;
+    background: #4fcf91;
+    border-radius: 8px;
+}
+
+*,
+*::after,
+*::before {
+    -webkit-user-select: none;
+    -webkit-user-drag: none;
+    -webkit-app-region: no-drag;
+}
+
+.totalFails2 {
+    position: absolute;
+    width: 384px;
+    height: 204px;
+    left: 819px;
+    top: 533px;
+    background: #e06767;
+    border-radius: 8px;
+}
+
+.checkoutsTable {
+    position: absolute;
+    border: 0;
+    width: 640px;
+    height: 288px;
+    left: 130px;
+    border-collapse: separate;
+    border-spacing: 0 15px;
+    top: 453px;
+    border-radius: 8px;
+    background: #1e202f;
+    overflow-y: auto;
+}
+
+.sidebar {
+    position: absolute;
+    width: 85px;
+    height: 780px;
+    top: 0px;
+    left: 0px;
+    border-right: 3px solid #1e202f;
+    background: #181a26;
+    z-index: 1;
+}
+
+.topbar {
+    position: absolute;
+    width: 31px;
+    height: 488px;
+    background: #292c3f;
+}
+
+.passwordText {
+    position: absolute;
+    width: 92px;
+    height: 27px;
+    left: 328px;
+    top: 616px;
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: normal;
+    font-size: 18px;
+    line-height: 27px;
+    color: #FFFFFF;
+}
+
+.passwordBox {
+    font-family: 'Poppins';
+    position: absolute;
+    width: 180px;
+    height: 22px;
+    left: 425px;
+    top: 619px;
+    color: white;
+    border: 0;
+    outline: 0;
+    background: #292c3f;
+}
+
+.passwordBox:focus {
+    outline: none;
+}
+
+.profile {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    left: 32px;
+    top: 225px;
+    -webkit-app-region: no-drag;
+    -webkit-user-select: none;
+    opacity: 1;
+    transition: 0.3s;
+}
+
+.proxyListNameTitle {
+    position: absolute;
+    width: 81px;
+    height: 21px;
+    left: 125px;
+    top: 75px;
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: 600;
+    font-size: 13px;
+    line-height: 19px;
+    color: #FFFFFF;
+}
+
+.proxyListName {
+    position: absolute;
+    width: 169px;
+    font-family: 'Poppins';
+    height: 17px;
+    left: 219px;
+    top: 75px;
+    color: white;
+    border: 0;
+    outline: 0;
+    border-radius: 8px;
+    background: #1e202f;
+}
+
+.proxyBox {
+    position: absolute;
+    width: 363px;
+    height: 372px;
+    left: 122px;
+    top: 100px;
+    font-family: 'Poppins';
+    color: white;
+    resize: none;
+    overflow-y: auto;
+    border-radius: 8px;
+    background: #1e202f;
+    font-size: 12px;
+    border: 0;
+    outline: 0;
+}
+
+.createTask {
+    position: absolute;
+    width: 83px;
+    height: 27px;
+    left: 330px;
+    top: 739px;
+    background: transparent;
+    border-radius: 8px;
+    outline: none;
+    border: 1px solid #4fcf91;
+    color: white;
+    font-family: 'Poppins';
+    cursor: pointer;
+    transition-property: background;
+    transition-duration: 0.4s;
+}
+
+.createTask:hover {
+    background: #4fcf91;
+}
+
+.createTask:disabled {
+    cursor: not-allowed;
+    color: white;
+    border: 1px solid #3d8a64;
+}
+
+.editTask:disabled {
+    cursor: not-allowed;
+    color: #5291da;
+    border: 1px solid #5291da;
+}
+
+.startTask {
+    position: absolute;
+    width: 83px;
+    height: 27px;
+    left: 681px;
+    top: 739px;
+    background: transparent;
+    border-radius: 8px;
+    outline: none;
+    border: 1px solid #4fcf91;
+    color: #4fcf91;
+    font-family: 'Poppins';
+    cursor: pointer;
+}
+
+.stopTask {
+    position: absolute;
+    width: 83px;
+    height: 27px;
+    left: 775px;
+    top: 739px;
+    background: transparent;
+    border-radius: 8px;
+    border: 1px solid #e06767;
+    outline: none;
+    color: #e06767;
+    font-family: 'Poppins';
+    cursor: pointer;
+}
+
+.deleteTask {
+    position: absolute;
+    width: 83px;
+    height: 27px;
+    left: 424px;
+    top: 739px;
+    background: transparent;
+    border-radius: 8px;
+    outline: none;
+    border: 1px solid #e06767;
+    font-family: 'Poppins';
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+    transition-property: background;
+    transition-duration: 0.4s;
+}
+
+.deleteTask:hover {
+    background: #e06767;
+}
+
+.cloneTask {
+    position: absolute;
+    width: 83px;
+    height: 27px;
+    left: 1032px;
+    top: 739px;
+    background: transparent;
+    border-radius: 8px;
+    outline: none;
+    border: 1px solid #5DA9FF;
+    font-family: 'Poppins';
+    color: #5DA9FF;
+    cursor: pointer;
+}
+
+.editTask {
+    position: absolute;
+    width: 83px;
+    height: 27px;
+    left: 1126px;
+    top: 739px;
+    background: transparent;
+    border-radius: 8px;
+    outline: none;
+    border: 1px solid #5DA9FF;
+    font-family: 'Poppins';
+    color: #5DA9FF;
+    cursor: pointer;
+}

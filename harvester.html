@@ -1,0 +1,130 @@
+<html>
+
+<head>
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+</head>
+
+<style>
+    .topBar {
+        position: absolute;
+        width: 400px;
+        background: #1e202f;
+        height: 25px;
+        left: 0px;
+        top: 0px;
+    }
+    
+    .minimize {
+        position: absolute;
+        width: 24px;
+        height: 24px;
+        left: 355px;
+        -webkit-app-region: no-drag;
+        -webkit-user-select: none;
+        top: 4px;
+    }
+    
+    .close {
+        position: absolute;
+        width: 24px;
+        height: 24px;
+        left: 376px;
+        top: 4px;
+        -webkit-app-region: no-drag;
+        -webkit-user-select: none;
+    }
+    
+    .logo {
+        position: absolute;
+        top: 110px;
+        left: 69px;
+        width: 120px;
+    }
+    
+    .text {
+        position: absolute;
+        top: 390px;
+        left: 119px;
+        color: white;
+        font-family: 'Poppins';
+        -webkit-user-select: none;
+    }
+</style>
+
+<body>
+    <div class="harvester">
+        <div class="text">
+            Waiting for captcha
+        </div>
+        <div class="logo">
+            <img class="logo" src="https://i.imgur.com/m08LnsD.png" draggable="false">
+        </div>
+        <div class="topBar" style="-webkit-app-region: drag">
+
+            <div class="minimize">
+                <a href="#" draggable="false" onclick="minimize()">
+                    <img draggable="false" src="https://i.imgur.com/xGEXoqN.png">
+                </a>
+            </div>
+
+            <div class="close">
+                <a href="#" draggable="false" onclick="closeIt()">
+                    <img draggable="false" src="https://i.imgur.com/xaIldie.png">
+                </a>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+    <script>
+        const remote = require('electron').remote;
+
+        const app = remote.app
+        const ipcRenderer = require('electron').ipcRenderer
+        const electron = require('electron');
+        const got = require('got');
+
+        function lookforcaptchas() {
+            setInterval(async function() {
+                let response = await got({
+                    method: "get",
+                    url: "http://localhost:4444/venetia/solvecaptcha",
+                    responseType: "json"
+                })
+                console.log(response.body)
+                if (response.body.length > 0) {
+                    remote.getCurrentWindow().show()
+                    let captcha = response.body.sample()
+                    let site = captcha.site
+                    let sitekey = captcha.sitekey
+                    let id = captcha.id
+                    let windowID = remote.getCurrentWindow().id
+                    await got.get(`http://localhost:4444/venetia/setToSolving?id=${id}&windowid=${windowID}`)
+                    await got.get(`http://localhost:4444/venetia/removeFromQueue?id=${id}`)
+                    remote.getCurrentWindow().loadURL('http://www.supremenewyork.com/', {
+                        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36'
+                    })
+                }
+            }, 500);
+        }
+        lookforcaptchas()
+        Array.prototype.sample = function() {
+            return this[Math.floor(Math.random() * this.length)];
+        }
+
+        function minimize() {
+            var window2 = remote.getCurrentWindow();
+            window2.minimize();
+        }
+
+        function closeIt() {
+            window.close();
+        }
+    </script>
+</body>
+
+</html>
