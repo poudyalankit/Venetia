@@ -16,7 +16,7 @@ async function checkMultipleInstances() {
         app.quit()
     } catch (error) {
         captchaSharing.listen(process.env.PORT || 4444, function() {
-            console.log('server running on port 4444', '');
+            console.log('server running on port 4444', '')
         });
     }
 }
