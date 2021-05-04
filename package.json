@@ -1,6 +1,6 @@
 {
     "name": "Venetia",
-    "version": "0.3.9",
+    "version": "0.3.15",
     "author": "Toasty",
     "description": "AIO Automation Software",
     "main": "main.js",
@@ -18,7 +18,9 @@
         "electron-updater": "^4.3.5",
         "express": "^4.17.1",
         "got": "^11.8.2",
+        "isomorphic-webcrypto": "^2.3.8",
         "jquery": "^3.5.1",
+        "js-base64": "^2.6.4",
         "log-timestamp": "^0.3.0",
         "node-adyen-encrypt": "^2.3.1",
         "node-html-parser": "^2.0.2",
@@ -45,12 +47,10 @@
         "mac": {
             "category": "Venetia.AIO.Automation.Software"
         },
-        "publish": [
-            {
-                "provider": "github",
-                "owner": "poudyalankit",
-                "repo": "venetia-update"
-            }
-        ]
+        "publish": [{
+            "provider": "github",
+            "owner": "poudyalankit",
+            "repo": "venetia-update"
+        }]
     }
 }

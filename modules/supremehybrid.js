@@ -550,7 +550,7 @@ module.exports = class SupremeHybridTask {
                     async function postData(url = '') {
                         const response = await fetch(url, {
                             method: 'POST',
-                            credentials: 'same-origin',
+                            credentials: 'include',
                             headers: {
                                 'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A356 Safari/604.1',
                                 'Accept': 'application/json',
@@ -693,7 +693,7 @@ module.exports = class SupremeHybridTask {
 
         if (this.stopped === "false") {
             await this.send("Delaying checkout")
-            await sleep(1000)
+            await sleep(4200)
             await this.submitOrder()
         }
 

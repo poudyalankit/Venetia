@@ -38,6 +38,41 @@ module.exports = class SSENSETask {
         this.profile = getProfileInfo(taskInfo.profile);
         this.proxyArray = getProxyInfo(taskInfo.proxies);
         this.proxy = this.proxyArray.sample();
+        if (this.link.includes("+")) {
+            this.sku = this.link.substring(1)
+        }
+
+        this.sizeArray = ["00", "01", "02", "03", "04", "05", "06", "07"]
+
+        if (this.link === "coreM") {
+            this.sku = "211712M234002" + this.sizeArray.sample()
+            this.sendProductTitle("Yeezy Slide Core")
+        }
+
+        if (this.link === "coreW") {
+            this.sku = "211712F124003" + this.sizeArray.sample()
+            this.sendProductTitle("Yeezy Slide Core")
+        }
+
+        if (this.link === "resinM") {
+            this.sku = "211712M234001" + this.sizeArray.sample()
+            this.sendProductTitle("Yeezy Slide Resin")
+        }
+
+        if (this.link === "resinW") {
+            this.sku = "211712F124002" + this.sizeArray.sample()
+            this.sendProductTitle("Yeezy Slide Resin")
+        }
+
+        if (this.link === "pureM") {
+            this.sku = "211712M234000" + this.sizeArray.sample()
+            this.sendProductTitle("Yeezy Slide Pure")
+        }
+
+        if (this.link === "pureW") {
+            this.sku = "211712F124004" + this.sizeArray.sample()
+            this.sendProductTitle("Yeezy Slide Pure")
+        }
 
     }
 
@@ -326,11 +361,11 @@ module.exports = class SSENSETask {
         const tunnel = require('tunnel');
 
         if (this.stopped === "false") {
-            await this.send("Logging in")
+            await this.send("Authenticating")
             try {
                 this.request = {
                     method: 'post',
-                    url: 'https://www.ssense.com/en-us/account/login',
+                    url: 'https://www.ssense.com/en-us/account/authenticate',
                     cookieJar: this.cookieJar,
                     headers: {
                         'authority': 'www.ssense.com',
@@ -345,8 +380,7 @@ module.exports = class SSENSETask {
                         'accept-language': 'en-US,en;q=0.9'
                     },
                     json: {
-                        'email': this.accounts.email,
-                        'password': this.accounts.password
+                        'email': this.profile.email
                     },
                     responseType: 'json'
                 }
@@ -359,14 +393,14 @@ module.exports = class SSENSETask {
                 }
                 let response = await got(this.request);
                 if (this.stopped === "false") {
-                    console.log("Logged in")
-                    await this.send("Logged in")
+                    console.log("Authenticated")
+                    await this.send("Authenticated")
                     return;
                 }
             } catch (error) {
                 console.log(error)
                 if (this.stopped === "false") {
-                    this.send("Error logging in, retrying")
+                    this.send("Error authenticating, retrying")
                     await sleep(4000)
                     await this.login()
                 }
@@ -464,12 +498,12 @@ module.exports = class SSENSETask {
                         'sec-fetch-mode': 'navigate',
                         'sec-fetch-user': '?1',
                         'sec-fetch-dest': 'document',
-                        'accept-language': 'en-US,en;q=0.9'
+                        'accept-language': 'en-US,en;q=0.9',
                     },
                     json: {
                         'serviceType': "product-details",
                         'sku': this.sku,
-                        'userId': 'null'
+                        'userId': null
                     },
                     responseType: 'json'
                 }
@@ -886,14 +920,15 @@ module.exports = class SSENSETask {
 
     async initialize() {
         await this.send("Started")
-        if (this.stopped === "false")
-            await this.login()
-
-        if (this.stopped === "false")
+        console.log(typeof this.sku)
+        if (this.stopped === "false" && this.sku === 'none')
             await this.loadProductPage()
 
         if (this.stopped === "false")
             await this.addToCart()
+
+        if (this.stopped === "false")
+            await this.login()
 
         if (this.stopped === "false")
             await this.getCheckoutSession()

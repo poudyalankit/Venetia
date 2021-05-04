@@ -180,6 +180,21 @@
     border: 1px solid #e06767;
 }
 
+.deleteProfile2 {
+    position: absolute;
+    width: 170px;
+    height: 25px;
+    left: 800px;
+    top: 520px;
+    font-family: 'Poppins';
+    color: #e06767;
+    background: transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    outline: 0;
+    border: 1px solid #e06767;
+}
+
 .deleteHarvester {
     position: absolute;
     width: 170px;
@@ -695,7 +710,7 @@
     text-align: center;
     left: 800px;
     border-radius: 5px;
-    top: 525px;
+    top: 625px;
     color: white;
     background: transparent;
     border-radius: 8px;
@@ -2229,7 +2244,7 @@ a {
 
 .editTask:disabled {
     cursor: not-allowed;
-    color: #5291da;
+    color: white;
     border: 1px solid #5291da;
 }
 
@@ -2243,9 +2258,15 @@ a {
     border-radius: 8px;
     outline: none;
     border: 1px solid #4fcf91;
-    color: #4fcf91;
+    color: white;
     font-family: 'Poppins';
     cursor: pointer;
+    transition-property: background;
+    transition-duration: 0.4s;
+}
+
+.startTask:hover {
+    background: #4fcf91;
 }
 
 .stopTask {
@@ -2258,9 +2279,15 @@ a {
     border-radius: 8px;
     border: 1px solid #e06767;
     outline: none;
-    color: #e06767;
+    color: white;
     font-family: 'Poppins';
     cursor: pointer;
+    transition-property: background;
+    transition-duration: 0.4s;
+}
+
+.stopTask:hover {
+    background: #e06767;
 }
 
 .deleteTask {
@@ -2296,8 +2323,14 @@ a {
     outline: none;
     border: 1px solid #5DA9FF;
     font-family: 'Poppins';
-    color: #5DA9FF;
+    color: white;
     cursor: pointer;
+    transition-property: background;
+    transition-duration: 0.4s;
+}
+
+.cloneTask:hover {
+    background: #5DA9FF;
 }
 
 .editTask {
@@ -2311,6 +2344,12 @@ a {
     outline: none;
     border: 1px solid #5DA9FF;
     font-family: 'Poppins';
-    color: #5DA9FF;
+    color: white;
     cursor: pointer;
+    transition-property: background;
+    transition-duration: 0.4s;
+}
+
+.editTask:hover {
+    background: #5DA9FF;
 }

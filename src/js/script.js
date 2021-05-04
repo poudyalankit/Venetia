@@ -112,7 +112,38 @@ function modeChoices() {
         document.getElementById("captchaLessLabel").style = "position: absolute; top: 513px; font-size: 12px; width: 200px; left: 476px; display: block; color: white;font-family: Poppins;"
         document.getElementById("captchaLess").checked = false;
         document.getElementById("captchaLessLabel").textContent = "Card checkout"
+    }
 
+    if (document.getElementById("siteTask").value === "Shiekh") {
+        var select = document.getElementById("modeTask")
+        document.getElementById("accountTask").disabled = false;
+        document.getElementById("modeTask").disabled = false;
+        document.getElementById("sizeTask").disabled = false;
+        document.getElementById("proxyTask").disabled = false;
+        document.getElementById("profileTask").disabled = false;
+        document.getElementById("quantityTask").disabled = false;
+        document.getElementById("linkTask").disabled = false;
+        select.options.length = 0;
+        select.options[select.options.length] = new Option("Fast", "Fast");
+        document.getElementById("captchaLess").style = "display: none;"
+        document.getElementById("captchaLessLabel").style = "display: none;"
+        document.getElementById("captchaLess").checked = false;
+    }
+
+    if (document.getElementById("siteTask").value === "Federal Premium") {
+        var select = document.getElementById("modeTask")
+        document.getElementById("accountTask").disabled = true;
+        document.getElementById("modeTask").disabled = false;
+        document.getElementById("sizeTask").disabled = false;
+        document.getElementById("proxyTask").disabled = false;
+        document.getElementById("profileTask").disabled = false;
+        document.getElementById("quantityTask").disabled = false;
+        document.getElementById("linkTask").disabled = false;
+        select.options.length = 0;
+        select.options[select.options.length] = new Option("Fast", "Fast");
+        document.getElementById("captchaLess").style = "display: none;"
+        document.getElementById("captchaLessLabel").style = "display: none;"
+        document.getElementById("captchaLess").checked = false;
     }
 
     if (document.getElementById("siteTask").value === "Supreme") {
@@ -304,6 +335,11 @@ function update() {
     ipcRenderer.send('update')
 }
 
+function deleteAllProfiles() {
+    $("#profiles2 tr:gt(0)").remove();
+    fs.writeFile(path.join(configDir, '/userdata/profiles.json'), JSON.stringify([]), function(err) {})
+}
+
 function deleteProfile() {
     for (var i = 1; i < document.getElementById('profiles2').rows.length; i++) {
         if (document.getElementById('profiles2').rows[i].cells[0].style.background != '') {
@@ -347,7 +383,6 @@ function reverify() {
 
 
 function handleNonLeftClick(e) {
-    // e.button will be 1 for the middle mouse button.
     if (e.button === 1) {
         e.preventDefault();
 
@@ -368,9 +403,9 @@ window.onload = function() {
     document.addEventListener("click", stopOpen);
 
     document.addEventListener('keydown', function(event) {
-        //  if (event.ctrlKey && event.key === 'r') {
-        //      event.preventDefault()
-        //}
+        if (event.ctrlKey && event.key === 'r') {
+            event.preventDefault()
+        }
 
         if (document.getElementById('taskView').style.display === "block") {
             if (event.ctrlKey && event.key === 'f') {

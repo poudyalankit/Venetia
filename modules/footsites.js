@@ -323,9 +323,9 @@ module.exports = class FootsitesTask {
         const got = require('got');
         const tunnel = require('tunnel');
         if (this.stopped === "false") {
-            await this.send("Polling queue")
+            await this.send("Polling queue...")
             try {
-                let response = await got({
+                this.request = {
                     method: 'head',
                     url: 'https://www.' + this.baseLink,
                     cookieJar: this.cookieJar,
@@ -337,17 +337,30 @@ module.exports = class FootsitesTask {
                         'origin': 'www.' + this.baseLink,
                         'accept-language': 'en-US,en;q=0.9,zh-CN;q=0.8,zh;q=0.7',
                     }
-                })
+                }
+                if (this.proxy != '-') {
+                    this.request['agent'] = {
+                        https: tunnel.httpsOverHttp({
+                            proxy: this.proxy
+                        })
+                    }
+                }
+                let response = await got(this.request);
                 if (this.stopped === "false") {
                     await this.send("Passed queue")
                     return;
                 }
             } catch (error) {
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
-                    if (error.response.statusCode == 503 || error.response.statusCode == 529) {
+                    if (error.response.statusCode == 529) {
                         console.log("In queue")
-                        await this.send("Queue")
-                        await sleep(20000)
+                        await this.send("In queue")
+                        await sleep(10000)
+                        await this.handleQueue()
+                    } else if (error.response.statusCode === 503) {
+                        console.log("In queue")
+                        await this.send("In queue (perma)")
+                        await sleep(10000)
                         await this.handleQueue()
                     }
                 } else {
@@ -362,12 +375,11 @@ module.exports = class FootsitesTask {
 
     async sendCaptcha() {
         const got = require('got');
-
         if (this.stopped === "false") {
-
             let response = await got({
                 method: 'get',
                 url: 'http://localhost:4444/toastyaio/datadome',
+                responseType: 'json'
             })
 
             if (response.body.length > 0) {
@@ -413,7 +425,6 @@ module.exports = class FootsitesTask {
     }
 
     async retrieveCaptchaResponse() {
-
         const got = require('got');
         if (this.stopped === "false") {
             try {
@@ -505,20 +516,21 @@ module.exports = class FootsitesTask {
         const tunnel = require('tunnel');
 
         if (this.stopped === "false") {
-            this.send("Getting session")
+            this.send("Getting session...")
             try {
                 this.request = {
                     method: 'get',
-                    url: 'https://www.' + this.baseLink + '/api/v5/session?timestamp=' + getTimestamp(),
+                    url: 'https://www.' + this.baseLink + '/apigate/session',
                     cookieJar: this.cookieJar,
                     headers: {
                         'authority': 'www.' + this.baseLink,
                         'pragma': 'no-cache',
                         'cache-control': 'no-cache',
-                        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36',
+                        'user-agent': 'FootLocker/CFNetwork/Darwin',
                         'origin': 'www.' + this.baseLink,
                         'accept-language': 'en-US,en;q=0.9,zh-CN;q=0.8,zh;q=0.7',
-                        'x-fl-request-id': uuidv4()
+                        'x-fl-request-id': uuidv4(),
+                        'x-fl-app-version': '4.8.0',
                     },
                     responseType: 'json'
                 }
@@ -609,7 +621,7 @@ module.exports = class FootsitesTask {
         this.queueitUUID = uuidv4()
         this.seid = uuidv4()
         if (this.stopped === "false") {
-            await this.send("Polling queue")
+            await this.send("Polling queue...")
             try {
                 this.request = {
                     method: 'post',
@@ -664,7 +676,7 @@ module.exports = class FootsitesTask {
         const tunnel = require('tunnel');
 
         if (this.stopped === "false") {
-            this.send("Getting PID")
+            this.send("Getting product...")
             try {
                 this.request = {
                     method: 'get',
@@ -776,7 +788,7 @@ module.exports = class FootsitesTask {
                         await sleep(3500)
                         await this.getProductID()
                     } else if (error.response.statusCode === 400 && this.stopped === "false") {
-                        await this.send("Error getting PID: 400")
+                        await this.send("Waiting for restock")
                         await sleep(3500)
                         await this.getProductID()
                     } else if (this.stopped === "false") {
@@ -799,16 +811,17 @@ module.exports = class FootsitesTask {
     async addToCart() {
         const got = require('got');
         const tunnel = require('tunnel');
+        const { v4: uuidv4 } = require('uuid');
 
         if (this.size === "RS")
             this.productID = this.sizesinStock.sample().productid
         if (this.stopped === "false") {
             this.reusedCookie = "0"
-            await this.send("Adding to cart")
+            await this.send("Adding to cart...")
             try {
                 this.request = {
                     method: 'post',
-                    url: 'https://www.' + this.baseLink + '/' + this.suffix + '/users/carts/current/entries?timestamp=' + getTimestamp(),
+                    url: 'https://www.' + this.baseLink + '/apigate/users/carts/current/entries',
                     cookieJar: this.cookieJar,
                     headers: {
                         'authority': 'www.' + this.baseLink,
@@ -820,7 +833,9 @@ module.exports = class FootsitesTask {
                         'sec-fetch-dest': 'empty',
                         'accept-language': 'en-US,en;q=0.9,zh-CN;q=0.8,zh;q=0.7',
                         'x-fl-productid': this.productID,
-                        'x-csrf-token': this.csrftoken
+                        'x-csrf-token': this.csrftoken,
+                        'x-fl-app-version': '4.8.0',
+                        'x-fl-request-id': uuidv4(),
                     },
                     json: {
                         'productId': this.productID,
@@ -896,7 +911,7 @@ module.exports = class FootsitesTask {
                         console.log(error.response.headers['x-cache'])
                         if (error.response.headers['x-cache'].includes("HIT")) {
                             await this.send("OOS cached, retrying")
-                            await sleep(3500)
+                            await sleep(1000)
                             await this.addToCart()
                         } else {
                             console.log("failed carting, retrying")
@@ -1092,20 +1107,20 @@ module.exports = class FootsitesTask {
           }
       }*/
 
-    async addGiftcard() {
+    async logintoFLX() {
         const got = require('got');
         const tunnel = require('tunnel');
 
         const { v4: uuidv4 } = require('uuid');
         if (this.stopped === "false") {
-            await this.send("Adding giftcard")
+            await this.send("Logging in...")
             try {
                 this.request = {
                     method: 'post',
-                    url: 'https://www.' + this.baseLink + '/api/users/carts/current/add-giftcard?timestamp=' + getTimestamp(),
+                    url: 'https://www.' + this.baseLink + '/api/v3/auth?timestamp=' + getTimestamp(),
                     cookieJar: this.cookieJar,
                     headers: {
-                        'authority': 'www.' + this.baseLink + '/checkout',
+                        'authority': 'www.' + this.baseLink,
                         'pragma': 'no-cache',
                         'cache-control': 'no-cache',
                         'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36',
@@ -1114,9 +1129,9 @@ module.exports = class FootsitesTask {
                         'x-csrf-token': this.csrftoken,
                         'x-fl-request-id': uuidv4()
                     },
-                    data: {
-                        'svcNumber': this.accounts.email,
-                        'svcPIN': this.accounts.password
+                    json: {
+                        'password': this.accounts.password,
+                        'uid': this.accounts.email
                     },
                     responseType: 'json'
                 }
@@ -1129,7 +1144,7 @@ module.exports = class FootsitesTask {
                 }
                 let response = await got(this.request);
                 if (this.stopped === "false") {
-                    await this.send("Added giftcard")
+                    await this.send("Logged in")
                     return;
                 }
             } catch (error) {
@@ -1156,19 +1171,19 @@ module.exports = class FootsitesTask {
                             if (this.stopped === "false")
                                 await this.send("Setting Datadome")
 
-                            await this.addGiftcard()
+                            await this.logintoFLX()
                         }
                     } else if (this.stopped === "false") {
                         console.log(error.response.body)
-                        await this.send("Error adding giftcard: " + error.response.statusCode)
+                        await this.send("Error logging in: " + error.response.statusCode)
                         await sleep(3500)
-                        await this.addGiftcard()
+                        await this.logintoFLX()
                     }
                 } else if (this.stopped === "false") {
                     console.log(error)
                     await this.send("Unexpected error")
                     await sleep(3500)
-                    await this.addGiftcard()
+                    await this.logintoFLX()
                 }
             }
         }
@@ -1275,7 +1290,7 @@ module.exports = class FootsitesTask {
 
         const { v4: uuidv4 } = require('uuid');
         if (this.stopped === "false") {
-            await this.send("Submitting information")
+            await this.send("Submitting information...")
             try {
                 this.request = {
                     method: 'post',
@@ -1397,7 +1412,7 @@ module.exports = class FootsitesTask {
 
         const { v4: uuidv4 } = require('uuid');
         if (this.stopped === "false") {
-            await this.send("Submitting order")
+            await this.send("Submitting order...")
             await this.adyenEncrypt()
             try {
                 this.request = {
@@ -1495,11 +1510,11 @@ module.exports = class FootsitesTask {
         if (this.stopped === "false")
             await this.addToCart()
 
+        if (this.stopped === "false" && this.accounts != '-')
+            await this.logintoFLX()
+
         if (this.stopped === "false")
             await this.submitInformation()
-
-        if (this.stopped === "false" && this.accounts != '-')
-            await this.addGiftcard()
 
         if (this.stopped === "false")
             await this.submitOrder()

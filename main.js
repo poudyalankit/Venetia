@@ -182,7 +182,7 @@ let taskArray = []
 let win;
 
 client.updatePresence({
-    details: 'v0.3.9',
+    details: 'v0.3.15',
     startTimestamp: Date.now(),
     largeImageKey: "venetia",
     largeImageText: "Venetia",
@@ -257,7 +257,7 @@ function createWindow() {
         webPreferences: {
             nodeIntegration: true,
             enableRemoteModule: true,
-            //devTools: false
+            // devTools: false
         }
     })
     backendB.openDevTools(true)

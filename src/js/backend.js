@@ -5,6 +5,9 @@ const SSENSETask = require(path.join(__dirname, '/modules/ssense.js'));
 const FootsitesTask = require(path.join(__dirname, '/modules/footsites.js'));
 const SupremeTask = require(path.join(__dirname, '/modules/supreme.js'));
 const SupremeHybridTask = require(path.join(__dirname, '/modules/supremehybrid.js'));
+const ShiekhTask = require(path.join(__dirname, '/modules/shiekh.js'));
+const FederalPremiumTask = require(path.join(__dirname, '/modules/federalpremium.js'));
+
 let taskArray = []
 
 ipcRenderer.on('stopTask1', (event, taskNumber) => {
@@ -21,6 +24,14 @@ ipcRenderer.on('taskinfo1', (event, taskInfo) => {
 
     if (taskInfo.site === "SSENSE") {
         task = new SSENSETask(taskInfo)
+    }
+
+    if (taskInfo.site === "Shiekh") {
+        task = new ShiekhTask(taskInfo)
+    }
+
+    if (taskInfo.site === "Federal Premium") {
+        task = new FederalPremiumTask(taskInfo)
     }
 
     if (taskInfo.site === "FootLocker") {
