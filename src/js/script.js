@@ -77,6 +77,7 @@ function googleSignIn() {
 
 
 function modeChoices() {
+
     if (document.getElementById("siteTask").value === "FootLockerCA" || document.getElementById("siteTask").value === "LadyFootLocker" || document.getElementById("siteTask").value === "FootLocker" || document.getElementById("siteTask").value === "EastBay" || document.getElementById("siteTask").value === "ChampsSports" || document.getElementById("siteTask").value === "FootAction" || document.getElementById("siteTask").value === "KidsFootLocker") {
         var select = document.getElementById("modeTask")
         document.getElementById("captchaLess").checked = false;
@@ -84,9 +85,12 @@ function modeChoices() {
         document.getElementById("modeTask").disabled = false;
         document.getElementById("sizeTask").disabled = false;
         document.getElementById("proxyTask").disabled = false;
+        document.getElementById("scheduleFeature").style = "display: none";
+
         document.getElementById("profileTask").disabled = false;
         document.getElementById("quantityTask").disabled = false;
         document.getElementById("linkTask").disabled = false;
+        document.getElementById("hourTaskEntry").disabled = false;
         select.options.length = 0;
         select.options[select.options.length] = new Option("Release", "Release");
         if (document.getElementById("proxyTask").value != "-") {
@@ -107,17 +111,37 @@ function modeChoices() {
         document.getElementById("linkTask").disabled = false;
         select.options.length = 0;
         select.options[select.options.length] = new Option("Safe", "Safe");
-        // select.options[select.options.length] = new Option("Fast", "Fast");
+        //select.options[select.options.length] = new Option("Fast", "Fast");
         document.getElementById("captchaLess").style = "position: absolute; top: 510px; left:440px; display: block"
         document.getElementById("captchaLessLabel").style = "position: absolute; top: 513px; font-size: 12px; width: 200px; left: 476px; display: block; color: white;font-family: Poppins;"
         document.getElementById("captchaLess").checked = false;
         document.getElementById("captchaLessLabel").textContent = "Card checkout"
+        document.getElementById("scheduleFeature").style = "display: none";
     }
+
 
     if (document.getElementById("siteTask").value === "Shiekh") {
         var select = document.getElementById("modeTask")
         document.getElementById("accountTask").disabled = false;
         document.getElementById("modeTask").disabled = false;
+        document.getElementById("sizeTask").disabled = false;
+        document.getElementById("proxyTask").disabled = false;
+        document.getElementById("profileTask").disabled = false;
+        document.getElementById("quantityTask").disabled = false;
+        document.getElementById("linkTask").disabled = false;
+        select.options.length = 0;
+        document.getElementById("scheduleFeature").style = "display: block";
+        select.options[select.options.length] = new Option("Fast", "Fast");
+        document.getElementById("captchaLess").style = "display: none;"
+        document.getElementById("captchaLessLabel").style = "display: none;"
+        document.getElementById("captchaLess").checked = false;
+    }
+
+    if (document.getElementById("siteTask").value === "Federal Premium") {
+        var select = document.getElementById("modeTask")
+        document.getElementById("accountTask").disabled = true;
+        document.getElementById("modeTask").disabled = false;
+        document.getElementById("scheduleFeature").style = "display: none";
         document.getElementById("sizeTask").disabled = false;
         document.getElementById("proxyTask").disabled = false;
         document.getElementById("profileTask").disabled = false;
@@ -130,7 +154,7 @@ function modeChoices() {
         document.getElementById("captchaLess").checked = false;
     }
 
-    if (document.getElementById("siteTask").value === "Federal Premium") {
+    if (document.getElementById("siteTask").value === "Pacsun") {
         var select = document.getElementById("modeTask")
         document.getElementById("accountTask").disabled = true;
         document.getElementById("modeTask").disabled = false;
@@ -139,6 +163,8 @@ function modeChoices() {
         document.getElementById("profileTask").disabled = false;
         document.getElementById("quantityTask").disabled = false;
         document.getElementById("linkTask").disabled = false;
+        document.getElementById("scheduleFeature").style = "display: none";
+
         select.options.length = 0;
         select.options[select.options.length] = new Option("Fast", "Fast");
         document.getElementById("captchaLess").style = "display: none;"
@@ -156,6 +182,8 @@ function modeChoices() {
         document.getElementById("sizeTask").disabled = false;
         var accounts = document.getElementById("accountTask")
         accounts.options.length = 0;
+        document.getElementById("scheduleFeature").style = "display: none";
+
         accounts.options[accounts.options.length] = new Option("No Account", "-")
         select.options.length = 0;
         select.options[select.options.length] = new Option("Hybrid", "Hybrid");
@@ -163,6 +191,53 @@ function modeChoices() {
         document.getElementById("captchaLess").style = "display: none;"
         document.getElementById("captchaLessLabel").style = "display: none;"
         document.getElementById("captchaLess").checked = false;
+    }
+
+    var shopify = [{
+            site: "DTLR"
+        },
+        {
+            site: "Shoe Palace"
+        },
+        {
+            site: "Shop Nice Kicks"
+        },
+        {
+            site: "Bodega"
+        },
+        {
+            site: "Kith"
+        },
+        {
+            site: "BBCIcecream"
+        },
+        {
+            site: "Packer Shoes"
+        },
+        {
+            site: "Bape"
+        }
+    ]
+
+    for (var i = 0; i < shopify.length; i++) {
+        if (document.getElementById("siteTask").value === shopify[i].site) {
+            var select = document.getElementById("modeTask")
+            document.getElementById("accountTask").disabled = false;
+            document.getElementById("modeTask").disabled = false;
+            document.getElementById("sizeTask").disabled = false;
+            document.getElementById("proxyTask").disabled = false;
+            document.getElementById("profileTask").disabled = false;
+            document.getElementById("quantityTask").disabled = false;
+            document.getElementById("linkTask").disabled = false;
+            document.getElementById("scheduleFeature").style = "display: none";
+
+            select.options.length = 0;
+            select.options[select.options.length] = new Option("Safe", "Safe");
+            document.getElementById("captchaLess").style = "display: none;"
+            document.getElementById("captchaLessLabel").style = "display: none;"
+            document.getElementById("captchaLess").checked = false;
+            break;
+        }
     }
 }
 
@@ -305,7 +380,12 @@ function cloneSelected() {
                     "size": document.getElementById('tasks').rows[i].cells[4].textContent,
                     "profile": document.getElementById('tasks').rows[i].cells[5].textContent,
                     "proxies": document.getElementById('tasks').rows[i].cells[6].textContent,
-                    "accounts": groups[gindex][gname][i - 1][document.getElementById('tasks').rows[i].cells[0].textContent]['accounts']
+                    "accounts": groups[gindex][gname][i - 1][document.getElementById('tasks').rows[i].cells[0].textContent]['accounts'],
+                    "schedule": {
+                        "hour": groups[gindex][gname][i - 1][document.getElementById('tasks').rows[i].cells[0].textContent]['schedule']['hour'],
+                        "minute": groups[gindex][gname][i - 1][document.getElementById('tasks').rows[i].cells[0].textContent]['schedule']['minute'],
+                        "second": groups[gindex][gname][i - 1][document.getElementById('tasks').rows[i].cells[0].textContent]['schedule']['second']
+                    }
                 }
             }
             var tableRef = document.getElementById('tasks').getElementsByTagName('tbody')[0];
@@ -519,7 +599,8 @@ window.onload = function() {
     });
 
     $('#modeTask').select2({
-        placeholder: "Select mode"
+        placeholder: "Select mode",
+        minimumResultsForSearch: Infinity
     });
 
     $('#sizeTask').select2({
@@ -544,7 +625,8 @@ window.onload = function() {
     });
 
     $('#modeTask2').select2({
-        placeholder: "Select mode"
+        placeholder: "Select mode",
+        minimumResultsForSearch: Infinity
     });
 
     $('#sizeTask2').select2({
@@ -750,7 +832,7 @@ function updateAnalytics() {
                     "<td>" + success[i]['Size'] + "</td>" + "<td>" + checkoutDate + "</td>"
             }
             document.getElementById("totalSpent").textContent = "$" + total.toString()
-            var checkouts = [0, 0, 0, 0]
+            var checkouts = [0, 0, 0, 0, 0]
             for (var i = 1; i < document.getElementById('checkoutsTable').rows.length; i++) {
                 if (document.getElementById('checkoutsTable').rows[i].cells[4].textContent.includes("Jan"))
                     checkouts[0]++
@@ -760,13 +842,16 @@ function updateAnalytics() {
                             checkouts[2]++
                             else if (document.getElementById('checkoutsTable').rows[i].cells[4].textContent.includes("Apr"))
                                 checkouts[3]++
+                                else if (document.getElementById('checkoutsTable').rows[i].cells[4].textContent.includes("May"))
+                                    checkouts[4]++
+
             }
             const Chart = require('chart.js')
             var ctx = document.getElementById('myChart').getContext('2d');
             var myChart = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: ['Jan', 'Feb', 'Mar', 'Apr'],
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
                     datasets: [{
                         label: 'Checkouts per Month',
                         data: checkouts,
@@ -1546,6 +1631,10 @@ function addTask() {
     var accounts = document.getElementById("accountTask").value;
     var size = document.getElementById("sizeTask").value;
     var quantity = document.getElementById("quantityTask").value;
+    var hour = document.getElementById("hourTaskEntry").value
+    var minute = document.getElementById("minuteTaskEntry").value
+    var second = document.getElementById("secondTaskEntry").value
+
     if (document.getElementById("captchaLess").checked == true && site === "SSENSE")
         mode += "-C"
     else
@@ -1581,7 +1670,12 @@ function addTask() {
                             "size": size,
                             "profile": profile,
                             "proxies": proxies,
-                            "accounts": accounts
+                            "accounts": accounts,
+                            "schedule": {
+                                "hour": hour,
+                                "minute": minute,
+                                "second": second
+                            }
                         }
                     }
                     tasks[gindex][gname].push(task)
@@ -1609,7 +1703,12 @@ function addTask() {
                         "size": size,
                         "profile": profile,
                         "proxies": proxies,
-                        "accounts": accounts
+                        "accounts": accounts,
+                        "schedule": {
+                            "hour": hour,
+                            "minute": minute,
+                            "second": second
+                        }
                     }
                 }
                 tasks[gindex][gname].push(task)

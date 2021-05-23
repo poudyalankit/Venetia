@@ -520,17 +520,16 @@ module.exports = class FootsitesTask {
             try {
                 this.request = {
                     method: 'get',
-                    url: 'https://www.' + this.baseLink + '/apigate/session',
+                    url: 'https://www.' + this.baseLink + '/api/session',
                     cookieJar: this.cookieJar,
                     headers: {
                         'authority': 'www.' + this.baseLink,
                         'pragma': 'no-cache',
                         'cache-control': 'no-cache',
-                        'user-agent': 'FootLocker/CFNetwork/Darwin',
+                        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.93 Safari/537.36',
                         'origin': 'www.' + this.baseLink,
                         'accept-language': 'en-US,en;q=0.9,zh-CN;q=0.8,zh;q=0.7',
                         'x-fl-request-id': uuidv4(),
-                        'x-fl-app-version': '4.8.0',
                     },
                     responseType: 'json'
                 }
@@ -552,7 +551,7 @@ module.exports = class FootsitesTask {
                 console.log(error.response.body)
                 if (typeof error.response != 'undefined') {
                     if (error.response.statusCode === 403 && this.stopped === "false") {
-                        if (error.response.body.url.includes("t=bv")) {
+                        /*if (typeof error.response.body.url != 'undefined' && error.response.body.url.includes("t=bv")) {
                             await this.send("Error Datadome blacklisted")
                             await sleep(3500)
                             await this.getSession()
@@ -578,10 +577,10 @@ module.exports = class FootsitesTask {
                             this.DDCookie = "datadome=" + this.cid
                             this.cookieJar.setCookie(this.DDCookie + '; Max-Age=31536000; Domain=' + this.baseLink + '; Path=/; Secure; SameSite=Lax; hostOnly=false; aAge=10ms; cAge=10ms', 'https://' + this.baseLink)
                             if (this.stopped === "false")
-                                await this.send("Setting Datadome")
-
-                            await this.getSession()
-                        }
+                                await this.send("Setting Datadome")*/
+                        await this.send("Site backend error: 403")
+                        await sleep(3500)
+                        await this.getSession()
                     } else if (error.response.statusCode === 503 && this.stopped === "false") {
                         if (this.stopped === "false") {
                             await this.handleQueue()
@@ -740,7 +739,6 @@ module.exports = class FootsitesTask {
                                 throw 'Variant has no size available'
                         }
                     } else {
-
                         for (var i = 0; i < response.body.variantAttributes.length; i++) {
                             if (response.body.variantAttributes[i].sku === this.link) {
                                 this.variant = response.body.variantAttributes[i].code
@@ -834,7 +832,6 @@ module.exports = class FootsitesTask {
                         'accept-language': 'en-US,en;q=0.9,zh-CN;q=0.8,zh;q=0.7',
                         'x-fl-productid': this.productID,
                         'x-csrf-token': this.csrftoken,
-                        'x-fl-app-version': '4.8.0',
                         'x-fl-request-id': uuidv4(),
                     },
                     json: {
@@ -873,7 +870,7 @@ module.exports = class FootsitesTask {
                             await this.addToCart()
                         }
                     } else if (error.response.statusCode === 403 && typeof error.response.body.url != 'undefined' && this.stopped === "false") {
-                        if (error.response.body.url.includes("t=bv")) {
+                        if (typeof error.response.body.url != 'undefined' && error.response.body.url.includes("t=bv")) {
                             await this.send("Error Datadome blacklisted")
                             await sleep(3500)
                             await this.addToCart()
@@ -911,7 +908,7 @@ module.exports = class FootsitesTask {
                         console.log(error.response.headers['x-cache'])
                         if (error.response.headers['x-cache'].includes("HIT")) {
                             await this.send("OOS cached, retrying")
-                            await sleep(1000)
+                            await sleep(3500)
                             await this.addToCart()
                         } else {
                             console.log("failed carting, retrying")
@@ -1150,7 +1147,7 @@ module.exports = class FootsitesTask {
             } catch (error) {
                 if (error.response != 'undefined') {
                     if (error.response.statusCode === 403 && this.stopped === "false") {
-                        if (error.response.body.url.includes("t=bv")) {
+                        if (typeof error.response.body.url != 'undefined' && error.response.body.url.includes("t=bv")) {
                             await this.send("Error Datadome blacklisted")
                         } else {
                             console.log("datadome captcha")
@@ -1361,7 +1358,7 @@ module.exports = class FootsitesTask {
             } catch (error) {
                 if (error.response != 'undefined') {
                     if (error.response.statusCode === 403 && this.stopped === "false") {
-                        if (error.response.body.url.includes("t=bv")) {
+                        if (typeof error.response.body.url != 'undefined' && error.response.body.url.includes("t=bv")) {
                             await this.send("Error Datadome blacklisted")
                         } else
                         if (this.mode.includes("-NC")) {

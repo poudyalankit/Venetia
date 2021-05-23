@@ -886,6 +886,20 @@ th.profile2 {
     color: #FFFFFF;
 }
 
+.typeTitle {
+    position: absolute;
+    width: 120px;
+    height: 21px;
+    left: 125px;
+    top: 154px;
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: 600;
+    font-size: 13px;
+    line-height: 19px;
+    color: #FFFFFF;
+}
+
 .capMonster {
     position: absolute;
     width: 120px;
@@ -950,6 +964,21 @@ th.profile2 {
     height: 17px;
     left: 245px;
     top: 131px;
+    border-radius: 8px;
+    background: #1e202f;
+    color: white;
+    font-family: 'Poppins';
+    font-size: 12px;
+    border: 0;
+    outline: 0;
+}
+
+.harvesterTypeSelection {
+    position: absolute;
+    width: 169px;
+    height: 23px;
+    left: 245px;
+    top: 158px;
     border-radius: 8px;
     background: #1e202f;
     color: white;
@@ -1094,10 +1123,10 @@ body {
     top: 13px;
     font-family: 'Poppins';
     font-style: normal;
-    font-weight: bold;
+    font-weight: 600;
     -webkit-app-region: no-drag;
     -webkit-user-select: none;
-    font-size: 24px;
+    font-size: 18px;
     line-height: 36px;
     color: #FFFFFF;
 }
@@ -1341,6 +1370,23 @@ table.groups td {
 
 table.tasks td {
     cursor: pointer;
+    text-align: left;
+    padding-left: 10px;
+}
+
+table.tasks th {
+    text-align: left;
+    padding-left: 10px;
+}
+
+table.checkoutsTable th {
+    text-align: left;
+    padding-left: 10px;
+}
+
+table.checkoutsTable td {
+    text-align: left;
+    padding-left: 10px;
 }
 
 .taskTable {
@@ -1465,6 +1511,7 @@ th.status2 {
     color: white;
     border: 0;
     font-style: normal;
+    border-radius: 8px;
     font-weight: normal;
     outline: none;
     font-size: 12px;
@@ -1509,6 +1556,7 @@ th.status2 {
     font-weight: normal;
     outline: none;
     font-size: 13px;
+    border-radius: 8px;
 }
 
 .siteTaskEntry {
@@ -1518,6 +1566,7 @@ th.status2 {
     left: 440px;
     top: 285px;
     background: #292c3f;
+    border-radius: 8px;
     color: white;
     font-family: 'Poppins';
     font-size: 12px;
@@ -1552,6 +1601,7 @@ th.status2 {
     font-family: 'Poppins';
     font-size: 12px;
     border: 0;
+    border-radius: 8px;
     outline: 0;
 }
 
@@ -1579,6 +1629,7 @@ th.status2 {
     background: #1e202f;
     color: white;
     font-family: 'Poppins';
+    border-radius: 8px;
     font-size: 12px;
     border: 0;
     outline: 0;
@@ -1603,6 +1654,7 @@ th.status2 {
     left: 650px;
     border-radius: 5px;
     width: 169px;
+    border-radius: 8px;
     top: 285px;
     background: #292c3f;
     color: white;
@@ -1632,6 +1684,7 @@ th.status2 {
     height: 23px;
     border-radius: 5px;
     left: 440px;
+    border-radius: 8px;
     top: 405px;
     background: #292c3f;
     color: white;
@@ -1664,6 +1717,7 @@ th.status2 {
     top: 465px;
     background: #292c3f;
     color: white;
+    border-radius: 8px;
     font-family: 'Poppins';
     font-size: 12px;
     border: 0;
@@ -1676,6 +1730,7 @@ th.status2 {
     height: 23px;
     left: 650px;
     top: 405px;
+    border-radius: 8px;
     background: #292c3f;
     color: white;
     font-family: 'Poppins';
@@ -1707,6 +1762,7 @@ th.status2 {
     border-radius: 5px;
     background: #292c3f;
     color: white;
+    border-radius: 8px;
     font-family: 'Poppins';
     font-size: 12px;
     border: 0;
@@ -1727,12 +1783,84 @@ th.status2 {
     color: #FFFFFF;
 }
 
+.scheduleTaskTitle {
+    position: absolute;
+    width: 138px;
+    height: 21px;
+    left: 450px;
+    top: 540px;
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: normal;
+    font-size: 13px;
+    line-height: 19px;
+    color: #FFFFFF;
+}
+
+.hourTaskEntry {
+    position: absolute;
+    width: 20px;
+    height: 21px;
+    left: 450px;
+    text-align: center;
+    top: 565px;
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: normal;
+    font-size: 13px;
+    line-height: 19px;
+    border-radius: 8px;
+    background: #1e202f;
+    color: #FFFFFF;
+    border: 0;
+    outline: 0;
+}
+
+.minuteTaskEntry {
+    position: absolute;
+    width: 20px;
+    height: 21px;
+    left: 480px;
+    text-align: center;
+    top: 565px;
+    font-family: 'Poppins';
+    border-radius: 8px;
+    font-style: normal;
+    font-weight: normal;
+    font-size: 13px;
+    line-height: 19px;
+    background: #1e202f;
+    color: #FFFFFF;
+    border: 0;
+    outline: 0;
+}
+
+.secondTaskEntry {
+    position: absolute;
+    width: 20px;
+    height: 21px;
+    left: 510px;
+    text-align: center;
+    top: 565px;
+    font-family: 'Poppins';
+    border-radius: 8px;
+    font-style: normal;
+    font-weight: normal;
+    font-size: 13px;
+    line-height: 19px;
+    background: #1e202f;
+    color: #FFFFFF;
+    border: 0;
+    outline: 0;
+}
+
 .quantityTaskEntry {
     position: absolute;
     width: 158px;
     padding-left: 8px;
     height: 23px;
     left: 650px;
+    border-radius: 8px;
     top: 345px;
     background: #1e202f;
     color: white;
@@ -1751,7 +1879,7 @@ button {
     width: 169px;
     height: 26px;
     left: 650px;
-    top: 540px;
+    top: 560px;
     font-family: 'Poppins';
     color: #4fcf91;
     background: transparent;
@@ -1782,7 +1910,7 @@ button {
     background-color: #181a26;
     margin: 15% auto;
     width: 485px;
-    height: 391px;
+    height: 420px;
     -webkit-user-select: none;
 }
 

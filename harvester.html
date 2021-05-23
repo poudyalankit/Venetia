@@ -24,6 +24,7 @@
         -webkit-app-region: no-drag;
         -webkit-user-select: none;
         top: 4px;
+        outline: none;
     }
     
     .close {
@@ -34,6 +35,7 @@
         top: 4px;
         -webkit-app-region: no-drag;
         -webkit-user-select: none;
+        outline: none;
     }
     
     .logo {
@@ -92,24 +94,15 @@
             setInterval(async function() {
                 let response = await got({
                     method: "get",
-                    url: "http://localhost:4444/venetia/solvecaptcha",
+                    url: "http://localhost:4444/venetia/viewCaptchaQueue?windowid=" + remote.getCurrentWindow().id,
                     responseType: "json"
                 })
-                console.log(response.body)
-                if (response.body.length > 0) {
-                    remote.getCurrentWindow().show()
-                    let captcha = response.body.sample()
-                    let site = captcha.site
-                    let sitekey = captcha.sitekey
-                    let id = captcha.id
-                    let windowID = remote.getCurrentWindow().id
-                    await got.get(`http://localhost:4444/venetia/setToSolving?id=${id}&windowid=${windowID}`)
-                    await got.get(`http://localhost:4444/venetia/removeFromQueue?id=${id}`)
-                    remote.getCurrentWindow().loadURL('http://www.supremenewyork.com/', {
+                if (typeof response.body.id != 'undefined') {
+                    remote.getCurrentWindow().getBrowserView(0).webContents.loadURL(response.body.siteURL, {
                         userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36'
                     })
                 }
-            }, 500);
+            }, 300);
         }
         lookforcaptchas()
         Array.prototype.sample = function() {
@@ -122,7 +115,9 @@
         }
 
         function closeIt() {
-            window.close();
+            var x = remote.getCurrentWindow().getBrowserView(0)
+            remote.getCurrentWindow().destroy()
+            x.webContents.destroy()
         }
     </script>
 </body>

@@ -7,6 +7,7 @@ const SupremeTask = require(path.join(__dirname, '/modules/supreme.js'));
 const SupremeHybridTask = require(path.join(__dirname, '/modules/supremehybrid.js'));
 const ShiekhTask = require(path.join(__dirname, '/modules/shiekh.js'));
 const FederalPremiumTask = require(path.join(__dirname, '/modules/federalpremium.js'));
+const ShopifyTask = require(path.join(__dirname, '/modules/shopify.js'));
 
 let taskArray = []
 
@@ -20,10 +21,63 @@ ipcRenderer.on('stopTask1', (event, taskNumber) => {
 });
 
 ipcRenderer.on('taskinfo1', (event, taskInfo) => {
-    console.log(taskInfo)
+    var shopify = [{
+            site: "DTLR",
+            base: "https://www.dtlr.com",
+            sitekey: "6LeXJ7oUAAAAAHIpfRvgjs3lcJiO_zMC1LAZWlSz"
+        },
+        {
+            site: "Shoe Palace",
+            base: "https://www.shoepalace.com/",
+            sitekey: "6LeXJ7oUAAAAAHIpfRvgjs3lcJiO_zMC1LAZWlSz"
+        },
+        {
+            site: "Shop Nice Kicks",
+            base: "https://shopnicekicks.com/",
+            sitekey: "6LeXJ7oUAAAAAHIpfRvgjs3lcJiO_zMC1LAZWlSz"
+        },
+        {
+            site: "Bodega",
+            base: "https://www.bdgastore.com/",
+            sitekey: "6LeXJ7oUAAAAAHIpfRvgjs3lcJiO_zMC1LAZWlSz"
+        },
+        {
+            site: "Kith",
+            base: "https://kith.com/",
+            sitekey: "6LeXJ7oUAAAAAHIpfRvgjs3lcJiO_zMC1LAZWlSz"
+        },
+        {
+            site: "BBCIcecream",
+            base: "https://www.bbcicecream.com/",
+            sitekey: "6LeXJ7oUAAAAAHIpfRvgjs3lcJiO_zMC1LAZWlSz"
+        },
+        {
+            site: "Packer Shoes",
+            base: "https://packershoes.com/",
+            sitekey: "6LeXJ7oUAAAAAHIpfRvgjs3lcJiO_zMC1LAZWlSz"
+        },
+        {
+            site: "Bape",
+            base: "https://us.bape.com/",
+            sitekey: "6LeXJ7oUAAAAAHIpfRvgjs3lcJiO_zMC1LAZWlSz"
+        }
+    ]
 
-    if (taskInfo.site === "SSENSE") {
+    for (var i = 0; i < shopify.length; i++) {
+        if (shopify[i].site === taskInfo.site) {
+            taskInfo.baseLink = shopify[i].base
+            taskInfo.sitekey = shopify[i].sitekey
+            task = new ShopifyTask(taskInfo)
+            break;
+        }
+    }
+
+    if (taskInfo.site === "SSENSE" && taskInfo.mode === "Safe") {
         task = new SSENSETask(taskInfo)
+    }
+
+    if (taskInfo.site === "SSENSE" && taskInfo.mode === "Fast") {
+        task = new SSENSEFastTask(taskInfo)
     }
 
     if (taskInfo.site === "Shiekh") {

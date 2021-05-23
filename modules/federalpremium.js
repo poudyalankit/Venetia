@@ -31,8 +31,10 @@ module.exports = class FederalPremiumTask {
         this.ogjsonwebkey;
         this.secondKey;
         this.newCard;
+        this.imageurl;
         this.keyid;
         this.cyberSourceResponse;
+        this.quantity = 1;
         const tough = require('tough-cookie');
         this.cookieJar = new tough.CookieJar();
         this.profile = getProfileInfo(taskInfo.profile);
@@ -41,12 +43,17 @@ module.exports = class FederalPremiumTask {
         this.oglink = this.link
         if (this.link.toLowerCase().startsWith('http')) {
             this.link = this.link.split("/")[this.link.split("/").length - 1].split(".html")[0]
+        } else
+            this.link = this.link.split(",")[0]
+        if (this.oglink.split(",").length > 1) {
+            this.quantity = this.oglink.split(",")[1].trim()
         }
         if (this.profile.country === "United States") {
             this.country = "US"
         } else if (this.profile.country === "Canada") {
             this.country = "CA"
         }
+
     }
 
     async encodeCard(cardNumber, jsonWebKey) {
@@ -81,12 +88,12 @@ module.exports = class FederalPremiumTask {
                 json: {
                     "site": this.site,
                     "mode": this.mode,
-                    "product": this.link,
+                    "product": this.oglink,
                     "size": this.size,
                     "price": this.cartTotal,
                     "timestamp": new Date(Date.now()).toISOString(),
                     "productTitle": this.productTitle,
-                    "image": "https://images.footlocker.com/pi/" + this.link + "/large/" + this.link + ".jpeg"
+                    "image": this.imageurl
                 },
                 responseType: 'json'
             }).then(response => {
@@ -121,7 +128,7 @@ module.exports = class FederalPremiumTask {
                                 },
                                 {
                                     "name": "Query",
-                                    "value": this.link,
+                                    "value": this.oglink,
                                     "inline": true
                                 },
                                 {
@@ -147,7 +154,7 @@ module.exports = class FederalPremiumTask {
                             },
                             "timestamp": new Date(Date.now()).toISOString(),
                             "thumbnail": {
-                                "url": "https://images.footlocker.com/pi/" + this.link + "/large/" + this.link + ".jpeg"
+                                "url": this.imageurl
                             }
                         }],
                         "username": "Venetia",
@@ -175,12 +182,12 @@ module.exports = class FederalPremiumTask {
                 json: {
                     "site": this.site,
                     "mode": this.mode,
-                    "product": this.link,
+                    "product": this.oglink,
                     "size": this.size,
                     "productTitle": this.productTitle,
                     "price": this.cartTotal,
                     "timestamp": new Date(Date.now()).toISOString(),
-                    "image": "https://images.footlocker.com/pi/" + this.link + "/large/" + this.link + ".jpeg"
+                    "image": this.imageurl
                 }
             }).then(response => {
                 console.log("Finished")
@@ -214,7 +221,7 @@ module.exports = class FederalPremiumTask {
                                 },
                                 {
                                     "name": "Query",
-                                    "value": this.link,
+                                    "value": this.oglink,
                                     "inline": true
                                 },
                                 {
@@ -240,7 +247,7 @@ module.exports = class FederalPremiumTask {
                             },
                             "timestamp": new Date(Date.now()).toISOString(),
                             "thumbnail": {
-                                "url": "https://images.footlocker.com/pi/" + this.link + "/large/" + this.link + ".jpeg"
+                                "url": this.imageurl
                             }
                         }],
                         "username": "Venetia",
@@ -254,6 +261,73 @@ module.exports = class FederalPremiumTask {
                 })
         }
     }
+
+    async monitor() {
+        const got = require('got');
+        const tunnel = require('tunnel');
+        const querystring = require('querystring')
+
+        if (this.stopped === "false") {
+            await this.send("Monitoring...")
+            try {
+                this.request = {
+                    method: 'get',
+                    url: 'https://www.federalpremium.com/on/demandware.store/Sites-VistaFederal-Site/default/Product-Variation?pid=' + this.link,
+                    cookieJar: this.cookieJar,
+                    headers: {
+                        'authority': 'www.federalpremium.com',
+                        'sec-ch-ua': '" Not A;Brand";v="99", "Chromium";v="90", "Google Chrome";v="90"',
+                        'accept': '*/*',
+                        'x-requested-with': 'XMLHttpRequest',
+                        'sec-ch-ua-mobile': '?0',
+                        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.93 Safari/537.36',
+                        'content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                        'origin': 'https://www.federalpremium.com',
+                        'sec-fetch-site': 'same-origin',
+                        'sec-fetch-mode': 'cors',
+                        'sec-fetch-dest': 'empty',
+                        'accept-language': 'en-US,en;q=0.9',
+                    },
+                    responseType: 'json'
+                }
+                if (this.proxy != '-') {
+                    this.request['agent'] = {
+                        https: tunnel.httpsOverHttp({
+                            proxy: this.proxy
+                        })
+                    }
+                }
+                let response = await got(this.request);
+                if (this.stopped === "false") {
+                    if (response.body.product.available == false) {
+                        throw "Product OOS"
+                    } else {
+                        if (typeof response.body.product.images != 'undefined' && typeof response.body.product.images.large != 'undefined')
+                            this.imageurl = response.body.product.images.large[0].url
+                        return;
+                    }
+                }
+            } catch (error) {
+                if (error === "Product OOS") {
+                    await this.send("Waiting for restock")
+                    await sleep(3500)
+                    await this.monitor()
+                } else
+                if (typeof error.response != 'undefined' && this.stopped === "false") {
+                    console.log(error.response.body)
+                    await this.send("Error monitoring: " + error.response.statusCode)
+                    await sleep(3500)
+                    await this.monitor()
+                } else if (this.stopped === "false") {
+                    console.log(error)
+                    await this.send("Unexpected error")
+                    await sleep(3500)
+                    await this.monitor()
+                }
+            }
+        }
+    }
+
 
     async addToCart() {
         const got = require('got');
@@ -283,7 +357,7 @@ module.exports = class FederalPremiumTask {
                     },
                     body: querystring.encode({
                         'pid': this.link,
-                        'quantity': '1',
+                        'quantity': this.quantity,
                         'options': '[]'
                     }),
                     responseType: 'json'
@@ -311,6 +385,7 @@ module.exports = class FederalPremiumTask {
                 if (error === "Product OOS") {
                     await this.send("Waiting for restock")
                     await sleep(3500)
+                    await this.monitor()
                     await this.addToCart()
                 } else
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
@@ -864,6 +939,9 @@ module.exports = class FederalPremiumTask {
     async initialize() {
         await this.send("Started")
         console.log(this.link)
+        if (this.stopped === "false")
+            await this.monitor()
+
         if (this.stopped === "false")
             await this.addToCart()
 

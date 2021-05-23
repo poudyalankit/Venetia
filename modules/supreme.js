@@ -228,7 +228,7 @@ module.exports = class SupremeTask {
         if (this.stopped === "false") {
             let response = await got({
                 method: 'get',
-                url: 'http://localhost:4444/venetia/addtoqueue?site=supreme&sitekey=6LeWwRkUAAAAAOBsau7KpuC9AV-6J8mhw4AjC3Xz',
+                url: 'http://localhost:4444/venetia/addtoQueue?captchaType=supreme&sitekey=6LeWwRkUAAAAAOBsau7KpuC9AV-6J8mhw4AjC3Xz&siteURL=http://www.supremenewyork.com/',
                 responseType: 'json'
             })
             this.captchaTaskId = response.body.id
@@ -242,17 +242,15 @@ module.exports = class SupremeTask {
             try {
                 let response = await got({
                     method: 'get',
-                    url: 'http://localhost:4444/venetia/captchabank',
+                    url: 'http://localhost:4444/venetia/solvedCaptchas?id=' + this.captchaTaskId,
                     responseType: 'json'
                 })
-                for (var i = 0; i < response.body.length; i++) {
-                    if (response.body[i].id === this.captchaTaskId) {
-                        this.captchaResponse = response.body[i].token
-                        await got.get("http://localhost:4444/venetia/removefrombank?id=" + this.captchaTaskId)
-                        return;
-                    }
-                }
-                throw "Captcha not ready"
+                console.log(response.body)
+                if (response.body.completed == true) {
+                    this.captchaResponse = response.body.captchaResponse
+                    return;
+                } else
+                    throw "Captcha not ready"
             } catch (error) {
                 console.log(error)
                 console.log(this.captchaTaskId)
@@ -395,7 +393,6 @@ module.exports = class SupremeTask {
     async addToCart() {
         const got = require('got');
         const tunnel = require('tunnel');
-
         const querystring = require('querystring')
         console.log('https://www.supremenewyork.com/shop/' + this.productid + '/add.json')
         if (this.stopped === "false") {

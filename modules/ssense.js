@@ -4,14 +4,12 @@ module.exports = class SSENSETask {
         require("../src/js/console-file.js");
         var path = require('path')
         var fs = require('fs');
-
         const electron = require('electron');
         const configDir = (electron.app || electron.remote.app).getPath('userData');
         //console.file(path.join(configDir, '/userdata/logs.txt'));
         this.stopped = "false";
         this.request;
         this.key = getKey()
-
         this.taskId = taskInfo.id;
         this.site = taskInfo.site;
         this.mode = taskInfo.mode;
@@ -38,42 +36,12 @@ module.exports = class SSENSETask {
         this.profile = getProfileInfo(taskInfo.profile);
         this.proxyArray = getProxyInfo(taskInfo.proxies);
         this.proxy = this.proxyArray.sample();
+        this.oglink = this.link
         if (this.link.includes("+")) {
             this.sku = this.link.substring(1)
+        } else if (this.link.includes("http") == false) {
+            this.link = "https://www.ssense.com/en-us/men/product/essentials/~/" + this.link
         }
-
-        this.sizeArray = ["00", "01", "02", "03", "04", "05", "06", "07"]
-
-        if (this.link === "coreM") {
-            this.sku = "211712M234002" + this.sizeArray.sample()
-            this.sendProductTitle("Yeezy Slide Core")
-        }
-
-        if (this.link === "coreW") {
-            this.sku = "211712F124003" + this.sizeArray.sample()
-            this.sendProductTitle("Yeezy Slide Core")
-        }
-
-        if (this.link === "resinM") {
-            this.sku = "211712M234001" + this.sizeArray.sample()
-            this.sendProductTitle("Yeezy Slide Resin")
-        }
-
-        if (this.link === "resinW") {
-            this.sku = "211712F124002" + this.sizeArray.sample()
-            this.sendProductTitle("Yeezy Slide Resin")
-        }
-
-        if (this.link === "pureM") {
-            this.sku = "211712M234000" + this.sizeArray.sample()
-            this.sendProductTitle("Yeezy Slide Pure")
-        }
-
-        if (this.link === "pureW") {
-            this.sku = "211712F124004" + this.sizeArray.sample()
-            this.sendProductTitle("Yeezy Slide Pure")
-        }
-
     }
 
     async sendFail() {
@@ -87,7 +55,7 @@ module.exports = class SSENSETask {
                 json: {
                     "site": this.site,
                     "mode": this.mode,
-                    "product": this.link,
+                    "product": this.oglink,
                     "size": this.size,
                     "price": Math.trunc(this.cartTotal),
                     "timestamp": new Date(Date.now()).toISOString(),
@@ -127,7 +95,7 @@ module.exports = class SSENSETask {
                                 },
                                 {
                                     "name": "Query",
-                                    "value": this.link,
+                                    "value": this.oglink,
                                     "inline": true
                                 },
                                 {
@@ -181,7 +149,7 @@ module.exports = class SSENSETask {
                 json: {
                     "site": this.site,
                     "mode": this.mode,
-                    "product": this.link,
+                    "product": this.oglink,
                     "size": this.size,
                     "productTitle": this.productTitle,
                     "price": Math.trunc(this.cartTotal),
@@ -220,7 +188,7 @@ module.exports = class SSENSETask {
                                 },
                                 {
                                     "name": "Query",
-                                    "value": this.link,
+                                    "value": this.oglink,
                                     "inline": true
                                 },
                                 {
@@ -272,7 +240,7 @@ module.exports = class SSENSETask {
                 json: {
                     "site": this.site,
                     "mode": this.mode,
-                    "product": this.link,
+                    "product": this.oglink,
                     "size": this.size,
                     "productTitle": this.productTitle,
                     "price": Math.trunc(this.cartTotal),
@@ -311,7 +279,7 @@ module.exports = class SSENSETask {
                                 },
                                 {
                                     "name": "Query",
-                                    "value": this.link,
+                                    "value": this.oglink,
                                     "inline": true
                                 },
                                 {
@@ -401,8 +369,7 @@ module.exports = class SSENSETask {
                 console.log(error)
                 if (this.stopped === "false") {
                     this.send("Error authenticating, retrying")
-                    await sleep(4000)
-                    await this.login()
+                    this.cookieJar.setCookie("auth=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjdXN0b21lciI6eyJpZCI6NjMzNDUyNDEsImVtYWlsIjoiaW91bmlvbmFvZmluQGdtaWFsLmNvbSIsInJvbGUiOiJndWVzdCJ9LCJleHBpcmVfYXQiOiIyMDIxLTYtMTQgMjE6MjM6MTEiLCJpYXQiOjE2MjEyODY1OTEsImV4cCI6MTYyMzcwNTc5MX0.3Jknz9zl5GQbN9S3jNhikrJt5x4pkwWeoSTTW9nk7NU; Path=/; Expires=Mon, 14 Jun 2021 21:23:11 GMT", "https://www.ssense.com")
                 }
             }
         }
@@ -412,7 +379,7 @@ module.exports = class SSENSETask {
         const got = require('got');
         const tunnel = require('tunnel');
         if (this.stopped === "false") {
-            await this.send("Loading product")
+            await this.send("Loading product...")
             try {
                 this.request = {
                     method: 'get',
@@ -469,10 +436,28 @@ module.exports = class SSENSETask {
                     }
                 }
             } catch (error) {
-                console.log(error)
-                await this.send("Error getting product");
-                await sleep(4000)
-                await this.loadProductPage()
+                if (error === "Size not found" && this.stopped === "false") {
+                    await this.send("Waiting for restock")
+                    await sleep(3500)
+                    await this.loadProductPage()
+                } else
+                if (typeof error.response != 'undefined' && this.stopped === "false") {
+                    console.log(error.response)
+                    if (error.response.statusCode === 403) {
+                        await this.send("Error proxy banned")
+                        await sleep(3500)
+                        await this.addToCart()
+                    } else {
+                        await this.send("Error getting product: " + error.response.statusCode)
+                        await sleep(3500)
+                        await this.loadProductPage()
+                    }
+                } else if (this.stopped === "false") {
+                    console.log(error)
+                    await this.send("Unexpected error")
+                    await sleep(3500)
+                    await this.loadProductPage()
+                }
             }
         }
     }
@@ -482,7 +467,7 @@ module.exports = class SSENSETask {
         const tunnel = require('tunnel');
         console.log(this.sku)
         if (this.stopped === "false") {
-            await this.send("Adding to cart")
+            await this.send("Adding to cart...")
             try {
                 this.request = {
                     method: 'post',
@@ -523,10 +508,28 @@ module.exports = class SSENSETask {
                 }
 
             } catch (error) {
-                console.log(error.response.body)
-                await this.send("Error carting, retrying")
-                await sleep(4000)
-                await this.addToCart()
+                if (typeof error.response != 'undefined' && this.stopped === "false") {
+                    console.log(error.response.body)
+                    if (error.response.statusCode === 409) {
+                        await this.send("OOS, retrying")
+                        await sleep(3500)
+                        await this.addToCart()
+                    } else
+                    if (error.response.statusCode === 403) {
+                        await this.send("Error proxy banned")
+                        await sleep(3500)
+                        await this.addToCart()
+                    } else {
+                        await this.send("Error adding to cart: " + error.response.statusCode)
+                        await sleep(3500)
+                        await this.addToCart()
+                    }
+                } else if (this.stopped === "false") {
+                    console.log(error)
+                    await this.send("Unexpected error")
+                    await sleep(3500)
+                    await this.addToCart()
+                }
             }
         }
     }
@@ -535,7 +538,7 @@ module.exports = class SSENSETask {
         const got = require('got');
         const tunnel = require('tunnel');
         if (this.stopped === "false") {
-            this.send("Getting checkout session")
+            this.send("Loading checkout...")
             try {
                 this.request = {
                     method: 'get',
@@ -585,10 +588,21 @@ module.exports = class SSENSETask {
                     return;
                 }
             } catch (error) {
-                console.log(error)
-                if (this.stopped === "false") {
-                    await this.send("Failed getting checkout session")
-                    await sleep(4000)
+                if (typeof error.response != 'undefined' && this.stopped === "false") {
+                    console.log(error.response)
+                    if (error.response.statusCode === 403) {
+                        await this.send("Error proxy banned")
+                        await sleep(3500)
+                        await this.getCheckoutSession()
+                    } else {
+                        await this.send("Error getting checkout: " + error.response.statusCode)
+                        await sleep(3500)
+                        await this.getCheckoutSession()
+                    }
+                } else if (this.stopped === "false") {
+                    console.log(error)
+                    await this.send("Unexpected error")
+                    await sleep(3500)
                     await this.getCheckoutSession()
                 }
             }
@@ -599,7 +613,7 @@ module.exports = class SSENSETask {
         const got = require('got');
         const tunnel = require('tunnel');
         if (this.stopped === "false") {
-            this.send("Getting shipping")
+            this.send("Getting shipping...")
             try {
                 this.request = {
                     method: 'get',
@@ -642,10 +656,21 @@ module.exports = class SSENSETask {
                 }
 
             } catch (error) {
-                console.log(error)
-                if (this.stopped === "false") {
-                    this.send("Error getting shipping")
-                    await sleep(4000)
+                if (typeof error.response != 'undefined' && this.stopped === "false") {
+                    console.log(error.response)
+                    if (error.response.statusCode === 403) {
+                        await this.send("Error proxy banned")
+                        await sleep(3500)
+                        await this.getShipping()
+                    } else {
+                        await this.send("Error getting shipping: " + error.response.statusCode)
+                        await sleep(3500)
+                        await this.getShipping()
+                    }
+                } else if (this.stopped === "false") {
+                    console.log(error)
+                    await this.send("Unexpected error")
+                    await sleep(3500)
                     await this.getShipping()
                 }
             }
@@ -657,7 +682,7 @@ module.exports = class SSENSETask {
         const got = require('got');
         const tunnel = require('tunnel');
         if (this.stopped === "false") {
-            this.send("Getting taxes")
+            this.send("Getting taxes...")
             try {
                 this.request = {
                     method: 'get',
@@ -706,10 +731,21 @@ module.exports = class SSENSETask {
 
                 }
             } catch (error) {
-                console.log(error)
-                if (this.stopped === "false") {
-                    this.send("Error getting taxes")
-                    await sleep(4000)
+                if (typeof error.response != 'undefined' && this.stopped === "false") {
+                    console.log(error.response)
+                    if (error.response.statusCode === 403) {
+                        await this.send("Error proxy banned")
+                        await sleep(3500)
+                        await this.getTaxes()
+                    } else {
+                        await this.send("Error getting taxes: " + error.response.statusCode)
+                        await sleep(3500)
+                        await this.getTaxes()
+                    }
+                } else if (this.stopped === "false") {
+                    console.log(error)
+                    await this.send("Unexpected error")
+                    await sleep(3500)
                     await this.getTaxes()
                 }
             }
@@ -720,7 +756,7 @@ module.exports = class SSENSETask {
         const got = require('got');
         const tunnel = require('tunnel');
         if (this.stopped === "false") {
-            this.send("Submitting order")
+            this.send("Submitting order...")
             this.encryptedcard = this.profile.cardNumber.substring(0, 6) + "000000" + this.profile.cardNumber.substring(12)
             this.fullname = this.profile.firstName + " " + this.profile.lastName;
             try {
@@ -817,7 +853,7 @@ module.exports = class SSENSETask {
         const got = require('got');
         const tunnel = require('tunnel');
         if (this.stopped === "false") {
-            this.send("Submitting order")
+            this.send("Submitting order...")
             this.encryptedcard = this.profile.cardNumber.substring(0, 6) + "000000" + this.profile.cardNumber.substring(12)
             this.fullname = this.profile.firstName + " " + this.profile.lastName;
             try {
@@ -893,7 +929,7 @@ module.exports = class SSENSETask {
 
     async stopTask() {
         this.stopped = "true";
-        await this.sendProductTitle(this.link)
+        await this.sendProductTitle(this.oglink)
         console.log("Stopped")
         this.send("Stopped")
     }

@@ -1,3 +1,5 @@
+const consoleFile = require('../src/js/console-file.js');
+
 module.exports = class ShiekhTask {
     constructor(taskInfo) {
         require('log-timestamp');
@@ -27,6 +29,7 @@ module.exports = class ShiekhTask {
         this.sizeid;
         this.itemid;
         this.encryptedCard;
+        this.token;
         this.accountToken;
         this.cartToken;
         const tough = require('tough-cookie');
@@ -35,16 +38,10 @@ module.exports = class ShiekhTask {
         this.profile = getProfileInfo(taskInfo.profile);
         this.proxyArray = getProxyInfo(taskInfo.proxies);
         this.proxy = this.proxyArray.sample();
-
-        this.cartTotal = 149.99
-        this.productTitle = "(GS) Air Jordan 4 Retro University Blue/Black-Tech Grey-White"
-        this.sendProductTitle(this.productTitle)
-        this.sku = "408452 400"
-        this.itemid = "187"
-        this.sizeArray = ["1076", "1070", "1074", "1073", "1071", "1072"]
-        if (this.size === "RS" && this.link === "408452%20400") {
-            this.sizeid = this.sizeArray.sample()
-        }
+        this.schedule = {}
+        this.schedule.hour = taskInfo.schedule.hour;
+        this.schedule.minute = taskInfo.schedule.minute;
+        this.schedule.second = taskInfo.schedule.second;
     }
 
     async sendFail() {
@@ -241,7 +238,7 @@ module.exports = class ShiekhTask {
         const { v4: uuidv4 } = require('uuid');
         const tunnel = require('tunnel');
         if (this.stopped === "false") {
-            this.send("Logging in...")
+            await this.send("Logging in...")
             try {
                 this.request = {
                     method: 'post',
@@ -472,19 +469,138 @@ module.exports = class ShiekhTask {
         }
     }
 
-    async encryptCard() {
+    async submitShipping() {
         const got = require('got');
-        const { v4: uuidv4 } = require('uuid');
         const tunnel = require('tunnel');
         if (this.stopped === "false") {
-            this.send("Encrypting card...")
+            this.send("Submitting shipping...")
+            try {
+                this.request = {
+                    method: 'post',
+                    url: 'https://api.shiekh.com/api/V1/extend/carts/mine/shipping-information',
+                    headers: {
+                        'user-agent': 'Shiekh Shoes/8.2 (com.shiekh.shoes.ios; build:863; iOS 14.2.0) Alamofire/5.4.2',
+                        'authorization': 'Bearer ' + this.accountToken
+                    },
+                    json: {
+                        "addressInformation": {
+                            "shipping_carrier_code": "ups",
+                            "billing_address": {
+                                "lastname": this.profile.lastName,
+                                "region_code": abbrRegion(this.profile.state, 'abbr'),
+                                "city": this.profile.city,
+                                "country_id": "US",
+                                "firstname": this.profile.firstName,
+                                "street": [this.profile.address1],
+                                "region": this.profile.state,
+                                "email": null,
+                                "region_id": 61,
+                                "telephone": this.profile.phone,
+                                "postcode": this.profile.zipcode
+                            },
+                            "shipping_method_code": "03",
+                            "shipping_address": {
+                                "region_id": 61,
+                                "region_code": abbrRegion(this.profile.state, 'abbr'),
+                                "city": this.profile.city,
+                                "lastname": this.profile.lastName,
+                                "telephone": this.profile.phone,
+                                "email": null,
+                                "country_id": "US",
+                                "street": [this.profile.address1],
+                                "postcode": this.profile.zipcode,
+                                "firstname": this.profile.firstName,
+                                "region": this.profile.state
+                            },
+                            "is_paypal_address": 0
+                        }
+                    },
+                    responseType: 'json'
+                }
+                if (this.proxy != '-') {
+                    this.request['agent'] = {
+                        https: tunnel.httpsOverHttp({
+                            proxy: this.proxy
+                        })
+                    }
+                }
+                let response = await got(this.request)
+                if (this.stopped === "false") {
+                    await this.send("Submitted shipping")
+                }
+            } catch (error) {
+                if (typeof error.response != 'undefined' && this.stopped === "false") {
+                    console.log(error.response.body)
+                    await this.send("Error submitting shipping: " + error.response.statusCode)
+                    await sleep(3500)
+                    await this.submitShipping()
+                } else if (this.stopped === "false") {
+                    console.log(error)
+                    await this.send("Unexpected error")
+                    await sleep(3500)
+                    await this.submitShipping()
+                }
+            }
+        }
+    }
+
+    async getToken() {
+        const got = require('got');
+        const tunnel = require('tunnel');
+        if (this.stopped === "false") {
+            this.send("Getting token...")
+            try {
+                this.request = {
+                    method: 'get',
+                    url: 'https://api.shiekh.com/api/V1/applepay/auth',
+                    headers: {
+                        'user-agent': 'Shiekh Shoes/8.2 (com.shiekh.shoes.ios; build:863; iOS 14.2.0) Alamofire/5.4.2',
+                    },
+                    responseType: 'json'
+                }
+                if (this.proxy != '-') {
+                    this.request['agent'] = {
+                        https: tunnel.httpsOverHttp({
+                            proxy: this.proxy
+                        })
+                    }
+                }
+                let response = await got(this.request)
+                if (this.stopped === "false") {
+                    this.token = response.body['client_token']
+                    this.token = JSON.parse(atob(this.token))
+                    this.token = this.token.authorizationFingerprint
+                    console.log(this.token)
+                }
+            } catch (error) {
+                if (typeof error.response != 'undefined' && this.stopped === "false") {
+                    console.log(error)
+                    await this.send("Error getting token: " + error.response.statusCode)
+                    await sleep(3500)
+                    await this.getToken()
+                } else if (this.stopped === "false") {
+                    console.log(error)
+                    await this.send("Unexpected error")
+                    await sleep(3500)
+                    await this.getToken()
+                }
+            }
+        }
+    }
+
+
+    async encryptCard() {
+        const got = require('got');
+        const tunnel = require('tunnel');
+        if (this.stopped === "false") {
+            this.send("Presubmitting card...")
             try {
                 this.request = {
                     method: 'post',
                     url: 'https://payments.braintree-api.com/graphql',
                     headers: {
                         'user-agent': 'Braintree/iOS/4.37.1',
-                        'Authorization': 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiIsImtpZCI6IjIwMTgwNDI2MTYtcHJvZHVjdGlvbiIsImlzcyI6Imh0dHBzOi8vYXBpLmJyYWludHJlZWdhdGV3YXkuY29tIn0.eyJleHAiOjE2MTk2NjQ4MTEsImp0aSI6ImM1MGYzYzY0LTQzZGUtNDU3Yi1iY2U1LTllMWE1YWMyYjNlNyIsInN1YiI6ImR5eGNuNHY5cjJ6czkzd3giLCJpc3MiOiJodHRwczovL2FwaS5icmFpbnRyZWVnYXRld2F5LmNvbSIsIm1lcmNoYW50Ijp7InB1YmxpY19pZCI6ImR5eGNuNHY5cjJ6czkzd3giLCJ2ZXJpZnlfY2FyZF9ieV9kZWZhdWx0IjpmYWxzZX0sInJpZ2h0cyI6WyJtYW5hZ2VfdmF1bHQiXSwic2NvcGUiOlsiQnJhaW50cmVlOlZhdWx0Il0sIm9wdGlvbnMiOnt9fQ.zhIJYaXB94ZvSZ9S9j8wjuWPv-CQ9xIT9z6xMblTBV-0XMEy3ESUJO1Aedq-Ra5hLb6tg0SxjCNxorIin8BLnQ',
+                        'Authorization': 'Bearer ' + this.token,
                         'Braintree-Version': '2018-03-06'
                     },
                     json: {
@@ -636,16 +752,34 @@ module.exports = class ShiekhTask {
             await this.login()
 
         if (this.stopped === "false")
+            await this.getToken()
+
+        if (this.stopped === "false")
+            await this.encryptCard()
+
+        if (this.stopped === "false")
             await this.generateCart()
 
-        if (this.stopped === "false" && typeof this.sizeid === 'undefined')
+        if (this.stopped === "false")
             await this.getProduct()
+
+        if (this.schedule.hour != "" && this.stopped === "false") {
+            var now = new Date(Date.now())
+            var scheduledTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), parseInt(this.schedule.hour), parseInt(this.schedule.minute), parseInt(this.schedule.second))
+            var seconds = (scheduledTime.getTime() - now.getTime());
+            await this.send("Sleeping for " + seconds + "ms")
+            await sleep(seconds)
+        }
 
         if (this.stopped === "false")
             await this.addToCart()
 
         if (this.stopped === "false")
+            await this.submitShipping()
+
+        if (this.stopped === "false")
             await this.submitOrder()
+
     }
 
 }
@@ -696,6 +830,10 @@ function getAccountInfo(accounts) {
             return x[i].account.sample()
         }
     }
+}
+
+function getTimestamp() {
+    return Math.floor(Date.now() / 1000);
 }
 
 function getProfileInfo(profiles) {

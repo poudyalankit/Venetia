@@ -26,9 +26,10 @@ checkMultipleInstances()
 
 
 var cookieBank = []
-var captchas = []
-var setToSolving = []
-var solvecaptcha = []
+
+var captchaQueue = []
+var solvedCaptchas = []
+
 var proxyUsername;
 var proxyPassword;
 
@@ -78,79 +79,76 @@ autoUpdater.on('error', message => {
 })
 
 
+captchaSharing.get("/venetia/addtoQueue", async(req, res) => {
+    var id = makeid(5)
+    captchaQueue.push({
+        "sitekey": req.query.sitekey,
+        "captchaType": req.query.captchaType,
+        "siteURL": req.query.siteURL,
+        "id": id
+    })
+    res.json({
+        "id": id
+    })
+});
+
+captchaSharing.get("/venetia/solvedCaptchas", async(req, res) => {
+    if (typeof req.query.id != 'undefined') {
+        for (var i = 0; i < solvedCaptchas.length; i++) {
+            if (solvedCaptchas[i].id === req.query.id) {
+                res.json(solvedCaptchas[i])
+                solvedCaptchas.splice(i, 1)
+            }
+        }
+    }
+    res.json({
+        "completed": false
+    })
+});
+
+captchaSharing.get("/venetia/addToSolvedCaptchas", async(req, res) => {
+    solvedCaptchas.push({
+        "captchaResponse": req.query.captchaResponse,
+        "completed": true,
+        "id": req.query.id
+    })
+    for (var i = 0; i < captchaQueue.length; i++) {
+        if (captchaQueue[i].id === req.query.id) {
+            captchaQueue.splice(i, 1)
+            break;
+        }
+    }
+    res.send("done")
+});
+
+captchaSharing.get("/venetia/viewCaptchaQueue", async(req, res) => {
+    if (typeof req.query.windowid != 'undefined') {
+        for (var i = 0; i < captchaQueue.length; i++) {
+            if (typeof captchaQueue[i].windowid === 'undefined') {
+                captchaQueue[i].windowid = req.query.windowid
+                res.json(captchaQueue[i])
+            }
+        }
+    }
+    res.json({
+        "message": "No captchas available to solve"
+    })
+});
+
+captchaSharing.get("/venetia/searchByWindowID", async(req, res) => {
+    for (var i = 0; i < captchaQueue.length; i++) {
+        if (typeof captchaQueue[i].windowid != 'undefined' && captchaQueue[i].windowid === req.query.windowid) {
+            res.json(captchaQueue[i])
+        }
+    }
+    res.json([])
+});
 
 
 captchaSharing.get("/toastyaio/datadome", async(req, res) => {
     res.json(cookieBank)
 });
 
-captchaSharing.get("/venetia/captchabank", async(req, res) => {
-    res.json(captchas)
-});
-
-captchaSharing.get("/venetia/removefrombank", async(req, res) => {
-    for (var i = 0; i < captchas.length; i++) {
-        if (captchas[i].id === req.query.id) {
-            captchas.splice(i, 1)
-            res.send("removed from bank")
-        }
-    }
-    res.send("failed removing")
-});
-
-captchaSharing.get("/venetia/captchas", async(req, res) => {
-    captchas.push({ id: req.query.id, token: req.query.token })
-    res.send("added to solved bank")
-});
-
-captchaSharing.get("/venetia/setToSolving", async(req, res) => {
-    setToSolving.push({ id: req.query.id, windowid: req.query.windowid })
-    res.send("added to solving bank")
-});
-
-captchaSharing.get("/venetia/getCaptchaID", async(req, res) => {
-    console.log(req.query.windowid)
-    for (var i = 0; i < setToSolving.length; i++) {
-        if (setToSolving[i].windowid === req.query.windowid) {
-            var captchaid = setToSolving[i].id
-            setToSolving.splice(i, 1)
-            res.send(captchaid)
-        }
-    }
-    res.send("error finding captcha")
-});
-
-
-
-captchaSharing.get("/venetia/solvecaptcha", async(req, res) => {
-    res.json(solvecaptcha)
-});
-
-captchaSharing.get("/venetia/addToQueue", async(req, res) => {
-    var id2 = makeid(5)
-    solvecaptcha.push({ site: req.query.site, sitekey: req.query.sitekey, id: id2 })
-    res.json({ id: id2 })
-});
-
-captchaSharing.get("/venetia/retrieveCaptcha", async(req, res) => {
-    for (var i = 0; i < captchas.length; i++) {
-        if (captchas[i].id === req.query.id) {
-            res.json({ solved: true, token: captchas[i].token })
-        }
-    }
-    res.json({ solved: false })
-});
-
-
-captchaSharing.get("/venetia/removeFromQueue", async(req, res) => {
-    for (var i = 0; i < solvecaptcha.length; i++) {
-        if (solvecaptcha[i].id === req.query.id) {
-            solvecaptcha.splice(i, 1)
-            break;
-        }
-    }
-    res.send("removed from queue")
-});
 
 captchaSharing.get("/toastyaio/addCookie", async(req, res) => {
     cookieBank.push({ cookie: req.query.cookie, uses: 0 })
@@ -182,7 +180,7 @@ let taskArray = []
 let win;
 
 client.updatePresence({
-    details: 'v0.3.15',
+    details: 'v0.3.19',
     startTimestamp: Date.now(),
     largeImageKey: "venetia",
     largeImageText: "Venetia",
@@ -257,7 +255,7 @@ function createWindow() {
         webPreferences: {
             nodeIntegration: true,
             enableRemoteModule: true,
-            // devTools: false
+            //devTools: false
         }
     })
     backendB.openDevTools(true)
@@ -308,7 +306,12 @@ ipcMain.on('taskinfo', (event, taskInfo) => {
         "size": groups[taskInfo.groupIndex][taskInfo.groupName][taskInfo.taskIndex][taskInfo.taskID]['size'],
         "profile": groups[taskInfo.groupIndex][taskInfo.groupName][taskInfo.taskIndex][taskInfo.taskID]['profile'],
         "proxies": groups[taskInfo.groupIndex][taskInfo.groupName][taskInfo.taskIndex][taskInfo.taskID]['proxies'],
-        "accounts": groups[taskInfo.groupIndex][taskInfo.groupName][taskInfo.taskIndex][taskInfo.taskID]['accounts']
+        "accounts": groups[taskInfo.groupIndex][taskInfo.groupName][taskInfo.taskIndex][taskInfo.taskID]['accounts'],
+        "schedule": {
+            "hour": groups[taskInfo.groupIndex][taskInfo.groupName][taskInfo.taskIndex][taskInfo.taskID]['schedule']['hour'],
+            "minute": groups[taskInfo.groupIndex][taskInfo.groupName][taskInfo.taskIndex][taskInfo.taskID]['schedule']['minute'],
+            "second": groups[taskInfo.groupIndex][taskInfo.groupName][taskInfo.taskIndex][taskInfo.taskID]['schedule']['second']
+        }
     }
     var x = backendArray.sample()
     console.log(x)
@@ -370,10 +373,6 @@ ipcMain.on('verify', (event, key) => {
 });
 
 
-
-
-
-
 ipcMain.on('launchHarvester', function(event, harvesterName, harvesterProxy) {
     var sess = session.fromPartition('persist:' + harvesterName);
     if (harvesterProxy != "") {
@@ -391,33 +390,34 @@ ipcMain.on('launchHarvester', function(event, harvesterName, harvesterProxy) {
     }
 
     sess.protocol.interceptBufferProtocol('http', (req, callback) => {
-        if (req.url == 'http://www.supremenewyork.com/') {
-            fs.readFile(__dirname + '/solveharvester.html', 'utf8', function(err, html) {
-                callback({ mimeType: 'text/html', data: Buffer.from(html) });
-            });
-        }
+        fs.readFile(__dirname + '/solveharvester.html', 'utf8', function(err, html) {
+            callback({ mimeType: 'text/html', data: Buffer.from(html) });
+        });
     });
     var harvester = new BrowserWindow({
-        width: 400,
+        frame: false,
+        width: 405,
         height: 600,
-        backgroundColor: '#181a26',
+        webPreferences: {
+            devTools: false
+        }
+    })
+    const view2 = new BrowserView({
         webPreferences: {
             nodeIntegration: true,
             enableRemoteModule: true,
-            devTools: false,
             webSecurity: false,
-            session: sess
-        },
-
-        frame: false,
-        icon: path.join(__dirname, 'images/logo.png')
+            session: sess,
+            devTools: false
+        }
     })
-    harvester.setTitle("Venetia Harvester");
-    harvester.setMenuBarVisibility(false);
-    harvester.setResizable(false);
-
-    harvester.loadFile('harvester.html', { userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36' })
-    harvester.openDevTools(true)
+    harvester.setMenuBarVisibility(false)
+    harvester.setResizable(false)
+    view2.webContents.openDevTools()
+    view2.setBackgroundColor("#181a26")
+    harvester.setBrowserView(view2)
+    view2.setBounds({ x: 0, y: 0, width: 405, height: 600 })
+    view2.webContents.loadFile('harvester.html')
 });
 
 ipcMain.on('googleSignIn', function(event, harvesterName, harvesterProxy) {
@@ -435,23 +435,23 @@ ipcMain.on('googleSignIn', function(event, harvesterName, harvesterProxy) {
     } else {
         sess2.setProxy({ proxyRules: "" })
     }
-    var login = new BrowserWindow({
-        width: 400,
+    var harvester = new BrowserWindow({
+        width: 405,
         height: 600,
+        icon: path.join(__dirname, 'images/logo.png'),
         webPreferences: {
             nodeIntegration: true,
             enableRemoteModule: true,
-            devTools: false,
             webSecurity: false,
-            session: sess2
-        },
-        icon: path.join(__dirname, 'images/logo.png')
+            session: sess2,
+            devTools: false
+        }
     })
-    login.setMenuBarVisibility(false);
 
-    login.setResizable(true);
-    login.loadURL('https://accounts.google.com/', { userAgent: 'Chrome' })
-    login.openDevTools(true)
+    harvester.setMenuBarVisibility(false)
+    harvester.setResizable(false)
+    harvester.loadURL('https://accounts.google.com', { userAgent: 'Chrome' })
+
 });
 Array.prototype.sample = function() {
     return this[Math.floor(Math.random() * this.length)];

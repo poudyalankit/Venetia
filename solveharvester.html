@@ -3,7 +3,7 @@
 <head>
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
-    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <script src="https://www.google.com/recaptcha/api.js?render=explicit" async defer></script>
 </head>
 
 <style>
@@ -30,6 +30,30 @@
         -webkit-app-region: no-drag;
         -webkit-user-select: none;
         top: 4px;
+        outline: none;
+    }
+    
+    .resetButton {
+        position: absolute;
+        top: 370px;
+        width: 130px;
+        background: transparent;
+        height: 27px;
+        left: 133px;
+        -webkit-app-region: no-drag;
+        -webkit-user-select: none;
+        font-family: 'Poppins';
+        border-radius: 8px;
+        border: 1px solid #5DA9FF;
+        cursor: pointer;
+        color: white;
+        transition-property: background;
+        transition-duration: 0.4s;
+        outline: none;
+    }
+    
+    .resetButton:hover {
+        background: #5DA9FF;
     }
     
     .close {
@@ -40,6 +64,7 @@
         top: 4px;
         -webkit-app-region: no-drag;
         -webkit-user-select: none;
+        outline: none;
     }
 </style>
 
@@ -60,10 +85,9 @@
             </div>
         </div>
         <div class="recaptchaBox" id="displayCaptcha">
-            <form action="/submit" method="POST">
-                <div class="g-recaptcha" id="captchaFrame" data-sitekey="6LeWwRkUAAAAAOBsau7KpuC9AV-6J8mhw4AjC3Xz" data-callback="sub"></div>
-            </form>
+            <div id="captchaElement"></div>
         </div>
+        <button onclick="reset()" class="resetButton">Reset Captcha</button>
 
     </div>
 
@@ -76,18 +100,39 @@
         const ipcRenderer = require('electron').ipcRenderer
         const electron = require('electron');
         const got = require('got');
+        let captchainfo;
 
         Array.prototype.sample = function() {
             return this[Math.floor(Math.random() * this.length)];
         }
 
+        window.onload = async(event) => {
+            let response = await got.get("http://localhost:4444/venetia/searchByWindowID?windowid=" + remote.getCurrentWindow().id)
+            captchaInfo = JSON.parse(response.body)
+            console.log(captchaInfo)
+            await grecaptcha.render(
+                "captchaElement", {
+                    "sitekey": captchaInfo.sitekey,
+                    "callback": "sub",
+                    "theme": "dark"
+                }
+            )
+            remote.getCurrentWindow().focus()
+        };
 
         async function sub() {
             var windowid = await remote.getCurrentWindow().id
-            let id = await got.get(`http://localhost:4444/venetia/getCaptchaID?windowid=${windowid}`)
-            await got.get(`http://localhost:4444/venetia/captchas?token=${await grecaptcha.getResponse()}&id=${id.body}`)
+            await got.get("http://localhost:4444/venetia/addToSolvedCaptchas?id=" + captchaInfo.id + "&captchaResponse=" + grecaptcha.getResponse())
             await grecaptcha.reset();
-            await remote.getCurrentWindow().loadFile('harvester.html', {
+            await remote.getCurrentWindow().getBrowserView(0).webContents.loadFile('harvester.html', {
+                userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36'
+            })
+        }
+
+        async function reset() {
+            await got.get("http://localhost:4444/venetia/addToSolvedCaptchas?windowid=" + remote.getCurrentWindow().id + "&captchaResponse=none")
+            await grecaptcha.reset();
+            await remote.getCurrentWindow().getBrowserView(0).webContents.loadFile('harvester.html', {
                 userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36'
             })
         }
@@ -98,7 +143,9 @@
         }
 
         function closeIt() {
-            window.close();
+            var x = remote.getCurrentWindow().getBrowserView(0)
+            remote.getCurrentWindow().destroy()
+            x.webContents.destroy()
         }
     </script>
 </body>

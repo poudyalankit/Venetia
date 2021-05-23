@@ -266,22 +266,20 @@ module.exports = class SupremeHybridTask {
 
 
     async launchBrowser() {
-        const { webkit, devices } = require('playwright');
-        const iPhone11 = devices['iPhone 11'];
-        this.browser = await webkit.launch({
+        const { firefox } = require('playwright');
+        this.browser = await firefox.launch({
             headless: false,
             args: ['-width=1792', '-height=828']
         });
         const context = await this.browser.newContext({
-            ...iPhone11,
-            locale: 'en-US'
+            locale: 'en-US',
+            userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A356 Safari/604.1'
         });
 
         await this.send("Launching browser")
 
         this.page = await context.newPage();
 
-        //await this.page.setUserAgent('Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A356 Safari/604.1');
         await this.page.goto('https://www.supremenewyork.com/');
         return;
     }
@@ -291,7 +289,7 @@ module.exports = class SupremeHybridTask {
         const tunnel = require('tunnel');
 
         if (this.stopped === "false") {
-            await this.send("Finding product")
+            await this.send("Finding product...")
             try {
                 this.request = {
                     method: 'get',
@@ -355,7 +353,7 @@ module.exports = class SupremeHybridTask {
         const tunnel = require('tunnel');
 
         if (this.stopped === "false") {
-            await this.send("Finding style")
+            await this.send("Finding style...")
             try {
                 this.request = {
                     method: 'get',
@@ -419,12 +417,19 @@ module.exports = class SupremeHybridTask {
 
     async addToCart() {
         if (this.stopped === "false") {
-            await this.send("Adding to cart")
+            await this.send("Adding to cart...")
 
 
             await this.page.goto('https://www.supremenewyork.com/mobile/#products/' + this.productid);
             let response = await this.sendRequest()
-            await this.send("Waiting for captcha")
+
+            if (this.stopped === "false")
+                await this.goToCheckout()
+
+            await this.send("Loading checkout...")
+
+            await this.send("Waiting for captcha...")
+
 
             if (this.stopped === "false")
                 await this.sendCaptcha()
@@ -433,6 +438,10 @@ module.exports = class SupremeHybridTask {
                 await this.retrieveCaptchaResponse()
             return;
         }
+    }
+
+    async goToCheckout() {
+        await this.page.goto('https://www.supremenewyork.com/mobile/#checkout');
     }
 
     async sendRequest() {
@@ -503,7 +512,7 @@ module.exports = class SupremeHybridTask {
 
     async submitOrder() {
         if (this.stopped === "false") {
-            await this.send("Submitting order")
+            await this.send("Submitting order...")
 
 
             let response = await this.sendCheckoutRequest()
@@ -597,7 +606,7 @@ module.exports = class SupremeHybridTask {
         const tunnel = require('tunnel');
 
         if (this.stopped === "false") {
-            await this.send("Processing")
+            await this.send("Processing...")
             try {
                 this.request = {
                     method: 'get',
@@ -690,6 +699,8 @@ module.exports = class SupremeHybridTask {
 
         if (this.stopped === "false")
             await this.addToCart()
+
+
 
         if (this.stopped === "false") {
             await this.send("Delaying checkout")

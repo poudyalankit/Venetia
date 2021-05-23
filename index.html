@@ -118,7 +118,7 @@
 
 
         <div class="version">
-            0.3.15
+            0.3.19
         </div>
 
     </div>
@@ -237,17 +237,27 @@
                 <div class="siteTaskEntry">
                     <select id="siteTask" class="select2" style="width: 169px" onchange="modeChoices()">
                             <option value=""></option>
+                             <option  value="Bodega">Bodega</option>
                             <option value="ChampsSports">ChampsSports</option>
                             <option value="EastBay">EastBay</option>
                              <option value="Federal Premium">Federal Premium</option>
+                            <option  value="BBCIcecream">BBCIcecream</option>
                             <option value="FootAction">FootAction</option>
                             <option value="FootLocker">FootLocker</option>
                             <option value="FootLockerCA">FootLockerCA</option>
+                             <option  value="DTLR">DTLR</option>
                             <option value="KidsFootLocker">KidsFootLocker</option>
                             <option value="LadyFootLocker">LadyFootLocker</option>
+                             <option disabled value="Pacsun">Pacsun</option>
                              <option value="Shiekh">Shiekh</option>
                             <option value="SSENSE">SSENSE</option>
                             <option value="Supreme">Supreme</option>
+                             <option  value="Kith">Kith</option>
+                             <option  value="Shoe Palace">Shoe Palace</option>
+                             <option  value="Shop Nice Kicks">Shop Nice Kicks</option>
+                                                          <option  value="Packer Shoes">Packer Shoes</option>
+                                                          <option  value="Bape">Bape</option>
+
                           </select>
                 </div>
                 <div class="sizeTaskTitle">
@@ -324,6 +334,14 @@
                     Quantity of Tasks
                 </div>
                 <input disabled="true" type="text" id="quantityTask" value="1" placeholder="1" class="quantityTaskEntry"><br>
+                <div id="scheduleFeature" style="display: none">
+                    <div class="scheduleTaskTitle">
+                        Schedule
+                    </div>
+                    <input type="text" id="hourTaskEntry" maxlength="2" placeholder="09" class="hourTaskEntry"><br>
+                    <input type="text" id="minuteTaskEntry" maxlength="2" placeholder="59" class="minuteTaskEntry"><br>
+                    <input type="text" id="secondTaskEntry" maxlength="2" placeholder="45" class="secondTaskEntry"><br>
+                </div>
                 <button class="addTaskButton" onclick="addTask()">Create Task</button>
             </div>
 
@@ -463,8 +481,10 @@
     <div class="changelogBox">
 
 
-        <h2> 0.3.15 </h2>
-        UI: <br> - Added "Delete All Profiles" button <br> <br> Modules: <br> - Added Federal Premium <br> <br> Federal Premium: <br> - Added Fast mode <br> <br> Footsites: <br> - "Waiting for captcha" fix <br> <br>
+        <h2> 0.3.19 </h2>
+        Harvesters:<br> - Rewrote captcha queue <br> - Improved captchas (I'm no longer getting fading on any of my gmails) <br> - Added Reset Captcha button when solving <br> - Made captcha dark theme <br> <br> Shiekh: <br> - Added schedule task feature
+        <br>
+
     </div>
 
 
@@ -602,6 +622,15 @@
         <div class="proxyTitle">
             Harvester Proxy
         </div>
+        <div class="typeTitle">
+            Harvester Type
+        </div>
+        <select id="harvesterTypeSelection" class="harvesterTypeSelection" style="width: 169px">
+                <option value="Supreme">Supreme</option>
+                <option value="Shopify Checkpoint">Shopify Checkpoint</option>
+                <option value="Shopify Checkpoint">Shopify Checkout</option>
+                 <option value="Footsites">Footsites</option>
+                  </select>
         <div class="capMonster">
             API Key
         </div>
