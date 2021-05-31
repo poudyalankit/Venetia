@@ -16,7 +16,7 @@ module.exports = class ShiekhTask {
         this.taskId = taskInfo.id;
         this.site = taskInfo.site;
         this.mode = taskInfo.mode;
-        this.webhookLink = fs.readFileSync(path.join(configDir, '/userdata/webhook.txt'), 'utf8');
+        this.webhookLink = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/settings.json'), 'utf8'))[0].webhook;
         this.mode = taskInfo.mode;
         this.productTitle;
         this.link = taskInfo.product;
@@ -707,6 +707,14 @@ module.exports = class ShiekhTask {
                         this.errorMessage = error.response.body.message
                     }
                     await this.sendFail()
+                    var path = require('path')
+                    var fs = require('fs');
+                    const electron = require('electron');
+                    const configDir = (electron.app || electron.remote.app).getPath('userData');
+                    if (JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/settings.json'), 'utf8'))[0].retryCheckouts == true) {
+                        await sleep(3500)
+                        await this.submitOrder()
+                    }
                 } else if (this.stopped === "false") {
                     console.log(error)
                     await this.send("Unexpected error")

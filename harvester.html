@@ -99,8 +99,9 @@
                 })
                 if (typeof response.body.id != 'undefined') {
                     remote.getCurrentWindow().getBrowserView(0).webContents.loadURL(response.body.siteURL, {
-                        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36'
+                        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36'
                     })
+                    console.log(remote.getCurrentWindow.getBrowserView(0).webContents)
                 }
             }, 300);
         }

@@ -4,7 +4,6 @@ const electron = require('electron');
 const { ipcRenderer } = electron;
 var path = require('path')
 
-
 const configDir = (electron.app || electron.remote.app).getPath('userData');
 
 var fs = require('fs');
@@ -21,7 +20,27 @@ Array.prototype.sample = function() {
     return this[Math.floor(Math.random() * this.length)];
 }
 
+function deactivateKey() {
+    const got = require('got');
+    var key = fs.readFileSync(path.join(configDir, '/userdata/key.txt'), 'utf8');
+    got({
+        method: "get",
+        url: "https://venetiabots.com/api/reset?key=" + key
+    }).then(response => {
+        closeIt()
+    })
+}
 
+function savePreferences() {
+    var fs = require('fs');
+    var settings = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/settings.json'), { encoding: 'utf8', flag: 'r' }));
+    settings[0].retryCheckouts = document.getElementById("retryCheckouts").checked
+    settings[0].systemNotifs = document.getElementById("systemNotifs").checked
+    settings[0].checkoutSound = document.getElementById("checkoutSound").checked
+    fs.writeFile(path.join(configDir, '/userdata/settings.json'), JSON.stringify(settings), function(err) {
+        if (err) throw err;
+    });
+}
 
 
 function filterTable() {
@@ -216,6 +235,15 @@ function modeChoices() {
         },
         {
             site: "Bape"
+        },
+        {
+            site: "YCMC"
+        },
+        {
+            site: "Social Status"
+        },
+        {
+            site: "Above The Clouds"
         }
     ]
 
@@ -479,6 +507,7 @@ function stopOpen(e) {
 
 window.onload = function() {
     setInterval(reverify, 20000)
+
     document.addEventListener("auxclick", handleNonLeftClick);
     document.addEventListener("click", stopOpen);
 
@@ -783,13 +812,27 @@ window.onload = function() {
     })
 
 
-    fs.readFile(path.join(configDir, '/userdata/webhook.txt'), 'utf-8', (err, data) => {
+    fs.readFile(path.join(configDir, '/userdata/settings.json'), 'utf-8', (err, data) => {
         if (err) {
-            fs.writeFile(path.join(configDir, '/userdata/webhook.txt'), "", function(err) {})
+            fs.writeFile(path.join(configDir, '/userdata/settings.json'), JSON.stringify([{ "webhook": "", "checkoutSound": false, "retryCheckouts": false, "systemNotifs": false }]), function(err) {})
             throw err;
         }
-        var webhookLink = data;
-        document.getElementById("webhookLink").value = webhookLink;
+        data = JSON.parse(data)
+        document.getElementById("webhookLink").value = data[0].webhook
+        if (data[0].checkoutSound == true) {
+            document.getElementById("checkoutSound").checked = true
+            document.getElementById("checkoutSound").style['background-color'] = '#e06767'
+        }
+
+        if (data[0].retryCheckouts == true) {
+            document.getElementById("retryCheckouts").checked = true
+            document.getElementById("retryCheckouts").style['background-color'] = '#e06767'
+        }
+
+        if (data[0].systemNotifs == true) {
+            document.getElementById("systemNotifs").checked = true
+            document.getElementById("systemNotifs").style['background-color'] = '#e06767'
+        }
     });
 
     fs.readFile(path.join(configDir, '/userdata/apiKey.json'), 'utf-8', (err, data) => {
@@ -809,8 +852,6 @@ function updateAnalytics() {
     var fs = require('fs');
     const got = require('got');
     var key = fs.readFileSync(path.join(configDir, '/userdata/key.txt'), 'utf8');
-
-
     got({
             method: 'get',
             url: 'https://venetiabots.com/api/analytics?key=' + key,
@@ -1077,11 +1118,16 @@ function changeColor(row, event) {
 function saveWebhook() {
     var fs = require('fs');
     var webhookLink = document.getElementById("webhookLink").value;
-    fs.writeFile(path.join(configDir, '/userdata/webhook.txt'), webhookLink, function(err) {
+    var settings = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/settings.json'), { encoding: 'utf8', flag: 'r' }));
+    settings[0].webhook = webhookLink
+    fs.writeFile(path.join(configDir, '/userdata/settings.json'), JSON.stringify(settings), function(err) {
         if (err) throw err;
         console.log('Webhook saved!');
     });
+}
 
+function testWebhook() {
+    var webhookLink = document.getElementById("webhookLink").value;
     const got = require('got');
     var webhooks = webhookLink.split(",")
     for (var i = 0; i < webhooks.length; i++) {
@@ -1092,50 +1138,13 @@ function saveWebhook() {
                     "content": null,
                     "embeds": [{
                         "title": "Venetia Test Notification! :tada:",
+                        "description": "Your webhook is ready to go!",
                         "color": 5230481,
-                        "fields": [{
-                                "name": "Site",
-                                "value": "FootLocker"
-                            },
-                            {
-                                "name": "Mode",
-                                "value": "Release"
-                            },
-                            {
-                                "name": "Product",
-                                "value": "Nike Air Force 1 07 LE Low - Women's",
-                                "inline": true
-                            },
-                            {
-                                "name": "Query",
-                                "value": 'D8959100',
-                                "inline": true
-                            },
-                            {
-                                "name": "Size",
-                                "value": 'Random'
-                            },
-                            {
-                                "name": "Price",
-                                "value": '90'
-                            },
-                            {
-                                "name": "Profile",
-                                "value": '||TEST||'
-                            },
-                            {
-                                "name": "Proxy List",
-                                "value": "||LEAF||"
-                            }
-                        ],
                         "footer": {
                             "text": "Powered by Venetia",
                             "icon_url": "https://i.imgur.com/6h06tuW.png"
                         },
-                        "timestamp": new Date(Date.now()).toISOString(),
-                        "thumbnail": {
-                            "url": "https://images.footlocker.com/pi/D8959100/large/D8959100.jpeg"
-                        }
+                        "timestamp": new Date(Date.now()).toISOString()
                     }],
                     "username": "Venetia",
                     "avatar_url": "https://i.imgur.com/6h06tuW.png"
@@ -1147,7 +1156,6 @@ function saveWebhook() {
                 console.log(error)
             })
     }
-
 }
 
 function saveToken() {
@@ -1772,7 +1780,39 @@ async function startSelected() {
     }
 }
 
+function resetTasks() {
+    fs.unlinkSync(path.join(configDir, '/userdata/tasks.json'));
+    location.reload();
+}
 
+function resetProfiles() {
+    fs.unlinkSync(path.join(configDir, '/userdata/profiles.json'));
+    location.reload();
+}
+
+function resetProxies() {
+    fs.unlinkSync(path.join(configDir, '/userdata/proxies.json'));
+    location.reload();
+
+}
+
+function resetAccounts() {
+    fs.unlinkSync(path.join(configDir, '/userdata/accounts.json'));
+    location.reload();
+
+}
+
+function resetCaptchas() {
+    fs.unlinkSync(path.join(configDir, '/userdata/harvesters.json'));
+    fs.unlinkSync(path.join(configDir, '/userdata/apiKey.json'));
+    location.reload();
+
+}
+
+function resetSettings() {
+    fs.unlinkSync(path.join(configDir, '/userdata/settings.json'));
+    location.reload();
+}
 
 async function stopSelected() {
     for (var i = 1; i < document.getElementById('tasks').rows.length; i++) {
@@ -1782,6 +1822,15 @@ async function stopSelected() {
             var task = { "taskID": document.getElementById('tasks').rows[i].cells[0].textContent }
             ipcRenderer.send('stopTask', task)
         }
+    }
+}
+
+function showKey() {
+    if (document.getElementById("licenseKey").textContent === "XXXX-XXXX-XXXX-XXXX") {
+        var key = fs.readFileSync(path.join(configDir, '/userdata/key.txt'), 'utf8');
+        document.getElementById("licenseKey").textContent = key;
+    } else {
+        document.getElementById("licenseKey").textContent = "XXXX-XXXX-XXXX-XXXX";
     }
 }
 
@@ -1808,9 +1857,10 @@ ipcRenderer.on('updateStatus', (event, taskNumber, status) => {
         document.getElementById("tasks").rows[taskNumber].cells[7].textContent = status;
         if (status === "Check email" || status === "Check webhook") {
             document.getElementById("tasks").rows[taskNumber].cells[7].style.color = "#4fcf91";
-
-            var audio = new Audio(path.join(__dirname, 'images/checkoutsound.mp3'));
-            audio.play();
+            if (document.getElementById("checkoutSound").checked == true) {
+                var audio = new Audio(path.join(__dirname, 'images/checkoutsound.wav'));
+                audio.play();
+            }
         } else if (status === "Checkout failed") {
             document.getElementById("tasks").rows[taskNumber].cells[7].style.color = "#e06767";
 
@@ -2110,7 +2160,7 @@ function profile() {
     document.getElementById("profileIcon").style.opacity = 1.0
     document.getElementById("proxyIcon").style.opacity = 0.3
     document.getElementById('taskView').style.display = "none";
-    document.getElementById('webhook').style.display = "none";
+    document.getElementById('settingsDiv').style.display = "none";
     document.getElementById('taskTitle').style.display = "none";
     document.getElementById('profileTitle').style.display = "block";
     document.getElementById('settingsTitle').style.display = "none";
@@ -2222,7 +2272,7 @@ function tasks() {
     document.getElementById('analyticsView').style.display = "none";
     document.getElementById("proxyIcon").style.opacity = 0.3
     document.getElementById("taskIcon").style.opacity = 1.0
-    document.getElementById('webhook').style.display = "none";
+    document.getElementById('settingsDiv').style.display = "none";
     document.getElementById('taskTitle').style.display = "block";
     document.getElementById('settingsTitle').style.display = "none";
     document.getElementById('taskView').style.display = "block";
@@ -2247,11 +2297,10 @@ function settings() {
     document.getElementById("taskIcon").style.opacity = 0.3
     document.getElementById('analyticsView').style.display = "none";
     document.getElementById('taskView').style.display = "none";
-    document.getElementById('webhook').style.display = "none";
+    document.getElementById('settingsDiv').style.display = "block";
     document.getElementById('taskTitle').style.display = "none";
     document.getElementById('profileTitle').style.display = "none";
     document.getElementById('settingsTitle').style.display = "block";
-    document.getElementById('webhook').style.display = "block";
     document.getElementById('profiles').style.display = "none";
     document.getElementById('proxiesTitle').style.display = "none";
     document.getElementById('proxies').style.display = "none";
@@ -2272,11 +2321,11 @@ function proxies() {
     document.getElementById("proxyIcon").style.opacity = 1.0
     document.getElementById("analyticsIcon").style.opacity = 0.3
     document.getElementById('taskView').style.display = "none";
-    document.getElementById('webhook').style.display = "none";
+    document.getElementById('settingsDiv').style.display = "block";
     document.getElementById('taskTitle').style.display = "none";
     document.getElementById('profileTitle').style.display = "none";
     document.getElementById('settingsTitle').style.display = "none";
-    document.getElementById('webhook').style.display = "none";
+    document.getElementById('settingsDiv').style.display = "none";
     document.getElementById('profiles').style.display = "none";
     document.getElementById('proxiesTitle').style.display = "block";
     document.getElementById('analyticsView').style.display = "none";
@@ -2298,11 +2347,10 @@ function accounts() {
     document.getElementById("analyticsIcon").style.opacity = 0.3
     document.getElementById("proxyIcon").style.opacity = 0.3
     document.getElementById('taskView').style.display = "none";
-    document.getElementById('webhook').style.display = "none";
     document.getElementById('taskTitle').style.display = "none";
     document.getElementById('profileTitle').style.display = "none";
     document.getElementById('settingsTitle').style.display = "none";
-    document.getElementById('webhook').style.display = "none";
+    document.getElementById('settingsDiv').style.display = "none";
     document.getElementById('profiles').style.display = "none";
     document.getElementById('proxiesTitle').style.display = "none";
     document.getElementById('proxies').style.display = "none";
@@ -2324,13 +2372,12 @@ function captchas() {
     document.getElementById("profileIcon").style.opacity = 0.3
     document.getElementById("proxyIcon").style.opacity = 0.3
     document.getElementById('taskView').style.display = "none";
-    document.getElementById('webhook').style.display = "none";
+    document.getElementById('settingsDiv').style.display = "none";
     document.getElementById('taskTitle').style.display = "none";
     document.getElementById('profileTitle').style.display = "none";
     document.getElementById('settingsTitle').style.display = "none";
     document.getElementById('analyticsView').style.display = "none";
     document.getElementById('analyticsTitle').style.display = "none";
-    document.getElementById('webhook').style.display = "none";
     document.getElementById('profiles').style.display = "none";
     document.getElementById('proxiesTitle').style.display = "none";
     document.getElementById('proxies').style.display = "none";
@@ -2345,6 +2392,7 @@ function analytics() {
     $("#checkoutsTable tr:gt(0)").remove();
     updateAnalytics()
     setProfilePicture();
+    document.getElementById('settingsDiv').style.display = "none";
     document.getElementById("settingsIcon").style.opacity = 0.3
     document.getElementById("taskIcon").style.opacity = 0.3
     document.getElementById("analyticsIcon").style.opacity = 1.0
@@ -2357,10 +2405,8 @@ function analytics() {
     document.getElementById("proxyIcon").style.opacity = 0.3
     document.getElementById('analyticsView').style.display = "block";
     document.getElementById('taskView').style.display = "none";
-    document.getElementById('webhook').style.display = "none";
     document.getElementById('taskTitle').style.display = "none";
     document.getElementById('settingsTitle').style.display = "none";
-    document.getElementById('webhook').style.display = "none";
     document.getElementById('proxiesTitle').style.display = "none";
     document.getElementById('proxies').style.display = "none";
     document.getElementById('accountsTitle').style.display = "none";

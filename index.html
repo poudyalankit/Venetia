@@ -108,18 +108,10 @@
             </a>
         </div>
 
-        <div class="download">
-            <a href="#" onclick="update()">
-                <img draggable="false" src="./images/download.svg">
-            </a>
-        </div>
-
-        <img id="discordavatar" draggable="false" class="discordAvatar">
 
 
-        <div class="version">
-            0.3.19
-        </div>
+
+
 
     </div>
 
@@ -237,6 +229,7 @@
                 <div class="siteTaskEntry">
                     <select id="siteTask" class="select2" style="width: 169px" onchange="modeChoices()">
                             <option value=""></option>
+                             <option  value="Above The Clouds">Above The Clouds</option>
                              <option  value="Bodega">Bodega</option>
                             <option value="ChampsSports">ChampsSports</option>
                             <option value="EastBay">EastBay</option>
@@ -255,9 +248,10 @@
                              <option  value="Kith">Kith</option>
                              <option  value="Shoe Palace">Shoe Palace</option>
                              <option  value="Shop Nice Kicks">Shop Nice Kicks</option>
-                                                          <option  value="Packer Shoes">Packer Shoes</option>
-                                                          <option  value="Bape">Bape</option>
-
+                            <option  value="Social Social">Social Status</option>
+                             <option  value="Packer Shoes">Packer Shoes</option>
+                             <option  value="Bape">Bape</option>
+                            <option value="YCMC">YCMC</option>
                           </select>
                 </div>
                 <div class="sizeTaskTitle">
@@ -459,40 +453,63 @@
         </div>
     </div>
 
-    <form>
-        <div style="display: none" id="webhook">
-            <div class="webhook">
-                <label for="webhookLink">Webhook</label><br>
+    <div id="settingsDiv" style="display: none">
+        <div class="licenseKeyInformation">
+            <div class="licenseKeyTitle">License Key</div>
+            <div class="licenseKeyText" id="licenseKey" onclick="showKey()">XXXX-XXXX-XXXX-XXXX</div>
+            <img id="discordavatar" draggable="false" class="profilePicture">
+            <div class="bottomHalfLicense">
+                <button class="deactivateButton" onclick="deactivateKey()">Deactivate</button>
+                <div class="expirationTitle">
+                    Expiration
+                </div>
+                <div class="expirationDate">
+                    Beta
+                </div>
             </div>
-            <input type="text" id="webhookLink" name="webhookLink" class="webhookEntry"><br>
-    </form>
+        </div>
+        <div class="notificationBox">
+            <div class="notificationsTitle">Notifications</div>
+            <div class="discordWebhookTitle">Discord Webhook</div>
+            <input class="webhookEntry" spellcheck="false" id="webhookLink" onblur="saveWebhook()">
+            <button class="validateWebhook" onclick="testWebhook()">Validate</button>
+        </div>
+        <div class="preferencesBox">
+            <div class="preferencesTitle">Preferences</div>
+            <div class="preferenceOptionHeader">Checkout Sound</div>
+            <div class="preferenceOptionText">Plays a checkout sound after a task successfully checks out</div>
+            <input id="checkoutSound" class="preferenceSelector selectCheckbox" onclick='changeColor(this, event); savePreferences()' type="checkbox">
+            <div class="preferenceOptionHeader" style="top: 100px">Retry Checkouts</div>
+            <div class="preferenceOptionText" style="top: 120px">Retry checkouts on decline or checkout failure</div>
+            <input id="retryCheckouts" class="preferenceSelector selectCheckbox" style="top: 100px" onclick='changeColor(this, event); savePreferences()' type="checkbox">
 
-    <div class="webhookSubmit">
-        <a draggable="false" onclick="saveWebhook()">
-            <img draggable="false" src="./images/check.svg">
-        </a>
+            <div class="preferenceOptionHeader" style="top: 150px">System Notifications</div>
+            <div class="preferenceOptionText" style="top: 170px">Sends a system notification when a task successfully checks out or fails</div>
+            <input id="systemNotifs" class="preferenceSelector selectCheckbox" style="top: 150px" onclick='changeColor(this, event); savePreferences()' type="checkbox">
+
+        </div>
+        <div class="defaultsBox">
+            <div class="defaultsTitle">Defaults</div>
+            <div class="tasksDefaultText">Tasks</div>
+            <button class="resetDataButton" onclick="resetTasks()">Reset</button>
+            <div class="tasksDefaultText" style="top: 90px">Profiles</div>
+            <button class="resetDataButton" onclick="resetProfiles()" style="top: 90px">Reset</button>
+            <div class="tasksDefaultText" style="top: 130px">Proxies</div>
+            <button class="resetDataButton" onclick="resetProxies()" style="top: 130px">Reset</button>
+            <div class="tasksDefaultText" style="top: 170px">Accounts</div>
+            <button class="resetDataButton" onclick="resetAccounts()" style="top: 170px">Reset</button>
+            <div class="tasksDefaultText" style="top: 210px">Captchas</div>
+            <button class="resetDataButton" onclick="resetCaptchas()" style="top: 210px">Reset</button>
+            <div class="tasksDefaultText" style="top: 250px">Settings</div>
+            <button class="resetDataButton" onclick="resetSettings()" style="top: 250px">Reset</button>
+        </div>
+        <div class="updateBox">
+            <div class="updateBoxTitle">Software Information</div>
+            <div class="currentVersionTitle">Current Version</div>
+            <div class="currentVersionText">0.3.20</div>
+            <button class="updateButton" onclick="update()">Update</button>
+        </div>
     </div>
-
-
-    <div class="changelogText">
-        Changelog
-    </div>
-
-    <div class="changelogBox">
-
-
-        <h2> 0.3.19 </h2>
-        Harvesters:<br> - Rewrote captcha queue <br> - Improved captchas (I'm no longer getting fading on any of my gmails) <br> - Added Reset Captcha button when solving <br> - Made captcha dark theme <br> <br> Shiekh: <br> - Added schedule task feature
-        <br>
-
-    </div>
-
-
-
-
-    </div>
-
-
 
 
     <div style="display: none" id="profiles">

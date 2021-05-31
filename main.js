@@ -180,7 +180,7 @@ let taskArray = []
 let win;
 
 client.updatePresence({
-    details: 'v0.3.19',
+    details: 'v0.3.20',
     startTimestamp: Date.now(),
     largeImageKey: "venetia",
     largeImageText: "Venetia",
@@ -236,7 +236,7 @@ function createWindow() {
         webPreferences: {
             nodeIntegration: true,
             enableRemoteModule: true,
-            //devTools: false
+            devTools: false
         }
     })
     backendA.openDevTools(true)
@@ -255,7 +255,7 @@ function createWindow() {
         webPreferences: {
             nodeIntegration: true,
             enableRemoteModule: true,
-            //devTools: false
+            devTools: false
         }
     })
     backendB.openDevTools(true)
@@ -390,6 +390,7 @@ ipcMain.on('launchHarvester', function(event, harvesterName, harvesterProxy) {
     }
 
     sess.protocol.interceptBufferProtocol('http', (req, callback) => {
+        console.log(req)
         fs.readFile(__dirname + '/solveharvester.html', 'utf8', function(err, html) {
             callback({ mimeType: 'text/html', data: Buffer.from(html) });
         });

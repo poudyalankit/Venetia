@@ -19,7 +19,7 @@ module.exports = class SSENSEFastTask {
         this.site = taskInfo.site;
         this.mode = taskInfo.mode;
         this.cartToken;
-        this.webhookLink = fs.readFileSync(path.join(configDir, '/userdata/webhook.txt'), 'utf8');
+        this.webhookLink = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/settings.json'), 'utf8'))[0].webhook;
         this.mode = taskInfo.mode;
         this.productTitle;
         this.sessionId = uuidv4()

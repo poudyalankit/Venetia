@@ -13,7 +13,7 @@ module.exports = class SSENSETask {
         this.taskId = taskInfo.id;
         this.site = taskInfo.site;
         this.mode = taskInfo.mode;
-        this.webhookLink = fs.readFileSync(path.join(configDir, '/userdata/webhook.txt'), 'utf8');
+        this.webhookLink = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/settings.json'), 'utf8'))[0].webhook;
         this.mode = taskInfo.mode;
         this.productTitle;
         this.link = taskInfo.product;
@@ -39,6 +39,7 @@ module.exports = class SSENSETask {
         this.oglink = this.link
         if (this.link.includes("+")) {
             this.sku = this.link.substring(1)
+            this.productTitle = this.sku
         } else if (this.link.includes("http") == false) {
             this.link = "https://www.ssense.com/en-us/men/product/essentials/~/" + this.link
         }
@@ -517,6 +518,7 @@ module.exports = class SSENSETask {
                     } else
                     if (error.response.statusCode === 403) {
                         await this.send("Error proxy banned")
+                        this.proxy = this.proxyArray.sample()
                         await sleep(3500)
                         await this.addToCart()
                     } else {
@@ -844,6 +846,15 @@ module.exports = class SSENSETask {
                     this.updateStat("fails")
                     this.send("Checkout failed")
                     this.sendFail()
+                    var path = require('path')
+                    var fs = require('fs');
+                    const electron = require('electron');
+                    const configDir = (electron.app || electron.remote.app).getPath('userData');
+                    console.log(JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/settings.json'), 'utf8'))[0].retryCheckouts)
+                    if (JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/settings.json'), 'utf8'))[0].retryCheckouts == true) {
+                        await sleep(3500)
+                        await this.submitOrder()
+                    }
                 }
             }
         }
@@ -921,6 +932,15 @@ module.exports = class SSENSETask {
                     this.updateStat("fails")
                     this.send("Checkout failed")
                     this.sendFail()
+                    var path = require('path')
+                    var fs = require('fs');
+                    const electron = require('electron');
+                    const configDir = (electron.app || electron.remote.app).getPath('userData');
+                    console.log(JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/settings.json'), 'utf8'))[0].retryCheckouts)
+                    if (JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/settings.json'), 'utf8'))[0].retryCheckouts == true) {
+                        await sleep(3500)
+                        await this.submitOrderPayPal()
+                    }
                 }
             }
         }

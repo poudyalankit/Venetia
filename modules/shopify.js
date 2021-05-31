@@ -13,7 +13,7 @@ module.exports = class ShopifyTask {
         this.taskId = taskInfo.id;
         this.site = taskInfo.site;
         this.mode = taskInfo.mode;
-        this.webhookLink = fs.readFileSync(path.join(configDir, '/userdata/webhook.txt'), 'utf8');
+        this.webhookLink = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/settings.json'), 'utf8'))[0].webhook;
         this.mode = taskInfo.mode;
         this.productTitle;
         this.link = taskInfo.product;
@@ -33,28 +33,7 @@ module.exports = class ShopifyTask {
         this.plainLink = this.baseLink.split("https://")[1]
         this.insecurelink = "http://" + this.plainLink
         this.sitekey = taskInfo.sitekey
-        this.shippingPayload = {
-            "_method": "patch",
-            "previous_step": "contact_information",
-            "step": "shipping_method",
-            "checkout[email]": this.profile.email,
-            "checkout[buyer_accepts_marketing]": "0",
-            "checkout[shipping_address][first_name]": this.profile.firstName,
-            "checkout[shipping_address][last_name]": this.profile.lastName,
-            "checkout[shipping_address][address1]": this.profile.address1,
-            "checkout[shipping_address][address2]": "",
-            "checkout[shipping_address][city]": this.profile.city,
-            "checkout[shipping_address][country]": this.profile.country,
-            "checkout[shipping_address][province]": abbrRegion(this.profile.state, 'abbr'),
-            "checkout[shipping_address][zip]": this.profile.zipcode,
-            "checkout[client_details][browser_width]": "1087",
-            "checkout[client_details][browser_height]": "814",
-            "checkout[client_details][javascript_enabled]": "1",
-            "checkout[client_details][color_depth]": "24",
-            "checkout[client_details][java_enabled]": "false",
-            "checkout[client_details][browser_tz]": "300",
-            "checkout[shipping_address][phone]": this.profile.phone
-        }
+        this.shippingPayload = {}
         this.shippingRatePayload = {
             "_method": "patch",
             "previous_step": "shipping_method",
@@ -491,6 +470,8 @@ module.exports = class ShopifyTask {
                         'sec-fetch-mode': 'cors',
                         'sec-fetch-dest': 'empty',
                         'accept-language': 'en-US,en;q=0.9',
+                        'origin': this.baseLink,
+                        'referer': this.baseLink
                     }
                 }
                 if (this.proxy != '-') {
@@ -512,20 +493,22 @@ module.exports = class ShopifyTask {
 
                     if (this.stopped === "false")
                         await this.retrieveCaptchaResponse()
+
                     await this.submitCheckpoint()
                     await this.loadCheckout()
+                } else if (response.url.includes("/queue")) {
+                    console.log(this.cookieJar.getCookies("_checkout_queue_token"))
                 } else {
+                    this.checkoutURL = response.url
                     var HTMLParser = require('node-html-parser');
                     var root = HTMLParser.parse(response.body);
                     this.authToken = root.querySelector('[name="authenticity_token"]').getAttribute('value')
-                    this.shippingPayload['authenticity_token'] = this.authToken
-                    this.checkoutURL = response.url
+                    this.test = "_method=patch&authenticity_token=" + this.authToken + "&previous_step=contact_information&step=shipping_method&checkout%5Bemail%5D=oinioa%40gmail.com&checkout%5Bbuyer_accepts_marketing%5D=0&checkout%5Bbuyer_accepts_marketing%5D=1&checkout%5Bshipping_address%5D%5Bfirst_name%5D=&checkout%5Bshipping_address%5D%5Blast_name%5D=&checkout%5Bshipping_address%5D%5Bcompany%5D=&checkout%5Bshipping_address%5D%5Baddress1%5D=&checkout%5Bshipping_address%5D%5Baddress2%5D=&checkout%5Bshipping_address%5D%5Bcity%5D=&checkout%5Bshipping_address%5D%5Bcountry%5D=&checkout%5Bshipping_address%5D%5Bprovince%5D=&checkout%5Bshipping_address%5D%5Bzip%5D=&checkout%5Bshipping_address%5D%5Bphone%5D=&checkout%5Bshipping_address%5D%5Bfirst_name%5D=John&checkout%5Bshipping_address%5D%5Blast_name%5D=Smith&checkout%5Bshipping_address%5D%5Bcompany%5D=&checkout%5Bshipping_address%5D%5Baddress1%5D=2167+Mager+Dr&checkout%5Bshipping_address%5D%5Baddress2%5D=&checkout%5Bshipping_address%5D%5Bcity%5D=Herndon&checkout%5Bshipping_address%5D%5Bcountry%5D=United+States&checkout%5Bshipping_address%5D%5Bprovince%5D=VA&checkout%5Bshipping_address%5D%5Bzip%5D=20170&checkout%5Bshipping_address%5D%5Bphone%5D=%28571%29+620-8486&checkout%5Bremember_me%5D=&checkout%5Bremember_me%5D=0&checkout%5Battributes%5D%5BI-agree-to-the-Terms-and-Conditions%5D=Yes&"
                     await this.send("Loaded checkout")
                     if (this.captchaResponse != 'none') {
                         console.log(response.body)
                         this.fscount = root.querySelector('[value="fs_count"]').getAttribute('name')
                         this.searchBy = this.fscount.split("-count")[0]
-                        this.shippingPayload[this.fscount] = "fs_count"
                         this.searchBy = "#fs_" + this.searchBy
                         var count = 0;
                         this.values = root.querySelector(this.searchBy)
@@ -536,14 +519,39 @@ module.exports = class ShopifyTask {
                                 this.shippingPayload[id] = "";
                             }
                         }
-                        this.shippingPayload = querystring.encode(this.shippingPayload)
+
+                        this.test2 = querystring.encode(this.shippingPayload)
                         var totalfscount = "&" + this.fscount + "=" + count
-                        this.shippingPayload = this.shippingPayload + totalfscount
+                        totalfscount = totalfscount + "&" + this.fscount + "=fs_count"
+                        this.test2 = this.test2 + totalfscount
+                        this.shippingPayload = this.test + this.test2
+                        this.shippingPayload = this.shippingPayload + "&checkout%5Bclient_details%5D%5Bbrowser_width%5D=1583&checkout%5Bclient_details%5D%5Bbrowser_height%5D=789&checkout%5Bclient_details%5D%5Bjavascript_enabled%5D=1&checkout%5Bclient_details%5D%5Bcolor_depth%5D=24&checkout%5Bclient_details%5D%5Bjava_enabled%5D=false&checkout%5Bclient_details%5D%5Bbrowser_tz%5D=240"
+                        console.log(this.shippingPayload)
                     } else {
-                        this.shippingPayload = querystring.encode(this.shippingPayload)
+                        this.shippingPayload = querystring.encode({
+                            "_method": "patch",
+                            "previous_step": "contact_information",
+                            "step": "shipping_method",
+                            "authenticity_token": this.authToken,
+                            "checkout[email]": this.profile.email,
+                            "checkout[buyer_accepts_marketing]": "0",
+                            "checkout[shipping_address][first_name]": this.profile.firstName,
+                            "checkout[shipping_address][last_name]": this.profile.lastName,
+                            "checkout[shipping_address][address1]": this.profile.address1,
+                            "checkout[shipping_address][address2]": "",
+                            "checkout[shipping_address][city]": this.profile.city,
+                            "checkout[shipping_address][country]": this.profile.country,
+                            "checkout[shipping_address][province]": abbrRegion(this.profile.state, 'abbr'),
+                            "checkout[shipping_address][zip]": this.profile.zipcode,
+                            "checkout[client_details][browser_width]": "1087",
+                            "checkout[client_details][browser_height]": "814",
+                            "checkout[client_details][javascript_enabled]": "1",
+                            "checkout[client_details][color_depth]": "24",
+                            "checkout[client_details][java_enabled]": "false",
+                            "checkout[client_details][browser_tz]": "300",
+                            "checkout[shipping_address][phone]": this.profile.phone
+                        })
                     }
-                    console.log(this.shippingPayload)
-                    return;
                 }
             } catch (error) {
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
@@ -565,7 +573,7 @@ module.exports = class ShopifyTask {
         if (this.stopped === "false") {
             let response = await got({
                 method: 'get',
-                url: 'http://localhost:4444/venetia/addtoQueue?captchaType=shopifycheckpoint&sitekey=' + this.sitekey + '&siteURL=' + this.insecurelink,
+                url: 'http://localhost:4444/venetia/addtoQueue?captchaType=shopifycheckpoint&sitekey=' + this.sitekey + '&siteURL=' + this.insecurelink + "/checkpoint",
                 responseType: 'json'
             })
             await this.send("Waiting for captcha")
@@ -620,6 +628,8 @@ module.exports = class ShopifyTask {
                         'sec-fetch-mode': 'cors',
                         'sec-fetch-dest': 'empty',
                         'accept-language': 'en-US,en;q=0.9',
+                        'referer': this.baseLink + '/checkpoint?return_to=https%3A%2F%2F' + this.plainLink + '%2Fcheckout',
+                        'origin': this.baseLink
                     },
                     body: querystring.encode({
                         'authenticity_token': this.captchaauthToken,
@@ -661,6 +671,7 @@ module.exports = class ShopifyTask {
         const got = require('got');
         const tunnel = require('tunnel');
         const querystring = require('querystring')
+        console.log(this.cookieJar)
         if (this.stopped === "false") {
             await this.send("Submitting shipping...")
             try {
@@ -679,6 +690,8 @@ module.exports = class ShopifyTask {
                         'sec-fetch-mode': 'cors',
                         'sec-fetch-dest': 'empty',
                         'accept-language': 'en-US,en;q=0.9',
+                        'origin': this.baseLink,
+                        'referer': this.baseLink
                     },
                     body: this.shippingPayload,
                     followRedirect: false
@@ -814,6 +827,8 @@ module.exports = class ShopifyTask {
                         'sec-fetch-mode': 'cors',
                         'sec-fetch-dest': 'empty',
                         'accept-language': 'en-US,en;q=0.9',
+                        'origin': this.baseLink,
+                        'referer': this.baseLink
                     },
                     body: this.shippingRatePayload,
                     followRedirect: false
@@ -1029,17 +1044,14 @@ module.exports = class ShopifyTask {
                 }
                 let response = await got(this.request);
                 console.log(response.body)
-                if (response.url.includes("?from_processing_page=1") == false && response.url.includes("thank")) {
+                if (response.url.includes("thank")) {
                     await this.send("Check email")
-                } else if (response.url.includes("?from_processing_page=1")) {
-                    await this.send("Error processing order")
-                    await sleep(3000)
-                    await this.loadPayment()
-                    await this.submitCard()
+                    await this.sendSuccess()
+                } else if (response.body.includes("Your order's being processed")) {
+                    await this.send("Processing...")
                     await this.processPayment()
                 } else {
-                    await sleep(3000)
-                    await this.processPayment()
+                    await this.send("Checkout failed")
                 }
             } catch (error) {
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
@@ -1095,23 +1107,18 @@ module.exports = class ShopifyTask {
         if (this.stopped === "false")
             await this.loadCheckout()
 
-        await sleep(2000)
         if (this.stopped === "false")
             await this.submitShipping()
 
-        await sleep(2000)
         if (this.stopped === "false")
             await this.loadShippingRate()
 
-        await sleep(2000)
         if (this.stopped === "false")
             await this.submitRate()
 
-        await sleep(2000)
         if (this.stopped === "false")
             await this.loadPayment()
 
-        await sleep(2000)
         if (this.stopped === "false")
             await this.submitOrder()
 

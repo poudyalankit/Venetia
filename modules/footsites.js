@@ -19,7 +19,7 @@ module.exports = class FootsitesTask {
         this.captchaURL;
         this.productID;
         this.randomsize
-        this.webhookLink = fs.readFileSync(path.join(configDir, '/userdata/webhook.txt'), 'utf8');
+        this.webhookLink = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/settings.json'), 'utf8'))[0].webhook;
         this.variant;
         this.key = getKey()
         this.queueitUrl
@@ -1463,6 +1463,14 @@ module.exports = class FootsitesTask {
                     this.sendFail()
                     this.updateStat("fails")
                     this.send("Checkout failed")
+                    var path = require('path')
+                    var fs = require('fs');
+                    const electron = require('electron');
+                    const configDir = (electron.app || electron.remote.app).getPath('userData');
+                    if (JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/settings.json'), 'utf8'))[0].retryCheckouts == true) {
+                        await sleep(3500)
+                        await this.submitOrder()
+                    }
                 }
             }
         }

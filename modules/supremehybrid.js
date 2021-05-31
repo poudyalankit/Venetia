@@ -32,7 +32,7 @@ module.exports = class SupremeHybridTask {
         this.captchaResponse;
         this.colorid;
         this.sizeid;
-        this.webhookLink = fs.readFileSync(path.join(configDir, '/userdata/webhook.txt'), 'utf8');
+        this.webhookLink = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/settings.json'), 'utf8'))[0].webhook;
         this.profile = getProfileInfo(taskInfo.profile);
         this.proxyArray = getProxyInfo(taskInfo.proxies);
         this.proxy = this.proxyArray.sample();

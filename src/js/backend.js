@@ -28,37 +28,52 @@ ipcRenderer.on('taskinfo1', (event, taskInfo) => {
         },
         {
             site: "Shoe Palace",
-            base: "https://www.shoepalace.com/",
+            base: "https://www.shoepalace.com",
+            sitekey: "6LeXJ7oUAAAAAHIpfRvgjs3lcJiO_zMC1LAZWlSz"
+        },
+        {
+            site: "Union LA",
+            base: "https://store.unionlosangeles.com",
             sitekey: "6LeXJ7oUAAAAAHIpfRvgjs3lcJiO_zMC1LAZWlSz"
         },
         {
             site: "Shop Nice Kicks",
-            base: "https://shopnicekicks.com/",
+            base: "https://shopnicekicks.com",
             sitekey: "6LeXJ7oUAAAAAHIpfRvgjs3lcJiO_zMC1LAZWlSz"
         },
         {
             site: "Bodega",
-            base: "https://www.bdgastore.com/",
+            base: "https://www.bdgastore.com",
             sitekey: "6LeXJ7oUAAAAAHIpfRvgjs3lcJiO_zMC1LAZWlSz"
-        },
-        {
+        }, {
             site: "Kith",
-            base: "https://kith.com/",
+            base: "https://kith.com",
             sitekey: "6LeXJ7oUAAAAAHIpfRvgjs3lcJiO_zMC1LAZWlSz"
-        },
-        {
+        }, {
             site: "BBCIcecream",
-            base: "https://www.bbcicecream.com/",
+            base: "https://www.bbcicecream.com",
             sitekey: "6LeXJ7oUAAAAAHIpfRvgjs3lcJiO_zMC1LAZWlSz"
-        },
-        {
+        }, {
             site: "Packer Shoes",
-            base: "https://packershoes.com/",
+            base: "https://packershoes.com",
+            sitekey: "6LeXJ7oUAAAAAHIpfRvgjs3lcJiO_zMC1LAZWlSz"
+        }, {
+            site: "Bape",
+            base: "https://us.bape.com",
+            sitekey: "6LeXJ7oUAAAAAHIpfRvgjs3lcJiO_zMC1LAZWlSz"
+        }, {
+            site: "YCMC",
+            base: "https://ycmc.com",
             sitekey: "6LeXJ7oUAAAAAHIpfRvgjs3lcJiO_zMC1LAZWlSz"
         },
         {
-            site: "Bape",
-            base: "https://us.bape.com/",
+            site: "Social Status",
+            base: "https://www.socialstatuspgh.com",
+            sitekey: "6LeXJ7oUAAAAAHIpfRvgjs3lcJiO_zMC1LAZWlSz"
+        },
+        {
+            site: "Above The Clouds",
+            base: "https://www.abovethecloudsstore.com",
             sitekey: "6LeXJ7oUAAAAAHIpfRvgjs3lcJiO_zMC1LAZWlSz"
         }
     ]
@@ -72,7 +87,7 @@ ipcRenderer.on('taskinfo1', (event, taskInfo) => {
         }
     }
 
-    if (taskInfo.site === "SSENSE" && taskInfo.mode === "Safe") {
+    if (taskInfo.site === "SSENSE" && taskInfo.mode.includes("Safe")) {
         task = new SSENSETask(taskInfo)
     }
 

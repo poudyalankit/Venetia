@@ -1,17 +1,3 @@
-.webhook {
-    position: absolute;
-    width: 113px;
-    height: 36px;
-    left: 118px;
-    top: 90px;
-    font-family: 'Poppins';
-    font-size: 13px;
-    line-height: 36px;
-    font-weight: 600;
-    color: #FFFFFF;
-    -webkit-user-select: none;
-}
-
 .custom-menu {
     display: none;
     z-index: 1000;
@@ -24,6 +10,116 @@
     border-radius: 5px;
     padding: 0;
     font-size: 14px;
+}
+
+.licenseKeyInformation {
+    position: absolute;
+    width: 503px;
+    height: 207px;
+    left: 104px;
+    top: 57px;
+    background: #222233;
+    border-radius: 8px;
+}
+
+.bottomHalfLicense {
+    position: absolute;
+    width: 503px;
+    height: 77px;
+    left: 0px;
+    top: 130px;
+    background: #292C3F;
+    border-radius: 8px;
+}
+
+.expirationTitle {
+    position: absolute;
+    width: 70px;
+    height: 21px;
+    left: 25px;
+    top: 16px;
+    font-family: Poppins;
+    font-style: normal;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 21px;
+    color: #FFFFFF;
+}
+
+.expirationDate {
+    position: absolute;
+    width: 29px;
+    height: 15px;
+    left: 25px;
+    top: 37px;
+    font-family: Poppins;
+    font-style: normal;
+    font-weight: normal;
+    font-size: 12px;
+    line-height: 15px;
+    color: #ADA1A1;
+}
+
+.notificationBox {
+    position: absolute;
+    width: 608px;
+    height: 168px;
+    left: 623px;
+    top: 57px;
+    background: #222233;
+    border-radius: 8px;
+}
+
+.defaultsBox {
+    position: absolute;
+    width: 608px;
+    height: 294px;
+    left: 623px;
+    top: 240px;
+    background: #222233;
+    border-radius: 8px;
+}
+
+.defaultsTitle {
+    position: absolute;
+    width: 68px;
+    height: 24px;
+    left: 21px;
+    top: 13px;
+    font-family: Poppins;
+    font-style: normal;
+    font-weight: 600;
+    font-size: 16px;
+    line-height: 24px;
+    color: #FFFFFF;
+}
+
+.notificationsTitle {
+    position: absolute;
+    width: 104px;
+    height: 24px;
+    left: 22px;
+    top: 17px;
+    font-family: Poppins;
+    font-style: normal;
+    font-weight: 600;
+    font-size: 16px;
+    line-height: 24px;
+    color: #FFFFFF;
+}
+
+.discordWebhookTitle {
+    position: absolute;
+    width: 124px;
+    height: 21px;
+    left: 22px;
+    top: 54px;
+    font-family: Poppins;
+    font-style: normal;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 21px;
+    color: #FFFFFF;
 }
 
 .custom-menu li {
@@ -81,6 +177,8 @@
     cursor: pointer;
     outline: 0;
     position: relative;
+    transition-property: background-color;
+    transition: 0.4s;
 }
 
 .graph {
@@ -91,26 +189,6 @@
     top: 40px;
     background: #1e202f;
     border-radius: 8px;
-}
-
-.discordAvatar {
-    position: absolute;
-    width: 32px;
-    height: 32px;
-    -webkit-user-select: none;
-    left: 28px;
-    top: 690px;
-    border-radius: 50%;
-}
-
-.download {
-    position: absolute;
-    width: 32px;
-    height: 32px;
-    -webkit-user-select: none;
-    left: 32px;
-    -webkit-app-region: no-drag;
-    top: 640px;
 }
 
 .changelogBox {
@@ -294,17 +372,208 @@
 
 .webhookEntry {
     position: absolute;
-    width: 501px;
-    height: 18px;
-    left: 118px;
-    top: 120px;
-    background: #1e202f;
-    color: white;
-    font-family: 'Poppins';
-    font-size: 12px;
-    outline: 0;
-    border: 0;
+    width: 540px;
+    height: 20px;
+    left: 22px;
+    top: 81px;
+    background: #292C3F;
     border-radius: 8px;
+    outline: none;
+    font-family: 'Poppins';
+    color: white;
+    border: none;
+}
+
+.validateWebhook {
+    position: absolute;
+    width: 106px;
+    height: 29px;
+    left: 22px;
+    top: 122px;
+    border: 1px solid #5DA9FF;
+    box-sizing: border-box;
+    border-radius: 8px;
+    font-family: 'Poppins';
+    cursor: pointer;
+    background: transparent;
+    color: white;
+    transition-property: background;
+    transition-duration: 0.4s;
+    outline: none;
+}
+
+.updateBox {
+    position: absolute;
+    width: 503px;
+    height: 115px;
+    left: 104px;
+    top: 507px;
+    background: #222233;
+    border-radius: 8px;
+}
+
+.tasksDefaultText {
+    position: absolute;
+    width: 39px;
+    height: 20px;
+    left: 21px;
+    top: 50px;
+    font-family: Poppins;
+    font-style: normal;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 18px;
+    color: #FFFFFF;
+}
+
+.updateBoxTitle {
+    position: absolute;
+    width: 173px;
+    height: 24px;
+    left: 17px;
+    top: 19px;
+    font-family: Poppins;
+    font-style: normal;
+    font-weight: 600;
+    font-size: 16px;
+    line-height: 24px;
+    color: #FFFFFF;
+}
+
+.currentVersionTitle {
+    position: absolute;
+    width: 111px;
+    height: 21px;
+    left: 17px;
+    top: 51px;
+    font-family: Poppins;
+    font-style: normal;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 21px;
+    color: #FFFFFF;
+}
+
+.currentVersionText {
+    position: absolute;
+    width: 29px;
+    height: 15px;
+    left: 17px;
+    top: 78px;
+    font-family: Poppins;
+    font-style: normal;
+    font-weight: normal;
+    font-size: 12px;
+    line-height: 15px;
+    color: #ADA1A1;
+}
+
+.updateButton {
+    position: absolute;
+    width: 106px;
+    height: 29px;
+    left: 365px;
+    top: 57px;
+    border: 1px solid #5DA9FF;
+    border-radius: 8px;
+    outline: none;
+    border: 1px solid #5DA9FF;
+    background: transparent;
+    font-family: Poppins;
+    color: white;
+    cursor: pointer;
+    transition-property: background;
+    transition-duration: 0.4s;
+}
+
+.resetDataButton {
+    position: absolute;
+    width: 73px;
+    height: 23px;
+    left: 489px;
+    top: 50px;
+    border: 1px solid #E06767;
+    border-radius: 8px;
+    outline: none;
+    font-size: 12px;
+    background: transparent;
+    font-family: Poppins;
+    color: white;
+    cursor: pointer;
+    transition-property: background;
+    transition-duration: 0.4s;
+}
+
+.preferencesTitle {
+    position: absolute;
+    width: 97px;
+    height: 24px;
+    left: 17px;
+    top: 12px;
+    font-family: Poppins;
+    font-style: normal;
+    font-weight: 600;
+    font-size: 16px;
+    line-height: 24px;
+    color: #FFFFFF;
+}
+
+.preferenceOptionHeader {
+    position: absolute;
+    height: 18px;
+    left: 17px;
+    top: 50px;
+    font-family: Poppins;
+    font-style: normal;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 18px;
+    color: #FFFFFF;
+}
+
+.preferenceOptionText {
+    position: absolute;
+    width: 380px;
+    height: 15px;
+    left: 17px;
+    top: 70px;
+    font-family: Poppins;
+    font-style: normal;
+    font-weight: normal;
+    font-size: 12px;
+    line-height: 15px;
+    color: #ADA1A1;
+}
+
+.resetDataButton:hover {
+    background: #E06767;
+}
+
+.preferencesBox {
+    position: absolute;
+    width: 503px;
+    height: 212px;
+    left: 104px;
+    top: 280px;
+    background: #222233;
+    border-radius: 8px;
+}
+
+.preferenceSelector {
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    left: 423px;
+    top: 50px;
+    background: #292C3F;
+}
+
+.updateButton:hover {
+    background: #5DA9FF;
+}
+
+.validateWebhook:hover {
+    background: #5DA9FF;
 }
 
 .proxyBox:focus {
@@ -1118,17 +1387,76 @@ body {
 
 .tableTitle {
     position: absolute;
-    height: 36px;
-    left: 117px;
-    top: 13px;
-    font-family: 'Poppins';
+    width: 77px;
+    height: 27px;
+    left: 104px;
+    top: 12px;
+    font-family: Poppins;
+    font-style: normal;
+    font-weight: bold;
+    font-size: 18px;
+    line-height: 27px;
+    color: #FFFFFF;
+}
+
+.profilePicture {
+    position: absolute;
+    width: 69px;
+    height: 69px;
+    left: 396px;
+    top: 22px;
+    border-radius: 50%;
+}
+
+.licenseKeyTitle {
+    position: absolute;
+    width: 95px;
+    height: 24px;
+    left: 25px;
+    top: 22px;
+    font-family: Poppins;
     font-style: normal;
     font-weight: 600;
-    -webkit-app-region: no-drag;
-    -webkit-user-select: none;
-    font-size: 18px;
-    line-height: 36px;
+    font-size: 16px;
+    line-height: 24px;
     color: #FFFFFF;
+}
+
+.licenseKeyText {
+    position: absolute;
+    width: 179px;
+    height: 21px;
+    left: 25px;
+    top: 52px;
+    font-family: Poppins;
+    font-style: normal;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    line-height: 21px;
+    color: #ADA1A1;
+}
+
+.deactivateButton {
+    position: absolute;
+    width: 106px;
+    height: 29px;
+    left: 365px;
+    top: 25px;
+    font-family: Poppins;
+    border: 1px solid #E06767;
+    box-sizing: border-box;
+    border-radius: 8px;
+    cursor: pointer;
+    background: transparent;
+    color: white;
+    transition-property: background;
+    transition-duration: 0.4s;
+    outline: none;
+}
+
+.deactivateButton:hover {
+    background: #E06767;
 }
 
 .totalCheckouts {
@@ -1364,8 +1692,6 @@ table.groups {
 
 table.groups td {
     cursor: pointer;
-    transition-property: border;
-    transition-duration: 0.4s;
 }
 
 table.tasks td {

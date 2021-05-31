@@ -17,7 +17,7 @@ module.exports = class FederalPremiumTask {
         this.csrfToken;
         this.request;
         this.errorMessage;
-        this.webhookLink = fs.readFileSync(path.join(configDir, '/userdata/webhook.txt'), 'utf8');
+        this.webhookLink = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/settings.json'), 'utf8'))[0].webhook;
         this.variant;
         this.key = getKey()
         this.accounts = getAccountInfo(taskInfo.accounts)
@@ -894,6 +894,15 @@ module.exports = class FederalPremiumTask {
                 if (error === "Checkout failed") {
                     await this.send("Checkout failed")
                     await this.sendFail()
+                    var path = require('path')
+                    var fs = require('fs');
+
+                    const electron = require('electron');
+                    const configDir = (electron.app || electron.remote.app).getPath('userData');
+                    if (JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/settings.json'), 'utf8'))[0].retryCheckouts == true) {
+                        await sleep(3500)
+                        await this.placeOrder()
+                    }
                 } else if (typeof error.response != 'undefined' && this.stopped === "false") {
                     console.log(error.response.body)
                     await this.send("Error submitting order: " + error.response.statusCode)
