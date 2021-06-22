@@ -20,6 +20,8 @@ module.exports = class SSENSETask {
         this.size = taskInfo.size;
         this.cartSKUS;
         this.cartSKUS2;
+        this.monitorDelay;
+        this.errorDelay;
         this.cartSKUS3;
         this.csrf_token;
         this.shippingMethod;
@@ -330,7 +332,7 @@ module.exports = class SSENSETask {
         const tunnel = require('tunnel');
 
         if (this.stopped === "false") {
-            await this.send("Authenticating")
+            await this.send("Authenticating...")
             try {
                 this.request = {
                     method: 'post',
@@ -368,9 +370,12 @@ module.exports = class SSENSETask {
                 }
             } catch (error) {
                 console.log(error)
+                await this.setDelays()
                 if (this.stopped === "false") {
                     this.send("Error authenticating, retrying")
-                    this.cookieJar.setCookie("auth=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjdXN0b21lciI6eyJpZCI6NjMzNDUyNDEsImVtYWlsIjoiaW91bmlvbmFvZmluQGdtaWFsLmNvbSIsInJvbGUiOiJndWVzdCJ9LCJleHBpcmVfYXQiOiIyMDIxLTYtMTQgMjE6MjM6MTEiLCJpYXQiOjE2MjEyODY1OTEsImV4cCI6MTYyMzcwNTc5MX0.3Jknz9zl5GQbN9S3jNhikrJt5x4pkwWeoSTTW9nk7NU; Path=/; Expires=Mon, 14 Jun 2021 21:23:11 GMT", "https://www.ssense.com")
+                    await this.cookieJar.setCookie("auth=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjdXN0b21lciI6eyJpZCI6NjMzNDUyNDEsImVtYWlsIjoiaW91bmlvbmFvZmluQGdtaWFsLmNvbSIsInJvbGUiOiJndWVzdCJ9LCJleHBpcmVfYXQiOiIyMDIxLTYtMTQgMjE6MjM6MTEiLCJpYXQiOjE2MjEyODY1OTEsImV4cCI6MTYyMzcwNTc5MX0.3Jknz9zl5GQbN9S3jNhikrJt5x4pkwWeoSTTW9nk7NU; Path=/; Expires=Mon, 14 Jun 2021 21:23:11 GMT", "https://www.ssense.com")
+                    await sleep(this.errorDelay)
+                    await this.login()
                 }
             }
         }
@@ -437,27 +442,165 @@ module.exports = class SSENSETask {
                     }
                 }
             } catch (error) {
+                await this.setDelays()
                 if (error === "Size not found" && this.stopped === "false") {
                     await this.send("Waiting for restock")
-                    await sleep(3500)
+                    await sleep(this.monitorDelay)
                     await this.loadProductPage()
                 } else
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
                     console.log(error.response)
                     if (error.response.statusCode === 403) {
                         await this.send("Error proxy banned")
-                        await sleep(3500)
+                        await sleep(this.errorDelay)
                         await this.addToCart()
                     } else {
                         await this.send("Error getting product: " + error.response.statusCode)
-                        await sleep(3500)
+                        await sleep(this.errorDelay)
                         await this.loadProductPage()
                     }
                 } else if (this.stopped === "false") {
                     console.log(error)
                     await this.send("Unexpected error")
-                    await sleep(3500)
+                    await sleep(this.errorDelay)
                     await this.loadProductPage()
+                }
+            }
+        }
+    }
+
+    async addRandomToCart() {
+        const got = require('got');
+        const tunnel = require('tunnel');
+        if (this.stopped === "false") {
+            await this.send("Preloading...")
+            try {
+                this.request = {
+                    method: 'post',
+                    url: 'https://www.ssense.com/en-us/api/shopping-bag/' + "202011M13905901",
+                    cookieJar: this.cookieJar,
+                    headers: {
+                        'authority': 'www.ssense.com',
+                        'cache-control': 'max-age=0',
+                        'upgrade-insecure-requests': '1',
+                        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36',
+                        'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+                        'sec-fetch-site': 'same-origin',
+                        'sec-fetch-mode': 'navigate',
+                        'sec-fetch-user': '?1',
+                        'sec-fetch-dest': 'document',
+                        'accept-language': 'en-US,en;q=0.9',
+                    },
+                    json: {
+                        'serviceType': "product-details",
+                        'sku': "202011M13905901",
+                        'userId': null
+                    },
+                    responseType: 'json'
+                }
+                if (this.proxy != '-') {
+                    this.request['agent'] = {
+                        https: tunnel.httpsOverHttp({
+                            proxy: this.proxy
+                        })
+                    }
+                }
+                let response = await got(this.request);
+                if (response.statusCode === 200 && this.stopped === "false") {
+                    console.log("Carted")
+                    await this.send("Carted")
+                    await this.updateStat("carts")
+                    return;
+                }
+
+            } catch (error) {
+                await this.setDelays()
+                if (typeof error.response != 'undefined' && this.stopped === "false") {
+                    console.log(error.response.body)
+                    if (error.response.statusCode === 409) {
+                        await this.send("Error preload OOS, retrying")
+                        await sleep(this.errorDelay)
+                        await this.addRandomToCart()
+                    } else
+                    if (error.response.statusCode === 403) {
+                        await this.send("Error proxy banned")
+                        this.proxy = this.proxyArray.sample()
+                        await sleep(this.errorDelay)
+                        await this.addRandomToCart()
+                    } else {
+                        await this.send("Error adding to cart: " + error.response.statusCode)
+                        await sleep(this.errorDelay)
+                        await this.addRandomToCart()
+                    }
+                } else if (this.stopped === "false") {
+                    console.log(error)
+                    await this.send("Unexpected error")
+                    await sleep(this.errorDelay)
+                    await this.addRandomToCart()
+                }
+            }
+        }
+    }
+
+
+    async removeItem() {
+        const got = require('got');
+        const tunnel = require('tunnel');
+        if (this.stopped === "false") {
+            await this.send("Removing from cart...")
+            try {
+                this.request = {
+                    method: 'delete',
+                    url: 'https://www.ssense.com/en-us/api/shopping-bag/' + "202011M13905901",
+                    cookieJar: this.cookieJar,
+                    headers: {
+                        'authority': 'www.ssense.com',
+                        'cache-control': 'max-age=0',
+                        'upgrade-insecure-requests': '1',
+                        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36',
+                        'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+                        'sec-fetch-site': 'same-origin',
+                        'sec-fetch-mode': 'navigate',
+                        'sec-fetch-user': '?1',
+                        'sec-fetch-dest': 'document',
+                        'accept-language': 'en-US,en;q=0.9',
+                    },
+                    responseType: 'json'
+                }
+                if (this.proxy != '-') {
+                    this.request['agent'] = {
+                        https: tunnel.httpsOverHttp({
+                            proxy: this.proxy
+                        })
+                    }
+                }
+                let response = await got(this.request);
+                if (response.statusCode === 200 && this.stopped === "false") {
+                    console.log("Carted")
+                    await this.send("Carted")
+                    await this.updateStat("carts")
+                    return;
+                }
+
+            } catch (error) {
+                await this.setDelays()
+                if (typeof error.response != 'undefined' && this.stopped === "false") {
+                    console.log(error.response.body)
+                    if (error.response.statusCode === 403) {
+                        await this.send("Error proxy banned")
+                        this.proxy = this.proxyArray.sample()
+                        await sleep(this.errorDelay)
+                        await this.removeItem()
+                    } else {
+                        await this.send("Error removing item: " + error.response.statusCode)
+                        await sleep(this.errorDelay)
+                        await this.removeItem()
+                    }
+                } else if (this.stopped === "false") {
+                    console.log(error)
+                    await this.send("Unexpected error")
+                    await sleep(this.errorDelay)
+                    await this.removeItem()
                 }
             }
         }
@@ -509,27 +652,28 @@ module.exports = class SSENSETask {
                 }
 
             } catch (error) {
+                await this.setDelays()
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
                     console.log(error.response.body)
                     if (error.response.statusCode === 409) {
                         await this.send("OOS, retrying")
-                        await sleep(3500)
+                        await sleep(this.errorDelay)
                         await this.addToCart()
                     } else
                     if (error.response.statusCode === 403) {
                         await this.send("Error proxy banned")
                         this.proxy = this.proxyArray.sample()
-                        await sleep(3500)
+                        await sleep(this.errorDelay)
                         await this.addToCart()
                     } else {
                         await this.send("Error adding to cart: " + error.response.statusCode)
-                        await sleep(3500)
+                        await sleep(this.errorDelay)
                         await this.addToCart()
                     }
                 } else if (this.stopped === "false") {
                     console.log(error)
                     await this.send("Unexpected error")
-                    await sleep(3500)
+                    await sleep(this.errorDelay)
                     await this.addToCart()
                 }
             }
@@ -590,21 +734,22 @@ module.exports = class SSENSETask {
                     return;
                 }
             } catch (error) {
+                await this.setDelays()
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
                     console.log(error.response)
                     if (error.response.statusCode === 403) {
                         await this.send("Error proxy banned")
-                        await sleep(3500)
+                        await sleep(this.errorDelay)
                         await this.getCheckoutSession()
                     } else {
                         await this.send("Error getting checkout: " + error.response.statusCode)
-                        await sleep(3500)
+                        await sleep(this.errorDelay)
                         await this.getCheckoutSession()
                     }
                 } else if (this.stopped === "false") {
                     console.log(error)
                     await this.send("Unexpected error")
-                    await sleep(3500)
+                    await sleep(this.errorDelay)
                     await this.getCheckoutSession()
                 }
             }
@@ -658,21 +803,22 @@ module.exports = class SSENSETask {
                 }
 
             } catch (error) {
+                await this.setDelays()
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
                     console.log(error.response)
                     if (error.response.statusCode === 403) {
                         await this.send("Error proxy banned")
-                        await sleep(3500)
+                        await sleep(this.errorDelay)
                         await this.getShipping()
                     } else {
                         await this.send("Error getting shipping: " + error.response.statusCode)
-                        await sleep(3500)
+                        await sleep(this.errorDelay)
                         await this.getShipping()
                     }
                 } else if (this.stopped === "false") {
                     console.log(error)
                     await this.send("Unexpected error")
-                    await sleep(3500)
+                    await sleep(this.errorDelay)
                     await this.getShipping()
                 }
             }
@@ -733,21 +879,22 @@ module.exports = class SSENSETask {
 
                 }
             } catch (error) {
+                await this.setDelays()
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
                     console.log(error.response)
                     if (error.response.statusCode === 403) {
                         await this.send("Error proxy banned")
-                        await sleep(3500)
+                        await sleep(this.errorDelay)
                         await this.getTaxes()
                     } else {
                         await this.send("Error getting taxes: " + error.response.statusCode)
-                        await sleep(3500)
+                        await sleep(this.errorDelay)
                         await this.getTaxes()
                     }
                 } else if (this.stopped === "false") {
                     console.log(error)
                     await this.send("Unexpected error")
-                    await sleep(3500)
+                    await sleep(this.errorDelay)
                     await this.getTaxes()
                 }
             }
@@ -842,6 +989,7 @@ module.exports = class SSENSETask {
                 }
             } catch (error) {
                 console.log(error)
+                await this.setDelays()
                 if (this.stopped === "false") {
                     this.updateStat("fails")
                     this.send("Checkout failed")
@@ -852,7 +1000,7 @@ module.exports = class SSENSETask {
                     const configDir = (electron.app || electron.remote.app).getPath('userData');
                     console.log(JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/settings.json'), 'utf8'))[0].retryCheckouts)
                     if (JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/settings.json'), 'utf8'))[0].retryCheckouts == true) {
-                        await sleep(3500)
+                        await sleep(this.errorDelay)
                         await this.submitOrder()
                     }
                 }
@@ -927,6 +1075,7 @@ module.exports = class SSENSETask {
                     throw "Error submitting order"
                 }
             } catch (error) {
+                await this.setDelays()
                 console.log(error.response.body)
                 if (this.stopped === "false") {
                     this.updateStat("fails")
@@ -938,7 +1087,7 @@ module.exports = class SSENSETask {
                     const configDir = (electron.app || electron.remote.app).getPath('userData');
                     console.log(JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/settings.json'), 'utf8'))[0].retryCheckouts)
                     if (JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/settings.json'), 'utf8'))[0].retryCheckouts == true) {
-                        await sleep(3500)
+                        await sleep(this.errorDelay)
                         await this.submitOrderPayPal()
                     }
                 }
@@ -952,6 +1101,26 @@ module.exports = class SSENSETask {
         await this.sendProductTitle(this.oglink)
         console.log("Stopped")
         this.send("Stopped")
+    }
+
+    async setDelays() {
+        var fs = require('fs');
+        var path = require('path')
+        const electron = require('electron');
+        const configDir = (electron.app || electron.remote.app).getPath('userData');
+        var delays = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/delays.json'), 'utf8'));
+        var groups = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/tasks.json'), 'utf8'));
+        var index;
+        for (var i = 0; i < groups.length; i++) {
+            for (var j = 0; j < groups[i][Object.keys(groups[i])[0]].length; j++) {
+                if (Object.keys(groups[i][Object.keys(groups[i])[0]][j])[0] === this.taskId) {
+                    index = i;
+                    break;
+                }
+            }
+        }
+        this.monitorDelay = delays[index].monitor
+        this.errorDelay = delays[index].error
     }
 
     returnID() {
@@ -976,31 +1145,65 @@ module.exports = class SSENSETask {
 
     async initialize() {
         await this.send("Started")
-        console.log(typeof this.sku)
-        if (this.stopped === "false" && this.sku === 'none')
-            await this.loadProductPage()
+        await this.setDelays()
 
-        if (this.stopped === "false")
-            await this.addToCart()
+        if (this.stopped === "false" && this.mode === "Preload") {
+            if (this.stopped === "false")
+                await this.addRandomToCart()
+            if (this.stopped === "false")
+                await this.login()
 
-        if (this.stopped === "false")
-            await this.login()
+            if (this.stopped === "false")
+                await this.getCheckoutSession()
 
-        if (this.stopped === "false")
-            await this.getCheckoutSession()
+            if (this.stopped === "false")
+                await this.getShipping()
 
-        if (this.stopped === "false")
-            await this.getShipping()
+            if (this.stopped === "false")
+                await this.getTaxes()
 
-        if (this.stopped === "false")
-            await this.getTaxes()
+            if (this.stopped === "false")
+                await this.removeItem()
 
-        if (this.stopped === "false" && this.mode.includes("-C"))
-            await this.submitOrder()
-        else if (this.stopped === "false")
-            await this.submitOrderPayPal()
+            if (this.stopped === "false" && this.sku === 'none')
+                await this.loadProductPage()
 
+            if (this.stopped === "false")
+                await this.addToCart()
 
+            if (this.stopped === "false")
+                await this.getCheckoutSession()
+
+            if (this.stopped === "false" && this.mode.includes("-C"))
+                await this.submitOrder()
+            else if (this.stopped === "false")
+                await this.submitOrderPayPal()
+
+        } else {
+            if (this.stopped === "false" && this.sku === 'none')
+                await this.loadProductPage()
+
+            if (this.stopped === "false")
+                await this.addToCart()
+
+            if (this.stopped === "false")
+                await this.login()
+
+            if (this.stopped === "false")
+                await this.getCheckoutSession()
+
+            if (this.stopped === "false")
+                await this.getShipping()
+
+            if (this.stopped === "false")
+                await this.getTaxes()
+
+            if (this.stopped === "false" && this.mode.includes("-C"))
+                await this.submitOrder()
+            else if (this.stopped === "false")
+                await this.submitOrderPayPal()
+
+        }
 
     }
 

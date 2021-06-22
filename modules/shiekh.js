@@ -1,12 +1,9 @@
-const consoleFile = require('../src/js/console-file.js');
-
 module.exports = class ShiekhTask {
     constructor(taskInfo) {
         require('log-timestamp');
         require("../src/js/console-file.js");
         var path = require('path')
         var fs = require('fs');
-
         const electron = require('electron');
         const configDir = (electron.app || electron.remote.app).getPath('userData');
         //console.file(path.join(configDir, '/userdata/logs.txt'));
@@ -27,6 +24,8 @@ module.exports = class ShiekhTask {
         this.cartTotal;
         this.sku;
         this.sizeid;
+        this.monitorDelay;
+        this.errorDelay;
         this.itemid;
         this.encryptedCard;
         this.token;
@@ -266,15 +265,16 @@ module.exports = class ShiekhTask {
                     return;
                 }
             } catch (error) {
+                await this.setDelays()
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
                     console.log(error.response.body)
                     await this.send("Error logging in: " + error.response.statusCode)
-                    await sleep(3500)
+                    await sleep(this.errorDelay)
                     await this.login()
                 } else if (this.stopped === "false") {
                     console.log(error)
                     await this.send("Unexpected error")
-                    await sleep(3500)
+                    await sleep(this.errorDelay)
                     await this.login()
                 }
             }
@@ -311,15 +311,16 @@ module.exports = class ShiekhTask {
                     return;
                 }
             } catch (error) {
+                await this.setDelays()
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
                     console.log(error.response.body)
                     await this.send("Error creating cart: " + error.response.statusCode)
-                    await sleep(3500)
+                    await sleep(this.errorDelay)
                     await this.generateCart()
                 } else if (this.stopped === "false") {
                     console.log(error)
                     await this.send("Unexpected error")
-                    await sleep(3500)
+                    await sleep(this.errorDelay)
                     await this.generateCart()
                 }
             }
@@ -384,20 +385,21 @@ module.exports = class ShiekhTask {
                     }
                 }
             } catch (error) {
+                await this.setDelays()
                 if (error === "No sizes in stock") {
                     await this.send("Waiting for restock")
-                    await sleep(3500)
+                    await sleep(this.monitorDelay)
                     await this.getProduct()
                 } else
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
                     console.log(error)
                     await this.send("Error getting product: " + error.response.statusCode)
-                    await sleep(3500)
+                    await sleep(this.errorDelay)
                     await this.getProduct()
                 } else if (this.stopped === "false") {
                     console.log(error)
                     await this.send("Unexpected error")
-                    await sleep(3500)
+                    await sleep(this.errorDelay)
                     await this.getProduct()
                 }
             }
@@ -448,21 +450,22 @@ module.exports = class ShiekhTask {
                     await this.send("Carted")
                 }
             } catch (error) {
+                await this.setDelays()
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
                     console.log(error.response.body)
                     if (typeof error.response.body.message != 'undefined' && error.response.body.message === "This product(s) can't be purchase. Please try it later.") {
                         await this.send("Error product inactive")
-                        await sleep(3500)
+                        await sleep(this.monitorDelay)
                         await this.addToCart()
                     } else {
                         await this.send("Error carting: " + error.response.statusCode)
-                        await sleep(3500)
+                        await sleep(this.errorDelay)
                         await this.addToCart()
                     }
                 } else if (this.stopped === "false") {
                     console.log(error)
                     await this.send("Unexpected error")
-                    await sleep(3500)
+                    await sleep(this.errorDelay)
                     await this.addToCart()
                 }
             }
@@ -529,15 +532,16 @@ module.exports = class ShiekhTask {
                     await this.send("Submitted shipping")
                 }
             } catch (error) {
+                await this.setDelays()
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
                     console.log(error.response.body)
                     await this.send("Error submitting shipping: " + error.response.statusCode)
-                    await sleep(3500)
+                    await sleep(this.errorDelay)
                     await this.submitShipping()
                 } else if (this.stopped === "false") {
                     console.log(error)
                     await this.send("Unexpected error")
-                    await sleep(3500)
+                    await sleep(this.errorDelay)
                     await this.submitShipping()
                 }
             }
@@ -573,15 +577,16 @@ module.exports = class ShiekhTask {
                     console.log(this.token)
                 }
             } catch (error) {
+                await this.setDelays()
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
                     console.log(error)
                     await this.send("Error getting token: " + error.response.statusCode)
-                    await sleep(3500)
+                    await sleep(this.errorDelay)
                     await this.getToken()
                 } else if (this.stopped === "false") {
                     console.log(error)
                     await this.send("Unexpected error")
-                    await sleep(3500)
+                    await sleep(this.errorDelay)
                     await this.getToken()
                 }
             }
@@ -642,15 +647,16 @@ module.exports = class ShiekhTask {
                     return;
                 }
             } catch (error) {
+                await this.setDelays()
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
                     console.log(error.response.body)
                     await this.send("Error encrypting: " + error.response.statusCode)
-                    await sleep(3500)
+                    await sleep(this.errorDelay)
                     await this.encryptCard()
                 } else if (this.stopped === "false") {
                     console.log(error)
                     await this.send("Unexpected error")
-                    await sleep(3500)
+                    await sleep(this.errorDelay)
                     await this.encryptCard()
                 }
             }
@@ -700,6 +706,7 @@ module.exports = class ShiekhTask {
                     await this.sendSuccess()
                 }
             } catch (error) {
+                await this.setDelays()
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
                     console.log(error.response.body)
                     await this.send("Checkout failed")
@@ -712,20 +719,38 @@ module.exports = class ShiekhTask {
                     const electron = require('electron');
                     const configDir = (electron.app || electron.remote.app).getPath('userData');
                     if (JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/settings.json'), 'utf8'))[0].retryCheckouts == true) {
-                        await sleep(3500)
+                        await sleep(this.errorDelay)
                         await this.submitOrder()
                     }
                 } else if (this.stopped === "false") {
                     console.log(error)
                     await this.send("Unexpected error")
-                    await sleep(3500)
+                    await sleep(this.errorDelay)
                     await this.submitOrder()
                 }
             }
         }
     }
 
-
+    async setDelays() {
+        var fs = require('fs');
+        var path = require('path')
+        const electron = require('electron');
+        const configDir = (electron.app || electron.remote.app).getPath('userData');
+        var delays = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/delays.json'), 'utf8'));
+        var groups = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/tasks.json'), 'utf8'));
+        var index;
+        for (var i = 0; i < groups.length; i++) {
+            for (var j = 0; j < groups[i][Object.keys(groups[i])[0]].length; j++) {
+                if (Object.keys(groups[i][Object.keys(groups[i])[0]][j])[0] === this.taskId) {
+                    index = i;
+                    break;
+                }
+            }
+        }
+        this.monitorDelay = delays[index].monitor
+        this.errorDelay = delays[index].error
+    }
 
     async stopTask() {
         this.stopped = "true";
@@ -756,6 +781,7 @@ module.exports = class ShiekhTask {
 
     async initialize() {
         await this.send("Started")
+        await this.setDelays()
         if (this.stopped === "false")
             await this.login()
 

@@ -7,7 +7,7 @@ var path = require('path')
 const configDir = (electron.app).getPath('userData');
 const express = require('express');
 const captchaSharing = express();
-
+captchaSharing.use(express.json())
 
 async function checkMultipleInstances() {
     const got = require('got');
@@ -79,13 +79,15 @@ autoUpdater.on('error', message => {
 })
 
 
-captchaSharing.get("/venetia/addtoQueue", async(req, res) => {
+captchaSharing.post("/venetia/addtoQueue", async(req, res) => {
     var id = makeid(5)
+    req.body.sessionCookies = req.body.sessionCookies.cookies
     captchaQueue.push({
-        "sitekey": req.query.sitekey,
-        "captchaType": req.query.captchaType,
-        "siteURL": req.query.siteURL,
-        "id": id
+        "captchaType": req.body.captchaType,
+        "siteURL": req.body.siteURL,
+        "sessionCookies": req.body.sessionCookies,
+        "id": id,
+        "taskProxy": req.body.taskProxy
     })
     res.json({
         "id": id
@@ -106,14 +108,15 @@ captchaSharing.get("/venetia/solvedCaptchas", async(req, res) => {
     })
 });
 
-captchaSharing.get("/venetia/addToSolvedCaptchas", async(req, res) => {
+captchaSharing.post("/venetia/addToSolvedCaptchas", async(req, res) => {
     solvedCaptchas.push({
-        "captchaResponse": req.query.captchaResponse,
+        "captchaResponse": req.body.captchaResponse,
         "completed": true,
-        "id": req.query.id
+        "id": req.body.id,
+        "cookies": req.body.cookies
     })
     for (var i = 0; i < captchaQueue.length; i++) {
-        if (captchaQueue[i].id === req.query.id) {
+        if (captchaQueue[i].id === req.body.id) {
             captchaQueue.splice(i, 1)
             break;
         }
@@ -122,13 +125,21 @@ captchaSharing.get("/venetia/addToSolvedCaptchas", async(req, res) => {
 });
 
 captchaSharing.get("/venetia/viewCaptchaQueue", async(req, res) => {
+    var alreadytaken = []
     if (typeof req.query.windowid != 'undefined') {
         for (var i = 0; i < captchaQueue.length; i++) {
             if (typeof captchaQueue[i].windowid === 'undefined') {
-                captchaQueue[i].windowid = req.query.windowid
-                res.json(captchaQueue[i])
+                alreadytaken.push(captchaQueue[i].windowid)
             }
         }
+        alreadytaken = alreadytaken.join()
+        for (var i = 0; i < captchaQueue.length; i++) {
+            if (typeof captchaQueue[i].windowid === 'undefined' && alreadytaken.includes(captchaQueue[i].windowid) == false) {
+                captchaQueue[i].windowid = req.query.windowid
+                break;
+            }
+        }
+        res.json(captchaQueue[i])
     }
     res.json({
         "message": "No captchas available to solve"
@@ -180,7 +191,7 @@ let taskArray = []
 let win;
 
 client.updatePresence({
-    details: 'v0.3.20',
+    details: 'v0.4.1',
     startTimestamp: Date.now(),
     largeImageKey: "venetia",
     largeImageText: "Venetia",
@@ -288,6 +299,15 @@ app.on('login', (event, webContents, request, authInfo, callback) => {
     callback(proxyUsername, proxyPassword);
 });
 
+ipcMain.on('authHarvesterProxy', (event, harvesterID, harvesterProxy, proxyAuth) => {
+    proxyUsername = proxyAuth.split(":")[0]
+    proxyPassword = proxyAuth.split(":")[1]
+    var harvestertochange = BrowserWindow.fromId(harvesterID)
+    harvestertochange.getBrowserView(0).webContents.session.setProxy({
+        proxyRules: "http://" + harvesterProxy
+    })
+});
+
 ipcMain.on('updateStatus1', (event, taskID, status) => {
     win.webContents.send('updateStatus', taskID, status)
 });
@@ -325,6 +345,7 @@ ipcMain.on('stopTask', (event, taskNumber) => {
     backendA.webContents.send('stopTask1', taskNumber)
     backendB.webContents.send('stopTask1', taskNumber)
 });
+
 
 
 ipcMain.on('reverify', (event, key) => {
@@ -389,35 +410,35 @@ ipcMain.on('launchHarvester', function(event, harvesterName, harvesterProxy) {
         sess.setProxy({ proxyRules: "" })
     }
 
-    sess.protocol.interceptBufferProtocol('http', (req, callback) => {
-        console.log(req)
-        fs.readFile(__dirname + '/solveharvester.html', 'utf8', function(err, html) {
-            callback({ mimeType: 'text/html', data: Buffer.from(html) });
-        });
-    });
     var harvester = new BrowserWindow({
         frame: false,
         width: 405,
         height: 600,
+        backgroundColor: '#181a26',
+        icon: path.join(__dirname, 'images/logo.png'),
         webPreferences: {
-            devTools: false
+            devTools: false,
+            nodeIntegration: true,
+            enableRemoteModule: true
+
         }
     })
     const view2 = new BrowserView({
         webPreferences: {
-            nodeIntegration: true,
             enableRemoteModule: true,
             webSecurity: false,
             session: sess,
             devTools: false
         }
     })
+    harvester.loadFile("harvesterBackScreen.html")
+    harvester.openDevTools(true)
     harvester.setMenuBarVisibility(false)
     harvester.setResizable(false)
     view2.webContents.openDevTools()
     view2.setBackgroundColor("#181a26")
     harvester.setBrowserView(view2)
-    view2.setBounds({ x: 0, y: 0, width: 405, height: 600 })
+    view2.setBounds({ x: 0, y: 25, width: 405, height: 500 })
     view2.webContents.loadFile('harvester.html')
 });
 

@@ -18,7 +18,9 @@ module.exports = class FootsitesTask {
         this.request;
         this.captchaURL;
         this.productID;
-        this.randomsize
+        this.randomsize;
+        this.monitorDelay;
+        this.errorDelay;
         this.webhookLink = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/settings.json'), 'utf8'))[0].webhook;
         this.variant;
         this.key = getKey()
@@ -327,7 +329,7 @@ module.exports = class FootsitesTask {
             try {
                 this.request = {
                     method: 'head',
-                    url: 'https://www.' + this.baseLink,
+                    url: 'https://www.' + this.baseLink + "?skipqueue=true",
                     cookieJar: this.cookieJar,
                     headers: {
                         'authority': 'www.' + this.baseLink,
@@ -351,6 +353,7 @@ module.exports = class FootsitesTask {
                     return;
                 }
             } catch (error) {
+                await this.setDelays()
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
                     if (error.response.statusCode == 529) {
                         console.log("In queue")
@@ -366,7 +369,7 @@ module.exports = class FootsitesTask {
                 } else {
                     console.log(error)
                     await this.send("Error polling queue")
-                    await sleep(20000)
+                    await sleep(this.errorDelay)
                     await this.handleQueue()
                 }
             }
@@ -392,7 +395,7 @@ module.exports = class FootsitesTask {
                 this.reusedCookie = "1"
                 console.log("Reusing datadome cookie")
                 await this.send("Reusing cookie, delay")
-                await sleep(3500)
+                await sleep(this.errorDelay)
                 return;
             } else {
                 if (this.apiService === "CapMonster") {
@@ -446,7 +449,8 @@ module.exports = class FootsitesTask {
                 }
             } catch (error) {
                 console.log(error)
-                await sleep(3500)
+                await this.setDelays()
+                await sleep(this.errorDelay)
                 await this.retrieveCaptchaResponse()
             }
         }
@@ -504,7 +508,8 @@ module.exports = class FootsitesTask {
                 return;
             } catch (error) {
                 console.log(error)
-                await sleep(3500)
+                await this.setDelays()
+                await sleep(this.errorDelay)
                 await this.getDataDomeCookie()
             }
         }
@@ -548,6 +553,7 @@ module.exports = class FootsitesTask {
                     return;
                 }
             } catch (error) {
+                await this.setDelays()
                 console.log(error.response.body)
                 if (typeof error.response != 'undefined') {
                     if (error.response.statusCode === 403 && this.stopped === "false") {
@@ -579,7 +585,7 @@ module.exports = class FootsitesTask {
                             if (this.stopped === "false")
                                 await this.send("Setting Datadome")*/
                         await this.send("Site backend error: 403")
-                        await sleep(3500)
+                        await sleep(this.errorDelay)
                         await this.getSession()
                     } else if (error.response.statusCode === 503 && this.stopped === "false") {
                         if (this.stopped === "false") {
@@ -594,18 +600,18 @@ module.exports = class FootsitesTask {
                     } else if (error.response.statusCode === 429 && this.stopped === "false") {
                         console.log(error.response.body)
                         this.send("Error getting session: 429")
-                        await sleep(3500)
+                        await sleep(this.errorDelay)
                         await this.getSession()
                     } else if (this.stopped === "false") {
                         console.log(error.response.body)
                         await this.send("Unexpected error: " + error.response.statusCode)
-                        await sleep(3500)
+                        await sleep(this.errorDelay)
                         await this.getSession()
                     }
                 } else if (this.stopped === "false") {
                     console.log(error)
                     await this.send("Unexpected error")
-                    await sleep(3500)
+                    await sleep(this.errorDelay)
                     await this.getSession()
                 }
             }
@@ -762,11 +768,12 @@ module.exports = class FootsitesTask {
                     }
                 } else throw 'Variant has not found'
             } catch (error) {
+                await this.setDelays()
                 if (typeof error.response != 'undefined') {
                     if (error.response.statusCode === 503 && this.stopped === "false") {
                         if (error.response.body.includes("backend")) {
                             await this.send("Error backend block: 503")
-                            await sleep(3500)
+                            await sleep(this.errorDelay)
                             await this.getProductID()
                         } else {
                             await this.handleQueue()
@@ -779,26 +786,26 @@ module.exports = class FootsitesTask {
                         }
                     } else if (error.response.statusCode === 429 && this.stopped === "false") {
                         await this.send("Error getting PID: 429")
-                        await sleep(3500)
+                        await sleep(this.errorDelay)
                         await this.getProductID()
                     } else if (error === 'Variant not found') {
                         await this.send("Error, variant not found")
-                        await sleep(3500)
+                        await sleep(this.monitorDelay)
                         await this.getProductID()
                     } else if (error.response.statusCode === 400 && this.stopped === "false") {
                         await this.send("Waiting for restock")
-                        await sleep(3500)
+                        await sleep(this.monitorDelay)
                         await this.getProductID()
                     } else if (this.stopped === "false") {
                         console.log(error.response.body)
                         await this.send("Unexpected error: " + error.response.statusCode)
-                        await sleep(3500)
+                        await sleep(this.errorDelay)
                         await this.getProductID()
                     }
                 } else if (this.stopped === "false") {
                     console.log(error)
                     await this.send("Unexpected error")
-                    await sleep(3500)
+                    await sleep(this.errorDelay)
                     await this.getProductID()
                 }
             }
@@ -856,6 +863,7 @@ module.exports = class FootsitesTask {
                     return;
                 }
             } catch (error) {
+                await this.setDelays()
                 if (this.suffix === "api")
                     this.suffix = "apigate"
                 else if (this.suffix === "apigate")
@@ -872,7 +880,7 @@ module.exports = class FootsitesTask {
                     } else if (error.response.statusCode === 403 && typeof error.response.body.url != 'undefined' && this.stopped === "false") {
                         if (typeof error.response.body.url != 'undefined' && error.response.body.url.includes("t=bv")) {
                             await this.send("Error Datadome blacklisted")
-                            await sleep(3500)
+                            await sleep(this.errorDelay)
                             await this.addToCart()
                         } else
                         if (this.mode.includes("-NC")) {
@@ -902,30 +910,33 @@ module.exports = class FootsitesTask {
                         }
                     } else if (error.response.statusCode === 429 && this.stopped === "false") {
                         await this.send("Error carting, 429")
-                        await sleep(3500)
+                        await sleep(this.errorDelay)
                         await this.addToCart()
                     } else if (error.response.statusCode === 531 && this.stopped === "false") {
                         console.log(error.response.headers['x-cache'])
                         if (error.response.headers['x-cache'].includes("HIT")) {
                             await this.send("OOS cached, retrying")
-                            await sleep(3500)
+                            await sleep(this.errorDelay)
+                                // const tough = require('tough-cookie');
+                                //this.cookieJar = new tough.CookieJar()
+                                //await this.getSession()
                             await this.addToCart()
                         } else {
                             console.log("failed carting, retrying")
                             await this.send("OOS, retrying")
-                            await sleep(3500)
+                            await sleep(this.errorDelay)
                             await this.addToCart()
                         }
                     } else if (this.stopped === "false") {
                         console.log(error.response.body)
                         await this.send("Unexpected error: " + error.response.statusCode)
-                        await sleep(3500)
+                        await sleep(this.errorDelay)
                         await this.addToCart()
                     }
                 } else if (this.stopped === "false") {
                     console.log(error)
                     await this.send("Unexpected error")
-                    await sleep(3500)
+                    await sleep(this.errorDelay)
                     await this.addToCart()
                 }
             }
@@ -1145,6 +1156,7 @@ module.exports = class FootsitesTask {
                     return;
                 }
             } catch (error) {
+                await this.setDelays()
                 if (error.response != 'undefined') {
                     if (error.response.statusCode === 403 && this.stopped === "false") {
                         if (typeof error.response.body.url != 'undefined' && error.response.body.url.includes("t=bv")) {
@@ -1173,13 +1185,13 @@ module.exports = class FootsitesTask {
                     } else if (this.stopped === "false") {
                         console.log(error.response.body)
                         await this.send("Error logging in: " + error.response.statusCode)
-                        await sleep(3500)
+                        await sleep(this.errorDelay)
                         await this.logintoFLX()
                     }
                 } else if (this.stopped === "false") {
                     console.log(error)
                     await this.send("Unexpected error")
-                    await sleep(3500)
+                    await sleep(this.errorDelay)
                     await this.logintoFLX()
                 }
             }
@@ -1356,6 +1368,7 @@ module.exports = class FootsitesTask {
                     return;
                 }
             } catch (error) {
+                await this.setDelays()
                 if (error.response != 'undefined') {
                     if (error.response.statusCode === 403 && this.stopped === "false") {
                         if (typeof error.response.body.url != 'undefined' && error.response.body.url.includes("t=bv")) {
@@ -1389,13 +1402,13 @@ module.exports = class FootsitesTask {
                     } else if (this.stopped === "false") {
                         console.log(error.response.body)
                         await this.send("Error submitting info: " + error.response.statusCode)
-                        await sleep(3500)
+                        await sleep(this.errorDelay)
                         await this.submitInformation()
                     }
                 } else if (this.stopped === "false") {
                     console.log(error)
                     await this.send("Unexpected error")
-                    await sleep(3500)
+                    await sleep(this.errorDelay)
                     await this.submitInformation()
                 }
             }
@@ -1458,6 +1471,7 @@ module.exports = class FootsitesTask {
                     return;
                 }
             } catch (error) {
+                await this.setDelays()
                 console.log(error.response.body)
                 if (this.stopped === "false") {
                     this.sendFail()
@@ -1468,7 +1482,7 @@ module.exports = class FootsitesTask {
                     const electron = require('electron');
                     const configDir = (electron.app || electron.remote.app).getPath('userData');
                     if (JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/settings.json'), 'utf8'))[0].retryCheckouts == true) {
-                        await sleep(3500)
+                        await sleep(this.errorDelay)
                         await this.submitOrder()
                     }
                 }
@@ -1482,6 +1496,26 @@ module.exports = class FootsitesTask {
         await this.sendProductTitle(this.sku)
         console.log("Stopped")
         this.send("Stopped")
+    }
+
+    async setDelays() {
+        var fs = require('fs');
+        var path = require('path')
+        const electron = require('electron');
+        const configDir = (electron.app || electron.remote.app).getPath('userData');
+        var delays = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/delays.json'), 'utf8'));
+        var groups = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/tasks.json'), 'utf8'));
+        var index;
+        for (var i = 0; i < groups.length; i++) {
+            for (var j = 0; j < groups[i][Object.keys(groups[i])[0]].length; j++) {
+                if (Object.keys(groups[i][Object.keys(groups[i])[0]][j])[0] === this.taskId) {
+                    index = i;
+                    break;
+                }
+            }
+        }
+        this.monitorDelay = delays[index].monitor
+        this.errorDelay = delays[index].error
     }
 
     returnID() {
@@ -1506,6 +1540,7 @@ module.exports = class FootsitesTask {
 
     async initialize() {
         await this.send("Started")
+        await this.setDelays()
         if (this.stopped === "false")
             await this.getSession()
 

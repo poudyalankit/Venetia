@@ -3,7 +3,6 @@
 <head>
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
-    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </head>
 
 <style>
@@ -40,9 +39,9 @@
     
     .logo {
         position: absolute;
-        top: 110px;
-        left: 69px;
-        width: 120px;
+        top: 90px;
+        left: 45px;
+        width: 220px;
     }
     
     .text {
@@ -58,69 +57,12 @@
 <body>
     <div class="harvester">
         <div class="text">
-            Waiting for captcha
+            Waiting for captcha...
         </div>
         <div class="logo">
-            <img class="logo" src="https://i.imgur.com/m08LnsD.png" draggable="false">
+            <img class="logo" src="./images/captcha.gif" draggable="false">
         </div>
-        <div class="topBar" style="-webkit-app-region: drag">
-
-            <div class="minimize">
-                <a href="#" draggable="false" onclick="minimize()">
-                    <img draggable="false" src="https://i.imgur.com/xGEXoqN.png">
-                </a>
-            </div>
-
-            <div class="close">
-                <a href="#" draggable="false" onclick="closeIt()">
-                    <img draggable="false" src="https://i.imgur.com/xaIldie.png">
-                </a>
-            </div>
-        </div>
-
     </div>
-
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-
-    <script>
-        const remote = require('electron').remote;
-
-        const app = remote.app
-        const ipcRenderer = require('electron').ipcRenderer
-        const electron = require('electron');
-        const got = require('got');
-
-        function lookforcaptchas() {
-            setInterval(async function() {
-                let response = await got({
-                    method: "get",
-                    url: "http://localhost:4444/venetia/viewCaptchaQueue?windowid=" + remote.getCurrentWindow().id,
-                    responseType: "json"
-                })
-                if (typeof response.body.id != 'undefined') {
-                    remote.getCurrentWindow().getBrowserView(0).webContents.loadURL(response.body.siteURL, {
-                        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36'
-                    })
-                    console.log(remote.getCurrentWindow.getBrowserView(0).webContents)
-                }
-            }, 300);
-        }
-        lookforcaptchas()
-        Array.prototype.sample = function() {
-            return this[Math.floor(Math.random() * this.length)];
-        }
-
-        function minimize() {
-            var window2 = remote.getCurrentWindow();
-            window2.minimize();
-        }
-
-        function closeIt() {
-            var x = remote.getCurrentWindow().getBrowserView(0)
-            remote.getCurrentWindow().destroy()
-            x.webContents.destroy()
-        }
-    </script>
 </body>
 
 </html>

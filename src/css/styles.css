@@ -12,6 +12,75 @@
     font-size: 14px;
 }
 
+.delaysButton {
+    position: absolute;
+    width: 83px;
+    height: 27px;
+    left: 1148px;
+    top: 58px;
+    font-family: Poppins;
+    font-style: normal;
+    border-radius: 8px;
+    border: 1px solid #5291da;
+    outline: none;
+    cursor: pointer;
+    background: transparent;
+    color: #FFFFFF;
+    transition-property: background;
+    transition-duration: 0.4s;
+}
+
+.delaysButton:hover {
+    background: #5DA9FF;
+}
+
+.customSites {
+    position: absolute;
+    width: 503px;
+    height: 115px;
+    left: 104px;
+    top: 508px;
+    background: #222233;
+    border-radius: 8px;
+}
+
+.customSitesTitle {
+    position: absolute;
+    width: 108px;
+    height: 24px;
+    left: 20px;
+    top: 14px;
+    font-family: Poppins;
+    font-style: normal;
+    font-weight: 600;
+    font-size: 16px;
+    line-height: 24px;
+    color: #FFFFFF;
+}
+
+.shopifySites {
+    position: absolute;
+    width: 254px;
+    height: 10px;
+    left: 20px;
+    top: 70px;
+    background: #292C3F;
+    border-radius: 8px;
+}
+
+.customSitesSubtitle {
+    position: absolute;
+    height: 15px;
+    left: 20px;
+    top: 40px;
+    font-family: Poppins;
+    font-style: normal;
+    font-weight: normal;
+    font-size: 12px;
+    line-height: 15px;
+    color: #ADA1A1;
+}
+
 .licenseKeyInformation {
     position: absolute;
     width: 503px;
@@ -134,23 +203,129 @@
     background-color: #181a26;
 }
 
-.changelogText {
+.addStoreButton {
     position: absolute;
-    width: 73px;
-    height: 20px;
-    left: 118px;
-    top: 152px;
+    width: 72px;
+    height: 23px;
+    left: 295px;
+    top: 70px;
+    border: 1px solid #4fcf91;
+    box-sizing: border-box;
+    background: transparent;
+    color: white;
+    outline: none;
+    border: 1px solid #4fcf91;
+    border-radius: 8px;
     font-family: 'Poppins';
+    transition-property: background;
+    transition-duration: 0.4s;
+    cursor: pointer;
+}
+
+.storeNameTitle {
+    position: absolute;
+    height: 21px;
+    left: 35px;
+    top: 73px;
+    font-family: Poppins;
     font-style: normal;
-    font-weight: 600;
-    font-size: 13px;
-    line-height: 36px;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 21px;
     color: #FFFFFF;
-    -moz-user-select: none;
-    -khtml-user-select: none;
-    -webkit-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
+}
+
+.storeNameEntry {
+    position: absolute;
+    width: 422px;
+    padding-left: 8px;
+    height: 29px;
+    font-family: Poppins;
+    left: 32px;
+    top: 96px;
+    background: #1e202f;
+    border-radius: 8px;
+    border: none;
+    outline: none;
+    color: white;
+}
+
+.baseLinkEntry {
+    position: absolute;
+    width: 422px;
+    padding-left: 8px;
+    height: 29px;
+    font-family: Poppins;
+    background: #1e202f;
+    border-radius: 8px;
+    border: none;
+    outline: none;
+    color: white;
+    left: 32px;
+    top: 165px;
+}
+
+.baseLinkTitle {
+    position: absolute;
+    height: 21px;
+    left: 36px;
+    top: 142px;
+    font-family: Poppins;
+    font-style: normal;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 21px;
+    color: #FFFFFF;
+}
+
+.addStoreConfirmButton {
+    position: absolute;
+    width: 101px;
+    height: 29px;
+    left: 353px;
+    top: 220px;
+    border: 1px solid #4fcf91;
+    box-sizing: border-box;
+    background: transparent;
+    color: white;
+    outline: none;
+    border: 1px solid #4fcf91;
+    border-radius: 8px;
+    font-family: 'Poppins';
+    transition-property: background;
+    transition-duration: 0.4s;
+    cursor: pointer;
+}
+
+.addStoreConfirmButton:hover {
+    background: #4fcf91;
+}
+
+.addStoreButton:hover {
+    background: #4fcf91;
+}
+
+.removeStoreButton {
+    position: absolute;
+    width: 72px;
+    height: 23px;
+    left: 377px;
+    top: 70px;
+    border: 1px solid #e06767;
+    box-sizing: border-box;
+    background: transparent;
+    color: white;
+    outline: none;
+    border: 1px solid #e06767;
+    border-radius: 8px;
+    font-family: 'Poppins';
+    transition-property: background;
+    transition-duration: 0.4s;
+    cursor: pointer;
+}
+
+.removeStoreButton:hover {
+    background: #e06767;
 }
 
 .time {
@@ -189,25 +364,6 @@
     top: 40px;
     background: #1e202f;
     border-radius: 8px;
-}
-
-.changelogBox {
-    position: absolute;
-    width: 501px;
-    -webkit-user-select: none;
-    height: 374px;
-    left: 117px;
-    top: 184px;
-    font-family: 'Poppins';
-    color: white;
-    resize: none;
-    overflow-y: auto;
-    padding-left: 8px;
-    background: #1e202f;
-    border-radius: 15px;
-    font-size: 12px;
-    border: 0;
-    outline: 0;
 }
 
 .staggerStartLabel {
@@ -318,21 +474,6 @@
     border: 1px solid #5DA9FF;
 }
 
-.version {
-    position: absolute;
-    width: 24px;
-    height: 18px;
-    left: 30px;
-    -webkit-user-select: none;
-    top: 740px;
-    font-family: 'Poppins';
-    font-style: normal;
-    font-weight: normal;
-    font-size: 12px;
-    line-height: 18px;
-    color: #FFFFFF;
-}
-
 .analytics {
     position: absolute;
     width: 24px;
@@ -376,12 +517,26 @@
     height: 20px;
     left: 22px;
     top: 81px;
-    background: #292C3F;
+    background: #1e202f;
+    padding-left: 8px;
     border-radius: 8px;
+    font-size: 12px;
     outline: none;
     font-family: 'Poppins';
     color: white;
     border: none;
+    transition-property: box-shadow;
+    transition-duration: 0.4s;
+}
+
+.webhookEntry:focus {
+    border-color: #e06767;
+    box-shadow: 0 0 0 1pt #e06767;
+}
+
+.webhookEntry:hover {
+    border-color: #e06767;
+    box-shadow: 0 0 0 1pt #e06767;
 }
 
 .validateWebhook {
@@ -404,10 +559,10 @@
 
 .updateBox {
     position: absolute;
-    width: 503px;
+    width: 608px;
     height: 115px;
-    left: 104px;
-    top: 507px;
+    left: 623px;
+    top: 550px;
     background: #222233;
     border-radius: 8px;
 }
@@ -472,10 +627,8 @@
     position: absolute;
     width: 106px;
     height: 29px;
-    left: 365px;
+    left: 451px;
     top: 57px;
-    border: 1px solid #5DA9FF;
-    border-radius: 8px;
     outline: none;
     border: 1px solid #5DA9FF;
     background: transparent;
@@ -484,6 +637,7 @@
     cursor: pointer;
     transition-property: background;
     transition-duration: 0.4s;
+    border-radius: 8px;
 }
 
 .resetDataButton {
@@ -1870,6 +2024,7 @@ th.status2 {
     color: white;
     font-style: normal;
     font-weight: normal;
+    font-family: 'Poppins';
     outline: none;
     font-size: 13px;
 }
@@ -1879,6 +2034,7 @@ th.status2 {
     font-family: 'Poppins';
     color: white;
     font-style: normal;
+    font-family: 'Poppins';
     font-weight: normal;
     outline: none;
     font-size: 13px;

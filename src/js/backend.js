@@ -1,5 +1,6 @@
 const electron = require('electron');
 const { ipcRenderer } = electron;
+const configDir = (electron.app || electron.remote.app).getPath('userData');
 var path = require('path')
 const SSENSETask = require(path.join(__dirname, '/modules/ssense.js'));
 const FootsitesTask = require(path.join(__dirname, '/modules/footsites.js'));
@@ -8,6 +9,7 @@ const SupremeHybridTask = require(path.join(__dirname, '/modules/supremehybrid.j
 const ShiekhTask = require(path.join(__dirname, '/modules/shiekh.js'));
 const FederalPremiumTask = require(path.join(__dirname, '/modules/federalpremium.js'));
 const ShopifyTask = require(path.join(__dirname, '/modules/shopify.js'));
+const PacsunTask = require(path.join(__dirname, '/modules/pacsun.js'));
 
 let taskArray = []
 
@@ -20,74 +22,35 @@ ipcRenderer.on('stopTask1', (event, taskNumber) => {
     }
 });
 
+
 ipcRenderer.on('taskinfo1', (event, taskInfo) => {
-    var shopify = [{
-            site: "DTLR",
-            base: "https://www.dtlr.com",
-            sitekey: "6LeXJ7oUAAAAAHIpfRvgjs3lcJiO_zMC1LAZWlSz"
-        },
-        {
-            site: "Shoe Palace",
-            base: "https://www.shoepalace.com",
-            sitekey: "6LeXJ7oUAAAAAHIpfRvgjs3lcJiO_zMC1LAZWlSz"
-        },
-        {
-            site: "Union LA",
-            base: "https://store.unionlosangeles.com",
-            sitekey: "6LeXJ7oUAAAAAHIpfRvgjs3lcJiO_zMC1LAZWlSz"
-        },
-        {
-            site: "Shop Nice Kicks",
-            base: "https://shopnicekicks.com",
-            sitekey: "6LeXJ7oUAAAAAHIpfRvgjs3lcJiO_zMC1LAZWlSz"
-        },
-        {
-            site: "Bodega",
-            base: "https://www.bdgastore.com",
-            sitekey: "6LeXJ7oUAAAAAHIpfRvgjs3lcJiO_zMC1LAZWlSz"
-        }, {
-            site: "Kith",
-            base: "https://kith.com",
-            sitekey: "6LeXJ7oUAAAAAHIpfRvgjs3lcJiO_zMC1LAZWlSz"
-        }, {
-            site: "BBCIcecream",
-            base: "https://www.bbcicecream.com",
-            sitekey: "6LeXJ7oUAAAAAHIpfRvgjs3lcJiO_zMC1LAZWlSz"
-        }, {
-            site: "Packer Shoes",
-            base: "https://packershoes.com",
-            sitekey: "6LeXJ7oUAAAAAHIpfRvgjs3lcJiO_zMC1LAZWlSz"
-        }, {
-            site: "Bape",
-            base: "https://us.bape.com",
-            sitekey: "6LeXJ7oUAAAAAHIpfRvgjs3lcJiO_zMC1LAZWlSz"
-        }, {
-            site: "YCMC",
-            base: "https://ycmc.com",
-            sitekey: "6LeXJ7oUAAAAAHIpfRvgjs3lcJiO_zMC1LAZWlSz"
-        },
-        {
-            site: "Social Status",
-            base: "https://www.socialstatuspgh.com",
-            sitekey: "6LeXJ7oUAAAAAHIpfRvgjs3lcJiO_zMC1LAZWlSz"
-        },
-        {
-            site: "Above The Clouds",
-            base: "https://www.abovethecloudsstore.com",
-            sitekey: "6LeXJ7oUAAAAAHIpfRvgjs3lcJiO_zMC1LAZWlSz"
-        }
-    ]
+    var fs = require('fs');
+    var shopify = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/shopifyStores2.json'), { encoding: 'utf8', flag: 'r' }));
+    var customshopify = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/shopifyStores.json'), { encoding: 'utf8', flag: 'r' }));
+
 
     for (var i = 0; i < shopify.length; i++) {
         if (shopify[i].site === taskInfo.site) {
-            taskInfo.baseLink = shopify[i].base
-            taskInfo.sitekey = shopify[i].sitekey
+            taskInfo.baseLink = shopify[i].baseLink
+            task = new ShopifyTask(taskInfo)
+            break;
+        }
+    }
+
+    for (var i = 0; i < customshopify.length; i++) {
+        if (customshopify[i].site === taskInfo.site) {
+            taskInfo.baseLink = customshopify[i].baseLink
+            taskInfo.site = "Custom (Shopify)"
             task = new ShopifyTask(taskInfo)
             break;
         }
     }
 
     if (taskInfo.site === "SSENSE" && taskInfo.mode.includes("Safe")) {
+        task = new SSENSETask(taskInfo)
+    }
+
+    if (taskInfo.site === "SSENSE" && taskInfo.mode.includes("Preload")) {
         task = new SSENSETask(taskInfo)
     }
 
@@ -98,6 +61,11 @@ ipcRenderer.on('taskinfo1', (event, taskInfo) => {
     if (taskInfo.site === "Shiekh") {
         task = new ShiekhTask(taskInfo)
     }
+
+    if (taskInfo.site === "Pacsun") {
+        task = new PacsunTask(taskInfo)
+    }
+
 
     if (taskInfo.site === "Federal Premium") {
         task = new FederalPremiumTask(taskInfo)

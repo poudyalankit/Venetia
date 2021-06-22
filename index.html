@@ -173,6 +173,8 @@
             <div class="tableTitle" style="left: 320px;">
                 Tasks
             </div>
+            <button id="delaysButton" style="display: none" class="delaysButton" onclick="delayModal()">Delays</button>
+
             <input type="text" id="filterInput" onkeyup="filterTable()" class="taskFilter" placeholder="Search tasks"><br>
             <button id="createButton" disabled class="createTask" onclick="taskCreator()">
                         Create
@@ -207,6 +209,25 @@
 
                 </table>
             </div>
+            <div id="delayModal" class="modal animate__animated animate__zoomIn animate__faster" style='display: none'>
+                <div class="modal-content" style="height: 262px; width: 350px; margin: 21% auto">
+                    <div class="modalHeaderBackground" style="width: 350px">
+                        <div class="modalHeader">Delays</div>
+                        <div class="closeModal" style="top:10px; left: 320px;">
+                            <a onclick="closeDelayModal()" href="#" draggable="false">
+                                <img draggable="false" src="./images/x.png">
+                            </a>
+                        </div>
+                        <div class="storeNameTitle">
+                            Monitor Delay
+                        </div>
+                        <input class="storeNameEntry" id="monitorDelay" style="width: 270px;" spellcheck="false" placeholder="3000" type="text">
+                        <div class="baseLinkTitle">Error Delay</div>
+                        <input class="baseLinkEntry" id="errorDelay" spellcheck="false" style="width: 270px;" placeholder="3000" type="text">
+                        <button class="addStoreConfirmButton" style="left: 210px;" onclick="saveDelays(); closeDelayModal();">Save</button>
+                    </div>
+                </div>
+            </div>
         </div>
         <div id="taskCreator" class="modal animate__animated animate__zoomIn animate__faster">
             <div class="modal-content">
@@ -229,29 +250,17 @@
                 <div class="siteTaskEntry">
                     <select id="siteTask" class="select2" style="width: 169px" onchange="modeChoices()">
                             <option value=""></option>
-                             <option  value="Above The Clouds">Above The Clouds</option>
-                             <option  value="Bodega">Bodega</option>
                             <option value="ChampsSports">ChampsSports</option>
                             <option value="EastBay">EastBay</option>
-                             <option value="Federal Premium">Federal Premium</option>
-                            <option  value="BBCIcecream">BBCIcecream</option>
+                            <option value="Federal Premium">Federal Premium</option>
                             <option value="FootAction">FootAction</option>
                             <option value="FootLocker">FootLocker</option>
                             <option value="FootLockerCA">FootLockerCA</option>
-                             <option  value="DTLR">DTLR</option>
                             <option value="KidsFootLocker">KidsFootLocker</option>
                             <option value="LadyFootLocker">LadyFootLocker</option>
-                             <option disabled value="Pacsun">Pacsun</option>
-                             <option value="Shiekh">Shiekh</option>
+                            <option value="Shiekh">Shiekh</option>
                             <option value="SSENSE">SSENSE</option>
                             <option value="Supreme">Supreme</option>
-                             <option  value="Kith">Kith</option>
-                             <option  value="Shoe Palace">Shoe Palace</option>
-                             <option  value="Shop Nice Kicks">Shop Nice Kicks</option>
-                            <option  value="Social Social">Social Status</option>
-                             <option  value="Packer Shoes">Packer Shoes</option>
-                             <option  value="Bape">Bape</option>
-                            <option value="YCMC">YCMC</option>
                           </select>
                 </div>
                 <div class="sizeTaskTitle">
@@ -302,7 +311,7 @@
                 <div class="linkTaskTitle">
                     Link
                 </div>
-                <input disabled="true" type="text" placeholder="URL/PID" id="linkTask" class="linkTaskEntry"><br>
+                <input disabled="true" spellcheck="false" type="text" placeholder="URL/PID" id="linkTask" class="linkTaskEntry"><br>
                 <div class="profileTaskTitle">
                     Profile
                 </div>
@@ -327,7 +336,7 @@
                 <div class="quantityTaskTitle">
                     Quantity of Tasks
                 </div>
-                <input disabled="true" type="text" id="quantityTask" value="1" placeholder="1" class="quantityTaskEntry"><br>
+                <input disabled="true" spellcheck="false" type="text" id="quantityTask" value="1" placeholder="1" class="quantityTaskEntry"><br>
                 <div id="scheduleFeature" style="display: none">
                     <div class="scheduleTaskTitle">
                         Schedule
@@ -361,14 +370,16 @@
                 </div>
                 <div class="siteTaskEntry">
                     <select id="siteTask2" class="select2" style="width: 169px" onchange="modeChoices2()">
-                            <option value=""></option>
+                             <option value=""></option>
                             <option value="ChampsSports">ChampsSports</option>
                             <option value="EastBay">EastBay</option>
+                            <option value="Federal Premium">Federal Premium</option>
                             <option value="FootAction">FootAction</option>
                             <option value="FootLocker">FootLocker</option>
                             <option value="FootLockerCA">FootLockerCA</option>
                             <option value="KidsFootLocker">KidsFootLocker</option>
                             <option value="LadyFootLocker">LadyFootLocker</option>
+                            <option value="Shiekh">Shiekh</option>
                             <option value="SSENSE">SSENSE</option>
                             <option value="Supreme">Supreme</option>
                           </select>
@@ -447,6 +458,14 @@
                     Quantity of Tasks
                 </div>
                 <input disabled="true" type="text" id="quantityTask2" value="1" placeholder="1" class="quantityTaskEntry"><br>
+                <div id="scheduleFeature2" style="display: none">
+                    <div class="scheduleTaskTitle2">
+                        Schedule
+                    </div>
+                    <input type="text" id="hourTaskEntry2" maxlength="2" placeholder="09" class="hourTaskEntry"><br>
+                    <input type="text" id="minuteTaskEntry2" maxlength="2" placeholder="59" class="minuteTaskEntry"><br>
+                    <input type="text" id="secondTaskEntry2" maxlength="2" placeholder="45" class="secondTaskEntry"><br>
+                </div>
                 <button class="addTaskButton" onclick="editSelected()">Edit Task</button>
             </div>
 
@@ -482,7 +501,6 @@
             <div class="preferenceOptionHeader" style="top: 100px">Retry Checkouts</div>
             <div class="preferenceOptionText" style="top: 120px">Retry checkouts on decline or checkout failure</div>
             <input id="retryCheckouts" class="preferenceSelector selectCheckbox" style="top: 100px" onclick='changeColor(this, event); savePreferences()' type="checkbox">
-
             <div class="preferenceOptionHeader" style="top: 150px">System Notifications</div>
             <div class="preferenceOptionText" style="top: 170px">Sends a system notification when a task successfully checks out or fails</div>
             <input id="systemNotifs" class="preferenceSelector selectCheckbox" style="top: 150px" onclick='changeColor(this, event); savePreferences()' type="checkbox">
@@ -506,8 +524,38 @@
         <div class="updateBox">
             <div class="updateBoxTitle">Software Information</div>
             <div class="currentVersionTitle">Current Version</div>
-            <div class="currentVersionText">0.3.20</div>
+            <div class="currentVersionText">0.4.1</div>
             <button class="updateButton" onclick="update()">Update</button>
+        </div>
+        <div class="customSites">
+            <div class="customSitesTitle">Custom Sites</div>
+            <div class="customSitesSubtitle">Add a custom Shopify store</div>
+            <div class="shopifySites">
+                <select id="shopifyStores" class="select2" style="width: 254px">
+             
+                </select>
+            </div>
+            <button class="addStoreButton" onclick="addStore()">Add</button>
+            <button class="removeStoreButton" onclick="removeStore()">Delete</button>
+            <div id="storeAdder" class="modal animate__animated animate__zoomIn animate__faster" style='display: none'>
+                <div class="modal-content" style="height: 262px; margin: 21% auto">
+                    <div class="modalHeaderBackground">
+                        <div class="modalHeader">Custom Store</div>
+                        <div class="closeModal" style="top:10px; left: 458px;">
+                            <a onclick="closeStoreModal()" href="#" draggable="false">
+                                <img draggable="false" src="./images/x.png">
+                            </a>
+                        </div>
+                        <div class="storeNameTitle">
+                            Store Name
+                        </div>
+                        <input class="storeNameEntry" id="storeNameEntry" spellcheck="false" placeholder="Kith" type="text">
+                        <div class="baseLinkTitle">Base Link</div>
+                        <input class="baseLinkEntry" id="baseLinkEntry" spellcheck="false" placeholder="https://kith.com" type="text">
+                        <button class="addStoreConfirmButton" onclick="addStoreConfirm(); closeStoreModal();">Add</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 

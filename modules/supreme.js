@@ -21,6 +21,8 @@ module.exports = class SupremeTask {
         this.request;
         this.productid;
         this.imageURL;
+        this.monitorDelay;
+        this.errorDelay;
         this.cartTotal;
         this.chk;
         this.profilename = taskInfo.profile;
@@ -624,6 +626,26 @@ module.exports = class SupremeTask {
         this.send("Stopped")
     }
 
+    async setDelays() {
+        var fs = require('fs');
+        var path = require('path')
+        const electron = require('electron');
+        const configDir = (electron.app || electron.remote.app).getPath('userData');
+        var delays = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/delays.json'), 'utf8'));
+        var groups = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/tasks.json'), 'utf8'));
+        var index;
+        for (var i = 0; i < groups.length; i++) {
+            for (var j = 0; j < groups[i][Object.keys(groups[i])[0]].length; j++) {
+                if (Object.keys(groups[i][Object.keys(groups[i])[0]][j])[0] === this.taskId) {
+                    index = i;
+                    break;
+                }
+            }
+        }
+        this.monitorDelay = delays[index].monitor
+        this.errorDelay = delays[index].error
+    }
+
     returnID() {
         return this.taskId;
     }
@@ -645,6 +667,7 @@ module.exports = class SupremeTask {
     }
 
     async initialize() {
+        await this.setDelays()
 
         if (this.stopped === "false")
             await this.getStock()

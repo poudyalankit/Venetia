@@ -23,6 +23,8 @@ module.exports = class FederalPremiumTask {
         this.accounts = getAccountInfo(taskInfo.accounts)
         this.profilename = taskInfo.profile;
         this.productTitle;
+        this.monitorDelay;
+        this.errorDelay;
         this.proxyListName = taskInfo.proxies;
         this.cartTotal;
         this.orginalShipmentUUID;
@@ -308,20 +310,21 @@ module.exports = class FederalPremiumTask {
                     }
                 }
             } catch (error) {
+                await this.setDelays()
                 if (error === "Product OOS") {
                     await this.send("Waiting for restock")
-                    await sleep(3500)
+                    await sleep(this.monitorDelay)
                     await this.monitor()
                 } else
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
                     console.log(error.response.body)
                     await this.send("Error monitoring: " + error.response.statusCode)
-                    await sleep(3500)
+                    await sleep(this.errorDelay)
                     await this.monitor()
                 } else if (this.stopped === "false") {
                     console.log(error)
                     await this.send("Unexpected error")
-                    await sleep(3500)
+                    await sleep(this.errorDelay)
                     await this.monitor()
                 }
             }
@@ -382,21 +385,22 @@ module.exports = class FederalPremiumTask {
                     }
                 }
             } catch (error) {
+                await this.setDelays()
                 if (error === "Product OOS") {
                     await this.send("Waiting for restock")
-                    await sleep(3500)
+                    await sleep(this.monitorDelay)
                     await this.monitor()
                     await this.addToCart()
                 } else
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
                     console.log(error.response.body)
                     await this.send("Error carting: " + error.response.statusCode)
-                    await sleep(3500)
+                    await sleep(this.errorDelay)
                     await this.addToCart()
                 } else if (this.stopped === "false") {
                     console.log(error)
                     await this.send("Unexpected error")
-                    await sleep(3500)
+                    await sleep(this.errorDelay)
                     await this.addToCart()
                 }
             }
@@ -446,15 +450,16 @@ module.exports = class FederalPremiumTask {
                     return;
                 }
             } catch (error) {
+                await this.setDelays()
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
                     console.log(error.response.body)
                     await this.send("Error getting cart: " + error.response.statusCode)
-                    await sleep(3500)
+                    await sleep(this.errorDelay)
                     await this.getCart()
                 } else if (this.stopped === "false") {
                     console.log(error)
                     await this.send("Unexpected error")
-                    await sleep(3500)
+                    await sleep(this.errorDelay)
                     await this.getCart()
                 }
             }
@@ -504,15 +509,16 @@ module.exports = class FederalPremiumTask {
                     return;
                 }
             } catch (error) {
+                await this.setDelays()
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
                     console.log(error.response.body)
                     await this.send("Error loading checkout: " + error.response.statusCode)
-                    await sleep(3500)
+                    await sleep(this.errorDelay)
                     await this.loadCheckout()
                 } else if (this.stopped === "false") {
                     console.log(error)
                     await this.send("Unexpected error")
-                    await sleep(3500)
+                    await sleep(this.errorDelay)
                     await this.loadCheckout()
                 }
             }
@@ -578,15 +584,16 @@ module.exports = class FederalPremiumTask {
                     return;
                 }
             } catch (error) {
+                await this.setDelays()
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
                     console.log(error.response.body)
                     await this.send("Error submitting shipping: " + error.response.statusCode)
-                    await sleep(3500)
+                    await sleep(this.errorDelay)
                     await this.submitShipping()
                 } else if (this.stopped === "false") {
                     console.log(error)
                     await this.send("Unexpected error")
-                    await sleep(3500)
+                    await sleep(this.errorDelay)
                     await this.submitShipping()
                 }
             }
@@ -643,15 +650,16 @@ module.exports = class FederalPremiumTask {
                     return;
                 }
             } catch (error) {
+                await this.setDelays()
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
                     console.log(error.response.body)
                     await this.send("Error loading payment: " + error.response.statusCode)
-                    await sleep(3500)
+                    await sleep(this.errorDelay)
                     await this.loadPayment()
                 } else if (this.stopped === "false") {
                     console.log(error)
                     await this.send("Unexpected error")
-                    await sleep(3500)
+                    await sleep(this.errorDelay)
                     await this.loadPayment()
                 }
             }
@@ -699,15 +707,16 @@ module.exports = class FederalPremiumTask {
                     return;
                 }
             } catch (error) {
+                await this.setDelays()
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
                     console.log(error.response.body.responseStatus.details)
                     await this.send("Error encrypting card: " + error.response.statusCode)
-                    await sleep(3500)
+                    await sleep(this.errorDelay)
                     await this.encryptCard()
                 } else if (this.stopped === "false") {
                     console.log(error)
                     await this.send("Unexpected error")
-                    await sleep(3500)
+                    await sleep(this.errorDelay)
                     await this.encryptCard()
                 }
             }
@@ -781,15 +790,16 @@ module.exports = class FederalPremiumTask {
                     return;
                 }
             } catch (error) {
+                await this.setDelays()
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
                     console.log(error.response.body)
                     await this.send("Error submitting payment: " + error.response.statusCode)
-                    await sleep(3500)
+                    await sleep(this.errorDelay)
                     await this.submitPayment()
                 } else if (this.stopped === "false") {
                     console.log(error)
                     await this.send("Unexpected error")
-                    await sleep(3500)
+                    await sleep(this.errorDelay)
                     await this.submitPayment()
                 }
             }
@@ -835,15 +845,16 @@ module.exports = class FederalPremiumTask {
                     return;
                 }
             } catch (error) {
+                await this.setDelays()
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
                     console.log(error.response.body)
                     await this.send("Error loading review: " + error.response.statusCode)
-                    await sleep(3500)
+                    await sleep(this.errorDelay)
                     await this.loadReview()
                 } else if (this.stopped === "false") {
                     console.log(error)
                     await this.send("Unexpected error")
-                    await sleep(3500)
+                    await sleep(this.errorDelay)
                     await this.loadReview()
                 }
             }
@@ -891,6 +902,7 @@ module.exports = class FederalPremiumTask {
                     return;
                 } else throw 'Checkout failed'
             } catch (error) {
+                await this.setDelays()
                 if (error === "Checkout failed") {
                     await this.send("Checkout failed")
                     await this.sendFail()
@@ -900,18 +912,18 @@ module.exports = class FederalPremiumTask {
                     const electron = require('electron');
                     const configDir = (electron.app || electron.remote.app).getPath('userData');
                     if (JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/settings.json'), 'utf8'))[0].retryCheckouts == true) {
-                        await sleep(3500)
+                        await sleep(this.errorDelay)
                         await this.placeOrder()
                     }
                 } else if (typeof error.response != 'undefined' && this.stopped === "false") {
                     console.log(error.response.body)
                     await this.send("Error submitting order: " + error.response.statusCode)
-                    await sleep(3500)
+                    await sleep(this.errorDelay)
                     await this.placeOrder()
                 } else if (this.stopped === "false") {
                     console.log(error)
                     await this.send("Unexpected error")
-                    await sleep(3500)
+                    await sleep(this.errorDelay)
                     await this.placeOrder()
                 }
             }
@@ -923,6 +935,26 @@ module.exports = class FederalPremiumTask {
         await this.sendProductTitle(this.oglink)
         console.log("Stopped")
         this.send("Stopped")
+    }
+
+    async setDelays() {
+        var fs = require('fs');
+        var path = require('path')
+        const electron = require('electron');
+        const configDir = (electron.app || electron.remote.app).getPath('userData');
+        var delays = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/delays.json'), 'utf8'));
+        var groups = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/tasks.json'), 'utf8'));
+        var index;
+        for (var i = 0; i < groups.length; i++) {
+            for (var j = 0; j < groups[i][Object.keys(groups[i])[0]].length; j++) {
+                if (Object.keys(groups[i][Object.keys(groups[i])[0]][j])[0] === this.taskId) {
+                    index = i;
+                    break;
+                }
+            }
+        }
+        this.monitorDelay = delays[index].monitor
+        this.errorDelay = delays[index].error
     }
 
     returnID() {
@@ -947,7 +979,8 @@ module.exports = class FederalPremiumTask {
 
     async initialize() {
         await this.send("Started")
-        console.log(this.link)
+        await this.setDelays()
+
         if (this.stopped === "false")
             await this.monitor()
 

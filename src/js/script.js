@@ -20,6 +20,7 @@ Array.prototype.sample = function() {
     return this[Math.floor(Math.random() * this.length)];
 }
 
+
 function deactivateKey() {
     const got = require('got');
     var key = fs.readFileSync(path.join(configDir, '/userdata/key.txt'), 'utf8');
@@ -130,6 +131,8 @@ function modeChoices() {
         document.getElementById("linkTask").disabled = false;
         select.options.length = 0;
         select.options[select.options.length] = new Option("Safe", "Safe");
+        select.options[select.options.length] = new Option("Preload", "Preload");
+
         //select.options[select.options.length] = new Option("Fast", "Fast");
         document.getElementById("captchaLess").style = "position: absolute; top: 510px; left:440px; display: block"
         document.getElementById("captchaLessLabel").style = "position: absolute; top: 513px; font-size: 12px; width: 200px; left: 476px; display: block; color: white;font-family: Poppins;"
@@ -212,40 +215,14 @@ function modeChoices() {
         document.getElementById("captchaLess").checked = false;
     }
 
-    var shopify = [{
-            site: "DTLR"
-        },
-        {
-            site: "Shoe Palace"
-        },
-        {
-            site: "Shop Nice Kicks"
-        },
-        {
-            site: "Bodega"
-        },
-        {
-            site: "Kith"
-        },
-        {
-            site: "BBCIcecream"
-        },
-        {
-            site: "Packer Shoes"
-        },
-        {
-            site: "Bape"
-        },
-        {
-            site: "YCMC"
-        },
-        {
-            site: "Social Status"
-        },
-        {
-            site: "Above The Clouds"
-        }
-    ]
+    var shopify = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/shopifyStores2.json'), { encoding: 'utf8', flag: 'r' }));
+    var customshopify = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/shopifyStores.json'), { encoding: 'utf8', flag: 'r' }));
+    for (var i = 0; i < customshopify.length; i++) {
+        shopify.push({
+            site: customshopify[i].site,
+            baseLink: customshopify[i].baseLink
+        })
+    }
 
     for (var i = 0; i < shopify.length; i++) {
         if (document.getElementById("siteTask").value === shopify[i].site) {
@@ -261,6 +238,9 @@ function modeChoices() {
 
             select.options.length = 0;
             select.options[select.options.length] = new Option("Safe", "Safe");
+            select.options[select.options.length] = new Option("Preload", "Preload");
+            select.options[select.options.length] = new Option("Launch", "Launch");
+            select.options[select.options.length] = new Option("Restock", "Restock");
             document.getElementById("captchaLess").style = "display: none;"
             document.getElementById("captchaLessLabel").style = "display: none;"
             document.getElementById("captchaLess").checked = false;
@@ -272,19 +252,23 @@ function modeChoices() {
 function modeChoices2() {
     if (document.getElementById("siteTask2").value === "FootLockerCA" || document.getElementById("siteTask2").value === "LadyFootLocker" || document.getElementById("siteTask2").value === "FootLocker" || document.getElementById("siteTask2").value === "EastBay" || document.getElementById("siteTask2").value === "ChampsSports" || document.getElementById("siteTask2").value === "FootAction" || document.getElementById("siteTask2").value === "KidsFootLocker") {
         var select = document.getElementById("modeTask2")
+        document.getElementById("captchaLess2").checked = false;
         document.getElementById("accountTask2").disabled = false;
         document.getElementById("modeTask2").disabled = false;
         document.getElementById("sizeTask2").disabled = false;
         document.getElementById("proxyTask2").disabled = false;
+        document.getElementById("scheduleFeature2").style = "display: none";
+
         document.getElementById("profileTask2").disabled = false;
+        document.getElementById("quantityTask2").disabled = false;
         document.getElementById("linkTask2").disabled = false;
+        document.getElementById("hourTaskEntry2").disabled = false;
         select.options.length = 0;
         select.options[select.options.length] = new Option("Release", "Release");
         if (document.getElementById("proxyTask2").value != "-") {
             document.getElementById("captchaLessLabel2").textContent = "Captchaless"
             document.getElementById("captchaLess2").style = "position: absolute; top: 510px; left:440px; display: block"
             document.getElementById("captchaLessLabel2").style = "position: absolute; top: 513px; font-size: 12px; width: 200px; left: 476px; display: block; color: white;font-family: Poppins;"
-            document.getElementById("captchaLess2").checked = false;
         }
     }
 
@@ -295,13 +279,70 @@ function modeChoices2() {
         document.getElementById("sizeTask2").disabled = false;
         document.getElementById("proxyTask2").disabled = false;
         document.getElementById("profileTask2").disabled = false;
+        document.getElementById("quantityTask2").disabled = false;
         document.getElementById("linkTask2").disabled = false;
         select.options.length = 0;
         select.options[select.options.length] = new Option("Safe", "Safe");
-        //select.options[select.options.length] = new Option("PayPal", "PayPal");
-        document.getElementById("captchaLessLabel2").textContent = "Card checkout"
+        select.options[select.options.length] = new Option("Preload", "Preload");
+
+        //select.options[select.options.length] = new Option("Fast", "Fast");
         document.getElementById("captchaLess2").style = "position: absolute; top: 510px; left:440px; display: block"
         document.getElementById("captchaLessLabel2").style = "position: absolute; top: 513px; font-size: 12px; width: 200px; left: 476px; display: block; color: white;font-family: Poppins;"
+        document.getElementById("captchaLess2").checked = false;
+        document.getElementById("captchaLessLabel2").textContent = "Card checkout"
+        document.getElementById("scheduleFeature2").style = "display: none";
+    }
+
+
+    if (document.getElementById("siteTask2").value === "Shiekh") {
+        var select = document.getElementById("modeTask2")
+        document.getElementById("accountTask2").disabled = false;
+        document.getElementById("modeTask2").disabled = false;
+        document.getElementById("sizeTask2").disabled = false;
+        document.getElementById("proxyTask2").disabled = false;
+        document.getElementById("profileTask2").disabled = false;
+        document.getElementById("quantityTask2").disabled = false;
+        document.getElementById("linkTask2").disabled = false;
+        select.options.length = 0;
+        document.getElementById("scheduleFeature2").style = "display: block";
+        select.options[select.options.length] = new Option("Fast", "Fast");
+        document.getElementById("captchaLess2").style = "display: none;"
+        document.getElementById("captchaLessLabel2").style = "display: none;"
+        document.getElementById("captchaLess2").checked = false;
+    }
+
+    if (document.getElementById("siteTask2").value === "Federal Premium") {
+        var select = document.getElementById("modeTask2")
+        document.getElementById("accountTask2").disabled = true;
+        document.getElementById("modeTask2").disabled = false;
+        document.getElementById("scheduleFeature2").style = "display: none";
+        document.getElementById("sizeTask2").disabled = false;
+        document.getElementById("proxyTask2").disabled = false;
+        document.getElementById("profileTask2").disabled = false;
+        document.getElementById("quantityTask2").disabled = false;
+        document.getElementById("linkTask2").disabled = false;
+        select.options.length = 0;
+        select.options[select.options.length] = new Option("Fast", "Fast");
+        document.getElementById("captchaLess2").style = "display: none;"
+        document.getElementById("captchaLessLabel2").style = "display: none;"
+        document.getElementById("captchaLess2").checked = false;
+    }
+
+    if (document.getElementById("siteTask2").value === "Pacsun") {
+        var select = document.getElementById("modeTask2")
+        document.getElementById("accountTask2").disabled = true;
+        document.getElementById("modeTask2").disabled = false;
+        document.getElementById("sizeTask2").disabled = false;
+        document.getElementById("proxyTask2").disabled = false;
+        document.getElementById("profileTask2").disabled = false;
+        document.getElementById("quantityTask2").disabled = false;
+        document.getElementById("linkTask2").disabled = false;
+        document.getElementById("scheduleFeature2").style = "display: none";
+
+        select.options.length = 0;
+        select.options[select.options.length] = new Option("Fast", "Fast");
+        document.getElementById("captchaLess2").style = "display: none;"
+        document.getElementById("captchaLessLabel2").style = "display: none;"
         document.getElementById("captchaLess2").checked = false;
     }
 
@@ -310,10 +351,13 @@ function modeChoices2() {
         document.getElementById("modeTask2").disabled = false;
         document.getElementById("proxyTask2").disabled = false;
         document.getElementById("profileTask2").disabled = false;
+        document.getElementById("quantityTask2").disabled = false;
         document.getElementById("linkTask2").disabled = false;
         document.getElementById("sizeTask2").disabled = false;
         var accounts = document.getElementById("accountTask2")
         accounts.options.length = 0;
+        document.getElementById("scheduleFeature2").style = "display: none";
+
         accounts.options[accounts.options.length] = new Option("No Account", "-")
         select.options.length = 0;
         select.options[select.options.length] = new Option("Hybrid", "Hybrid");
@@ -321,6 +365,39 @@ function modeChoices2() {
         document.getElementById("captchaLess2").style = "display: none;"
         document.getElementById("captchaLessLabel2").style = "display: none;"
         document.getElementById("captchaLess2").checked = false;
+    }
+
+    var shopify = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/shopifyStores2.json'), { encoding: 'utf8', flag: 'r' }));
+    var customshopify = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/shopifyStores.json'), { encoding: 'utf8', flag: 'r' }));
+    for (var i = 0; i < customshopify.length; i++) {
+        shopify.push({
+            site: customshopify[i].site,
+            baseLink: customshopify[i].baseLink
+        })
+    }
+
+    for (var i = 0; i < shopify.length; i++) {
+        if (document.getElementById("siteTask2").value === shopify[i].site) {
+            var select = document.getElementById("modeTask2")
+            document.getElementById("accountTask2").disabled = false;
+            document.getElementById("modeTask2").disabled = false;
+            document.getElementById("sizeTask2").disabled = false;
+            document.getElementById("proxyTask2").disabled = false;
+            document.getElementById("profileTask2").disabled = false;
+            document.getElementById("quantityTask2").disabled = false;
+            document.getElementById("linkTask2").disabled = false;
+            document.getElementById("scheduleFeature2").style = "display: none";
+
+            select.options.length = 0;
+            select.options[select.options.length] = new Option("Safe", "Safe");
+            select.options[select.options.length] = new Option("Preload", "Preload");
+            select.options[select.options.length] = new Option("Launch", "Launch");
+            select.options[select.options.length] = new Option("Restock", "Restock");
+            document.getElementById("captchaLess2").style = "display: none;"
+            document.getElementById("captchaLessLabel2").style = "display: none;"
+            document.getElementById("captchaLess2").checked = false;
+            break;
+        }
     }
 
 }
@@ -482,6 +559,45 @@ function deleteProfile() {
 
 function reverify() {
     var fs = require('fs');
+    const got = require('got');
+    got({
+            method: 'get',
+            url: 'https://venetiabots.com/api/shopifyStores',
+            responseType: 'json'
+        }).then(response => {
+            var storelist = []
+            var select = document.getElementById("siteTask")
+            var select2 = document.getElementById("siteTask2")
+            var currentSelection = document.getElementById("siteTask").value
+            var currentEditedSelection = document.getElementById("siteTask2").value
+            select.options.length = 12;
+            select2.options.length = 12;
+            for (var i = 0; i < response.body.length; i++) {
+                select.options[select.options.length] = new Option(response.body[i].site, response.body[i].site);
+                select2.options[select2.options.length] = new Option(response.body[i].site, response.body[i].site);
+                storelist.push({
+                    site: response.body[i].site,
+                    baseLink: response.body[i].baseLink
+                })
+            }
+            select.options[select.options.length] = new Option("-- Custom Shopify -- ", "-- Custom Shopify --")
+            select2.options[select2.options.length] = new Option("-- Custom Shopify -- ", "-- Custom Shopify --")
+            select.options[select.options.length - 1].disabled = true;
+            select2.options[select2.options.length - 1].disabled = true;
+            var customshopify = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/shopifyStores.json'), { encoding: 'utf8', flag: 'r' }));
+            for (var i = 0; i < customshopify.length; i++) {
+                select.options[select.options.length] = new Option(customshopify[i].site, customshopify[i].site);
+                select2.options[select2.options.length] = new Option(customshopify[i].site, customshopify[i].site);
+            }
+            fs.writeFile(path.join(configDir, '/userdata/shopifyStores2.json'), JSON.stringify(storelist), function(err) {
+                if (err) throw err;
+            });
+            document.getElementById("siteTask").value = currentSelection
+            document.getElementById("siteTask2").value = currentEditedSelection
+        })
+        .catch(error => {
+            console.log(error)
+        })
     fs.readFile(path.join(configDir, '/userdata/key.txt'), 'utf-8', (err, data) => {
         if (err) throw err;
         var key = data;
@@ -506,6 +622,7 @@ function stopOpen(e) {
 
 
 window.onload = function() {
+    reverify()
     setInterval(reverify, 20000)
 
     document.addEventListener("auxclick", handleNonLeftClick);
@@ -617,6 +734,8 @@ window.onload = function() {
         shell.openExternal(this.href);
     });
     require('select2')($);
+
+    $('#shopifyStores').select2();
 
 
     $('#siteTask').select2({
@@ -734,6 +853,12 @@ window.onload = function() {
     });
 
 
+    fs.readFile(path.join(configDir, '/userdata/delays.json'), 'utf-8', (err, data) => {
+        if (err) {
+            fs.writeFile(path.join(configDir, '/userdata/delays.json'), JSON.stringify([]), function(err) {})
+            throw err;
+        }
+    });
 
 
 
@@ -752,6 +877,29 @@ window.onload = function() {
                 "<td onclick='showProxiesbyCount(this)' style='padding-bottom: 5px'>" + x[i].proxies.length + "</td>"
         }
     });
+
+    fs.readFile(path.join(configDir, '/userdata/shopifyStores.json'), 'utf-8', (err, data) => {
+        if (err) {
+            fs.writeFile(path.join(configDir, '/userdata/shopifyStores.json'), JSON.stringify([]), function(err) {})
+
+            throw err;
+        }
+        var x = JSON.parse(data);
+        var shopifysites = document.getElementById("shopifyStores")
+        shopifysites.options.length = 0;
+        for (var i = 0; i < x.length; i++) {
+            shopifysites.options[shopifysites.options.length] = new Option(x[i].site, x[i].site);
+        }
+
+    });
+
+    fs.readFile(path.join(configDir, '/userdata/shopifyStores2.json'), 'utf-8', (err, data) => {
+        if (err) {
+            fs.writeFile(path.join(configDir, '/userdata/shopifyStores2.json'), JSON.stringify([]), function(err) {})
+            throw err;
+        }
+    });
+
 
     fs.readFile(path.join(configDir, '/userdata/accounts.json'), 'utf-8', (err, data) => {
         if (err) {
@@ -1448,6 +1596,7 @@ function editGroup(group) {
 
 function viewGroup(group) {
     document.getElementById('createButton').disabled = false
+    document.getElementById('delaysButton').style = "display: block"
     document.getElementById('editButton').disabled = false
     var groupindex;
     var groupName = group.cells[0].children[0].value
@@ -1517,6 +1666,17 @@ function addGroup() {
         if (err) throw err;
         console.log('Groups saved!');
     });
+
+    var delays = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/delays.json'), 'utf-8'))
+    var delay = {
+        "monitor": 3000,
+        "error": 3000
+    }
+    delays.push(delay)
+    fs.writeFile(path.join(configDir, '/userdata/delays.json'), JSON.stringify(delays), function(err) {
+        if (err) throw err;
+        console.log('Groups saved!');
+    });
 }
 
 function deleteGroup() {
@@ -1542,8 +1702,17 @@ function deleteGroup() {
             console.log('Groups saved!');
         });
         document.getElementById('createButton').disabled = true
+        document.getElementById('delaysButton').style = "display: none"
         document.getElementById('editButton').disabled = true
     }
+
+    var delays = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/delays.json'), 'utf-8'))
+    delays.splice(groupindex, 1)
+
+    fs.writeFile(path.join(configDir, '/userdata/delays.json'), JSON.stringify(delays), function(err) {
+        if (err) throw err;
+        console.log('Groups saved!');
+    });
 }
 
 
@@ -1570,7 +1739,10 @@ function editSelected() {
     var proxies = document.getElementById("proxyTask2").value;
     var accounts = document.getElementById("accountTask2").value;
     var size = document.getElementById("sizeTask2").value;
-    var quantity = document.getElementById("quantityTask2").value;
+    var hour = document.getElementById("hourTaskEntry2").value
+    var minute = document.getElementById("minuteTaskEntry2").value
+    var second = document.getElementById("secondTaskEntry2").value
+    console.log(hour)
     if (document.getElementById("captchaLess").checked == true && document.getElementById("captchaLessLabel").innerHTML === "Card checkout")
         mode += "-C"
     else
@@ -1607,6 +1779,18 @@ function editSelected() {
             if (proxies != "") {
                 document.getElementById("tasks").rows[i].cells[6].textContent = proxies;
                 groups[gindex][gname][i - 1][document.getElementById('tasks').rows[i].cells[0].textContent]['proxies'] = proxies
+            }
+
+            if (hour != "") {
+                groups[gindex][gname][i - 1][document.getElementById('tasks').rows[i].cells[0].textContent]['schedule']['hour'] = hour
+            }
+
+            if (minute != "") {
+                groups[gindex][gname][i - 1][document.getElementById('tasks').rows[i].cells[0].textContent]['schedule']['minute'] = minute
+            }
+
+            if (second != "") {
+                groups[gindex][gname][i - 1][document.getElementById('tasks').rows[i].cells[0].textContent]['schedule']['second'] = second
             }
         }
     }
@@ -1747,6 +1931,113 @@ function taskCreator() {
         document.getElementById("taskCreator").style.display = "block";
 }
 
+function removeStore() {
+    var currentStores = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/shopifyStores.json'), 'utf-8'))
+    for (var i = 0; i < currentStores.length; i++) {
+        if (currentStores[i].site === document.getElementById("shopifyStores").value)
+            currentStores.splice(i, 1)
+    }
+    var shopifysites = document.getElementById("shopifyStores")
+    shopifysites.options.length = 0;
+    for (var i = 0; i < currentStores.length; i++) {
+        shopifysites.options[shopifysites.options.length] = new Option(currentStores[i].site, currentStores[i].site);
+    }
+    fs.writeFile(path.join(configDir, '/userdata/shopifyStores.json'), JSON.stringify(currentStores), function(err) {
+        if (err) throw err;
+    });
+    var separatorOption;
+    for (var i = 0; i < document.getElementById("siteTask").options.length; i++) {
+        if (document.getElementById("siteTask").options[i].value === "-- Custom Shopify --") {
+            separatorOption = i;
+            break;
+        }
+    }
+    document.getElementById("siteTask").options.length = i + 1;
+    for (var i = 0; i < currentStores.length; i++) {
+        document.getElementById("siteTask").options[document.getElementById("siteTask").options.length] = new Option(currentStores[i].site, currentStores[i].site)
+    }
+}
+
+function addStoreConfirm() {
+    var currentStores = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/shopifyStores.json'), 'utf-8'))
+
+    var baseLink = document.getElementById("baseLinkEntry").value.toLowerCase()
+    if (baseLink.startsWith("http://"))
+        baseLink = "https://" + baseLink.substring(7)
+    if (baseLink.endsWith("/"))
+        baseLink = baseLink.substring(0, baseLink.length - 1)
+
+    currentStores.push({
+        site: document.getElementById("storeNameEntry").value,
+        baseLink: baseLink
+    })
+    var shopifysites = document.getElementById("shopifyStores")
+    shopifysites.options.length = 0;
+    for (var i = 0; i < currentStores.length; i++) {
+        shopifysites.options[shopifysites.options.length] = new Option(currentStores[i].site, currentStores[i].site);
+    }
+    fs.writeFile(path.join(configDir, '/userdata/shopifyStores.json'), JSON.stringify(currentStores), function(err) {
+        if (err) throw err;
+    });
+
+    document.getElementById("baseLinkEntry").value = ""
+    document.getElementById("storeNameEntry").value = ""
+    var separatorOption;
+    for (var i = 0; i < document.getElementById("siteTask").options.length; i++) {
+        if (document.getElementById("siteTask").options[i].value === "-- Custom Shopify --") {
+            separatorOption = i;
+            break;
+        }
+    }
+    document.getElementById("siteTask").options.length = i + 1;
+    for (var i = 0; i < currentStores.length; i++) {
+        document.getElementById("siteTask").options[document.getElementById("siteTask").options.length] = new Option(currentStores[i].site, currentStores[i].site)
+    }
+}
+
+function addStore() {
+    document.getElementById("storeAdder").style.display = "block";
+}
+
+function saveDelays() {
+    var delays = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/delays.json'), 'utf-8'))
+    var index;
+    for (var i = 0; i < document.getElementById("groups").rows.length; i++) {
+        if (document.getElementById('groups').rows[i].cells[0].style['border'] === "1px solid rgb(224, 103, 103)") {
+            index = i;
+            break;
+        }
+    }
+    delays[index].monitor = document.getElementById("monitorDelay").value
+    delays[index].error = document.getElementById("errorDelay").value
+    fs.writeFile(path.join(configDir, '/userdata/delays.json'), JSON.stringify(delays), function(err) {
+        if (err) throw err;
+        console.log('Groups saved!');
+    });
+}
+
+function delayModal() {
+    document.getElementById("delayModal").style.display = "block";
+    var delays = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/delays.json'), 'utf-8'))
+    var index;
+    for (var i = 0; i < document.getElementById("groups").rows.length; i++) {
+        if (document.getElementById('groups').rows[i].cells[0].style['border'] === "1px solid rgb(224, 103, 103)") {
+            index = i;
+            break;
+        }
+    }
+    document.getElementById("monitorDelay").value = delays[index].monitor
+    document.getElementById("errorDelay").value = delays[index].error
+}
+
+function closeStoreModal() {
+    document.getElementById("storeAdder").classList.add('animate__zoomOut')
+    document.getElementById("storeAdder").addEventListener('animationend', () => {
+        document.getElementById("storeAdder").classList.remove('animate__zoomOut')
+        document.getElementById('storeAdder').style.display = "none"
+    }, { once: true });
+}
+
 function closeModal() {
     document.getElementById("taskCreator").classList.add('animate__zoomOut')
     document.getElementById("taskCreator").addEventListener('animationend', () => {
@@ -1756,6 +2047,13 @@ function closeModal() {
 }
 
 
+function closeDelayModal() {
+    document.getElementById("delayModal").classList.add('animate__zoomOut')
+    document.getElementById("delayModal").addEventListener('animationend', () => {
+        document.getElementById("delayModal").classList.remove('animate__zoomOut')
+        document.getElementById('delayModal').style.display = "none"
+    }, { once: true });
+}
 
 async function startSelected() {
     var groupName;
