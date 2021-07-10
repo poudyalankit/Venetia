@@ -81,6 +81,7 @@ module.exports = class FederalPremiumTask {
 
     async sendFail() {
         const got = require('got');
+        this.quickTaskLink = "http://localhost:4444/quicktask?storetype=FederalPremium&input=" + this.oglink
         got({
                 method: 'post',
                 url: 'https://venetiabots.com/api/fail',
@@ -95,7 +96,8 @@ module.exports = class FederalPremiumTask {
                     "price": this.cartTotal,
                     "timestamp": new Date(Date.now()).toISOString(),
                     "productTitle": this.productTitle,
-                    "image": this.imageurl
+                    "image": this.imageurl,
+                    "quicktask": this.quickTaskLink
                 },
                 responseType: 'json'
             }).then(response => {
@@ -175,6 +177,7 @@ module.exports = class FederalPremiumTask {
 
     async sendSuccess() {
         const got = require('got');
+        this.quickTaskLink = "http://localhost:4444/quicktask?storetype=FederalPremium&input=" + this.oglink
         got({
                 method: 'post',
                 url: 'https://venetiabots.com/api/success',
@@ -189,7 +192,8 @@ module.exports = class FederalPremiumTask {
                     "productTitle": this.productTitle,
                     "price": this.cartTotal,
                     "timestamp": new Date(Date.now()).toISOString(),
-                    "image": this.imageurl
+                    "image": this.imageurl,
+                    "quicktask": this.quickTaskLink
                 }
             }).then(response => {
                 console.log("Finished")

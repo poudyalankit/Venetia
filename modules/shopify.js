@@ -1,12 +1,9 @@
 module.exports = class ShopifyTask {
     constructor(taskInfo) {
-        require('log-timestamp');
-        require("../src/js/console-file.js");
         var path = require('path')
         var fs = require('fs');
         const electron = require('electron');
         const configDir = (electron.app || electron.remote.app).getPath('userData');
-        //console.file(path.join(configDir, '/userdata/logs.txt'));
         this.stopped = "false";
         this.request;
         this.key = getKey()
@@ -33,16 +30,24 @@ module.exports = class ShopifyTask {
         this.proxyArray = getProxyInfo(taskInfo.proxies)
         this.proxy = this.proxyArray.sample()
         this.baseLink = taskInfo.baseLink
-        this.plainLink = this.baseLink.split("https://")[1]
-        this.insecurelink = "http://" + this.plainLink
         this.shippingPayload = {}
         this.shippingRatePayload = {}
         this.paymentPayload = {}
+        if (this.profile.country === "United States")
+            this.country = "US"
+        else if (this.profile.country === "Canada")
+            this.country = "CA"
         this.captchaResponse = "none"
-
-        if (this.link.startsWith("http")) {
+        this.cartLink = this.baseLink + "/cart"
+        this.plainLink = this.baseLink.split("https://")[1]
+        this.insecurelink = "http://" + this.plainLink
+        if (this.link.startsWith("http") && this.link.includes(this.cartLink) == false) {
             this.searchMethod = "link"
-        } else if (this.link.startsWith("+")) {
+        } else if (this.link.includes(this.cartLink) == true) {
+            this.productVariant2 = this.link.split("/cart/")[1].split(":")[0]
+            this.searchMethod = "variant"
+        } else if (this.link.includes(",") == false && this.link.length == 14 && /^\d+$/.test(this.link)) {
+            this.productVariant2 = this.link
             this.searchMethod = "variant"
         } else {
             this.searchMethod = "keywords"
@@ -51,7 +56,7 @@ module.exports = class ShopifyTask {
             this.negativeKeywords = []
             for (var i = 0; i < this.keywords.length; i++) {
                 if (this.keywords[i].trim().startsWith("-"))
-                    this.negativeKeywords.push(this.keywords[i].substring(1).trim())
+                    this.negativeKeywords.push(this.keywords[i].trim().substring(1))
                 else
                     this.positiveKeywords.push(this.keywords[i].trim())
             }
@@ -60,6 +65,7 @@ module.exports = class ShopifyTask {
 
     async sendFailError() {
         const got = require('got');
+        this.quickTaskLink = "http://localhost:4444/quicktask?storetype=Shopify&input=" + this.baseLink + "/cart/" + this.productVariant + ":1"
         got({
                 method: 'post',
                 url: 'https://venetiabots.com/api/fail',
@@ -74,14 +80,15 @@ module.exports = class ShopifyTask {
                     "price": Math.trunc(this.cartTotal),
                     "timestamp": new Date(Date.now()).toISOString(),
                     "productTitle": this.productTitle,
-                    "image": this.imageURL
+                    "image": this.imageURL,
+                    "quicktask": this.quickTaskLink
                 },
                 responseType: 'json'
             }).then(response => {
-                console.log("Finished")
+                this.log("Finished")
             })
             .catch(error => {
-                console.log(error)
+                this.log(error)
             })
 
         var webhooks = this.webhookLink.split(",")
@@ -142,16 +149,17 @@ module.exports = class ShopifyTask {
                         "avatar_url": "https://i.imgur.com/6h06tuW.png"
                     }
                 }).then(response => {
-                    console.log("Finished sending webhook")
+                    this.log("Finished sending webhook")
                 })
                 .catch(error => {
-                    console.log(error.response.body)
+                    this.log(error.response.body)
                 })
         }
     }
 
     async sendFail() {
         const got = require('got');
+        this.quickTaskLink = "http://localhost:4444/quicktask?storetype=Shopify&input=" + this.baseLink + "/cart/" + this.productVariant + ":1"
         got({
                 method: 'post',
                 url: 'https://venetiabots.com/api/fail',
@@ -166,14 +174,15 @@ module.exports = class ShopifyTask {
                     "price": Math.trunc(this.cartTotal),
                     "timestamp": new Date(Date.now()).toISOString(),
                     "productTitle": this.productTitle,
-                    "image": this.imageURL
+                    "image": this.imageURL,
+                    "quicktask": this.quickTaskLink
                 },
                 responseType: 'json'
             }).then(response => {
-                console.log("Finished")
+                this.log("Finished")
             })
             .catch(error => {
-                console.log(error)
+                this.log(error)
             })
 
         var webhooks = this.webhookLink.split(",")
@@ -234,16 +243,17 @@ module.exports = class ShopifyTask {
                         "avatar_url": "https://i.imgur.com/6h06tuW.png"
                     }
                 }).then(response => {
-                    console.log("Finished sending webhook")
+                    this.log("Finished sending webhook")
                 })
                 .catch(error => {
-                    console.log(error.response.body)
+                    this.log(error.response.body)
                 })
         }
     }
 
     async sendSuccess() {
         const got = require('got');
+        this.quickTaskLink = "http://localhost:4444/quicktask?storetype=Shopify&input=" + this.baseLink + "/cart/" + this.productVariant + ":1"
         got({
                 method: 'post',
                 url: 'https://venetiabots.com/api/success',
@@ -258,13 +268,14 @@ module.exports = class ShopifyTask {
                     "productTitle": this.productTitle,
                     "price": Math.trunc(this.cartTotal),
                     "timestamp": new Date(Date.now()).toISOString(),
-                    "image": this.imageURL
+                    "image": this.imageURL,
+                    "quicktask": this.quickTaskLink
                 }
             }).then(response => {
-                console.log("Finished")
+                this.log("Finished")
             })
             .catch(error => {
-                console.log(error)
+                this.log(error)
             })
 
         var webhooks = this.webhookLink.split(",")
@@ -325,27 +336,44 @@ module.exports = class ShopifyTask {
                         "avatar_url": "https://i.imgur.com/6h06tuW.png"
                     }
                 }).then(response => {
-                    console.log("Finished sending webhook")
+                    this.log("Finished sending webhook")
                 })
                 .catch(error => {
-                    console.log(error)
+                    this.log(error)
                 })
+        }
+    }
+
+    async formatCard() {
+        await this.send("Formatting card...")
+        if (this.profile.cardNumber.length == 16) {
+            var x = this.profile.cardNumber
+            var y = "";
+            for (var i = 0; i < x.length; i = i + 4) {
+                y += x.substring(i, i + 4)
+                if (i != x.length - 1)
+                    y += " "
+            }
+            this.profile.cardNumber = y;
+        } else if (this.profile.cardNumber.length == 15) {
+            var x = this.profile.cardNumber
+            var y = ""
+            y += x.substring(0, 4)
+            y += " "
+            y += x.substring(4, 10)
+            y += " "
+            y += x.substring(10)
+            this.profile.cardNumber = y;
+        } else {
+            await this.send("Error invalid card length")
         }
     }
 
     async submitCard() {
         const got = require('got');
         const tunnel = require('tunnel');
-        var x = this.profile.cardNumber
-        var y = "";
-        for (var i = 0; i < x.length; i = i + 4) {
-            y += x.substring(i, i + 4)
-            if (i != x.length - 1)
-                y += " "
-        }
-        this.profile.cardNumber = y;
         if (this.stopped === "false") {
-            await this.send("Submitting card...")
+            await this.send("Presubmitting card...")
             try {
                 this.request = {
                     method: 'post',
@@ -390,11 +418,12 @@ module.exports = class ShopifyTask {
             } catch (error) {
                 await this.setDelays()
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
+                    this.log(error.response.body)
                     await this.send("Error submitting card: " + error.response.statusCode)
                     await sleep(this.errorDelay)
                     await this.submitCard()
                 } else if (this.stopped === "false") {
-                    console.log(error)
+                    this.log(error)
                     await this.send("Unexpected error submitting card")
                     await sleep(this.errorDelay)
                     await this.submitCard()
@@ -408,13 +437,6 @@ module.exports = class ShopifyTask {
         const tunnel = require('tunnel');
         const querystring = require('querystring')
         if (this.stopped === "false") {
-            console.log(querystring.encode({
-                'form_type': 'customer_login',
-                'utf8': '✓',
-                'customer[email]': this.accounts.email,
-                'customer[password]': this.accounts.password,
-                'return_url': "/account"
-            }))
             await this.send("Logging in...")
             try {
                 this.request = {
@@ -450,16 +472,16 @@ module.exports = class ShopifyTask {
                     }
                 }
                 let response = await got(this.request);
-
-                console.log(response.body)
+                this.log(response.body)
             } catch (error) {
                 await this.setDelays()
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
+                    this.log(error.response.body)
                     await this.send("Error logging in: " + error.response.statusCode)
                     await sleep(this.errorDelay)
                     await this.login()
                 } else if (this.stopped === "false") {
-                    console.log(error)
+                    this.log(error)
                     await this.send("Unexpected error logging in")
                     await sleep(this.errorDelay)
                     await this.login()
@@ -511,11 +533,12 @@ module.exports = class ShopifyTask {
                     await this.findRandomItem()
                 } else
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
+                    this.log(error.response.body)
                     await this.send("Error preloading: " + error.response.statusCode)
                     await sleep(this.errorDelay)
                     await this.findRandomItem()
                 } else if (this.stopped === "false") {
-                    console.log(error)
+                    this.log(error)
                     await this.send("Unexpected error preloading")
                     await sleep(this.errorDelay)
                     await this.findRandomItem()
@@ -558,12 +581,12 @@ module.exports = class ShopifyTask {
                     await this.waitForCheckpoint()
                 } else
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
-                    await this.send("Error finding product: " + error.response.statusCode)
+                    await this.send("Error waiting: " + error.response.statusCode)
                     await sleep(this.errorDelay)
                     await this.waitForCheckpoint()
                 } else if (this.stopped === "false") {
-                    console.log(error)
-                    await this.send("Unexpected error finding variant")
+                    this.log(error)
+                    await this.send("Unexpected error waiting")
                     await sleep(this.errorDelay)
                     await this.waitForCheckpoint()
                 }
@@ -596,7 +619,6 @@ module.exports = class ShopifyTask {
                     }
                 }
                 let response = await got(this.request);
-                console.log(response.body)
                 if (response.body.items.length != 0 && response.body.items['item_count'] != 0)
                     throw "Error clearing cart"
             } catch (error) {
@@ -607,11 +629,12 @@ module.exports = class ShopifyTask {
                     await this.clearCart()
                 } else
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
+                    this.log(error.response.body)
                     await this.send("Error clearing cart: " + error.response.statusCode)
                     await sleep(this.errorDelay)
                     await this.clearCart()
                 } else if (this.stopped === "false") {
-                    console.log(error)
+                    this.log(error)
                     await this.send("Unexpected error clearing cart")
                     await sleep(this.errorDelay)
                     await this.clearCart()
@@ -674,20 +697,18 @@ module.exports = class ShopifyTask {
                 try {
                     this.imageURL = response.body.product.images[0].src
                 } catch (error) {
-                    console.log("No image")
+                    this.log("No image")
                 }
                 await this.sendProductTitle(this.productTitle)
                 if (this.size === "RS") {
                     this.productVariant = response.body.product.variants.sample().id;
-                    console.log("Found product")
-                    console.log(this.productVariant)
+                    this.log(this.productVariant)
                     await this.send("Found product")
                     return;
                 } else {
                     for (var i = 0; i < response.body.product.variants.length; i++) {
                         if (response.body.product.variants[i].title.includes(this.size)) {
                             this.productVariant = response.body.product.variants[i].id;
-                            console.log("Found product")
                             await this.send("Found product")
                             return;
                         }
@@ -718,7 +739,7 @@ module.exports = class ShopifyTask {
                         await this.findProductByKeywords()
                     }
                 } else if (this.stopped === "false") {
-                    console.log(error)
+                    this.log(error)
                     await this.send("Unexpected error finding variant")
                     await sleep(this.errorDelay)
                     await this.findProductByKeywords()
@@ -765,26 +786,23 @@ module.exports = class ShopifyTask {
                     var root = HTMLParser.parse(response.body);
                     response.body = {}
                     response.body.product = JSON.parse(root.querySelector('[id="ProductJson-product-template"]').rawText)
-                    console.log(response.body.product)
                 }
                 this.productTitle = response.body.product.title
                 try {
                     this.imageURL = response.body.product.image.src
                 } catch (error) {
-                    console.log("No image")
+                    this.log("No image")
                 }
                 await this.sendProductTitle(this.productTitle)
                 if (this.size === "RS") {
                     this.productVariant = response.body.product.variants.sample().id;
-                    console.log("Found product")
-                    console.log(this.productVariant)
+                    this.log(this.productVariant)
                     await this.send("Found product")
                     return;
                 } else {
                     for (var i = 0; i < response.body.product.variants.length; i++) {
                         if (response.body.product.variants[i].title.includes(this.size)) {
                             this.productVariant = response.body.product.variants[i].id;
-                            console.log("Found product")
                             await this.send("Found product")
                             return;
                         }
@@ -810,15 +828,76 @@ module.exports = class ShopifyTask {
                         await sleep(this.monitorDelay)
                         await this.findProductByLink()
                     } else {
+                        this.log(error.response.body)
                         await this.send("Error finding product: " + error.response.statusCode)
                         await sleep(this.errorDelay)
                         await this.findProductByLink()
                     }
                 } else if (this.stopped === "false") {
-                    console.log(error)
+                    this.log(error)
                     await this.send("Unexpected error finding variant")
                     await sleep(this.errorDelay)
                     await this.findProductByLink()
+                }
+            }
+        }
+    }
+
+    async findProductByVariant() {
+        const got = require('got');
+        const tunnel = require('tunnel');
+        this.cookie = "shopify_digest=" + await makeid(7)
+        this.cookieJar.setCookie(this.cookie + '; Domain=' + this.plainLink + '; Path=/; Secure; SameSite=Lax; hostOnly=false; aAge=10ms; cAge=10ms', this.baseLink)
+        if (this.stopped === "false") {
+            await this.send("Searching for product...")
+            try {
+                this.request = {
+                    method: 'get',
+                    url: this.baseLink + "/variants/" + this.productVariant2 + ".js",
+                    cookieJar: this.cookieJar,
+                    headers: {
+                        'content-type': 'application/x-www-form-urlencoded;charset=utf-8',
+                        'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+                        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36'
+                    },
+                    responseType: 'json'
+                }
+                if (this.proxy != '-') {
+                    this.request['agent'] = {
+                        https: tunnel.httpsOverHttp({
+                            proxy: this.proxy
+                        })
+                    }
+                }
+                let response = await got(this.request);
+                if (response.url.includes("/password"))
+                    throw "Password page up"
+                this.productTitle = response.body.name
+                this.productVariant = response.body.id
+                await this.sendProductTitle(this.productTitle)
+            } catch (error) {
+                await this.setDelays()
+                if (error === "Password page up") {
+                    await this.send("Password page up")
+                    await sleep(this.monitorDelay)
+                    await this.findProductByVariant()
+                } else
+                if (typeof error.response != 'undefined' && this.stopped === "false") {
+                    if (error.response.statusCode === 404) {
+                        await this.send("Searching for product...")
+                        await sleep(this.monitorDelay)
+                        await this.findProductByVariant()
+                    } else {
+                        this.log(error.response.body)
+                        await this.send("Error finding product: " + error.response.statusCode)
+                        await sleep(this.errorDelay)
+                        await this.findProductByVariant()
+                    }
+                } else if (this.stopped === "false") {
+                    this.log(error)
+                    await this.send("Unexpected error finding variant")
+                    await sleep(this.errorDelay)
+                    await this.findProductByVariant()
                 }
             }
         }
@@ -838,7 +917,6 @@ module.exports = class ShopifyTask {
                     headers: {
                         'sec-ch-ua': '" Not A;Brand";v="99", "Chromium";v="90", "Google Chrome";v="90"',
                         'accept': 'application/json, text/javascript, */*; q=0.01',
-                        'x-requested-with': 'XMLHttpRequest',
                         'sec-ch-ua-mobile': '?0',
                         'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.77 Safari/537.36',
                         'content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
@@ -862,97 +940,26 @@ module.exports = class ShopifyTask {
                     }
                 }
                 let response = await got(this.request);
-                this.cartTotal = response.body.price
-                this.cartTotal = this.cartTotal.toString()
-                this.cartTotal = this.cartTotal.substring(0, this.cartTotal.length - 2)
                 await this.send("Carted")
-                this.url = this.baseLink + "/checkout"
+                for (var i = 0; i < response.headers['set-cookie'].length; i++) {
+                    if (response.headers['set-cookie'][i].includes("cart=")) {
+                        this.cartToken = response.headers['set-cookie'][i].split(";")[0].split("cart=")[1]
+                        break;
+                    }
+                }
                 return;
             } catch (error) {
                 await this.setDelays()
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
-                    if (error.response.statusCode === 422) {
-                        await this.addToCart2()
-                    } else {
-                        await this.send("Error adding to cart: " + error.response.statusCode)
-                        await sleep(this.errorDelay)
-                        await this.addToCart()
-                    }
+                    await this.send("Error adding to cart: " + error.response.statusCode)
+                    this.log(error.response.body)
+                    await sleep(this.errorDelay)
+                    await this.addToCart()
                 } else if (this.stopped === "false") {
-                    console.log(error)
+                    this.log(error)
                     await this.send("Unexpected ATC error")
                     await sleep(this.errorDelay)
                     await this.addToCart()
-                }
-            }
-        }
-    }
-
-    async addToCart2() {
-        const got = require('got');
-        const tunnel = require('tunnel');
-        const querystring = require('querystring')
-        if (this.stopped === "false") {
-            await this.send("Adding to cart (2)...")
-            try {
-                this.request = {
-                    method: 'get',
-                    url: this.baseLink + "/cart/" + this.productVariant + ":1",
-                    cookieJar: this.cookieJar,
-                    headers: {
-                        'sec-ch-ua': '" Not A;Brand";v="99", "Chromium";v="90", "Google Chrome";v="90"',
-                        'accept': 'application/json, text/javascript, */*; q=0.01',
-                        'x-requested-with': 'XMLHttpRequest',
-                        'sec-ch-ua-mobile': '?0',
-                        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.77 Safari/537.36',
-                        'content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
-                        'sec-fetch-site': 'same-origin',
-                        'sec-fetch-mode': 'cors',
-                        'sec-fetch-dest': 'empty',
-                        'accept-language': 'en-US,en;q=0.9',
-                        'origin': this.baseLink,
-                        'referer': this.baseLink
-                    },
-                    followRedirect: false
-                }
-                if (this.proxy != '-') {
-                    this.request['agent'] = {
-                        https: tunnel.httpsOverHttp({
-                            proxy: this.proxy
-                        })
-                    }
-                }
-                let response = await got(this.request);
-                var HTMLParser = require('node-html-parser');
-                var root = HTMLParser.parse(response.body);
-                console.log(response.statusCode)
-                console.log(root.querySelector("a").getAttribute("href"))
-                console.log(response.body)
-                if (response.body.includes("/checkpoint")) {
-                    await this.send("Found checkpoint")
-                    var HTMLParser = require('node-html-parser');
-                    var root = HTMLParser.parse(response.body);
-                    if (this.stopped === "false")
-                        await this.sendCaptchaCheckpoint()
-
-                    if (this.stopped === "false")
-                        await this.retrieveCaptchaResponse()
-
-                    await this.addToCart2()
-                } else {
-                    this.url = root.querySelector("a").getAttribute("href") + "/stock_problems"
-                }
-            } catch (error) {
-                await this.setDelays()
-                if (typeof error.response != 'undefined' && this.stopped === "false") {
-                    await this.send("Error loading checkout: " + error.response.statusCode)
-                    await sleep(this.errorDelay)
-                    await this.addToCart2()
-                } else if (this.stopped === "false") {
-                    console.log(error)
-                    await this.send("Unexpected error loading checkout")
-                    await sleep(this.errorDelay)
-                    await this.addToCart2()
                 }
             }
         }
@@ -964,11 +971,10 @@ module.exports = class ShopifyTask {
         const querystring = require('querystring')
         if (this.stopped === "false") {
             await this.send("Loading checkout...")
-            console.log(this.url)
             try {
                 this.request = {
                     method: 'get',
-                    url: this.url,
+                    url: this.baseLink + "/checkout",
                     cookieJar: this.cookieJar,
                     headers: {
                         'sec-ch-ua': '" Not A;Brand";v="99", "Chromium";v="90", "Google Chrome";v="90"',
@@ -993,8 +999,7 @@ module.exports = class ShopifyTask {
                     }
                 }
                 let response = await got(this.request);
-                console.log(response.statusCode)
-                console.log(response.url)
+                this.log(response.url)
                 if (response.url.includes("/checkpoint")) {
                     await this.send("Found checkpoint")
                     var HTMLParser = require('node-html-parser');
@@ -1021,11 +1026,12 @@ module.exports = class ShopifyTask {
             } catch (error) {
                 await this.setDelays()
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
+                    this.log(error.response.body)
                     await this.send("Error loading checkout: " + error.response.statusCode)
                     await sleep(this.errorDelay)
                     await this.loadCheckoutforPreload()
                 } else if (this.stopped === "false") {
-                    console.log(error)
+                    this.log(error)
                     await this.send("Unexpected error loading checkout")
                     await sleep(this.errorDelay)
                     await this.loadCheckoutforPreload()
@@ -1040,11 +1046,10 @@ module.exports = class ShopifyTask {
         const querystring = require('querystring')
         if (this.stopped === "false") {
             await this.send("Loading checkout...")
-            console.log(this.url)
             try {
                 this.request = {
                     method: 'get',
-                    url: this.url,
+                    url: this.baseLink + "/checkout",
                     cookieJar: this.cookieJar,
                     headers: {
                         'sec-ch-ua': '" Not A;Brand";v="99", "Chromium";v="90", "Google Chrome";v="90"',
@@ -1069,8 +1074,7 @@ module.exports = class ShopifyTask {
                     }
                 }
                 let response = await got(this.request);
-                console.log(response.statusCode)
-                console.log(response.body)
+                this.log(response.body)
                 if (response.url.includes("/checkpoint")) {
                     await this.send("Found checkpoint")
                     var HTMLParser = require('node-html-parser');
@@ -1097,53 +1101,80 @@ module.exports = class ShopifyTask {
                     this.checkoutURL = response.url
                     var HTMLParser = require('node-html-parser');
                     var root = HTMLParser.parse(response.body);
+                    if (root.querySelector('[name="authenticity_token"]') == null)
+                        throw "Waiting for restock"
                     this.authToken = root.querySelector('[name="authenticity_token"]').getAttribute('value')
-                    if (this.site === "Kith" || this.site === "Bape") {
-                        this.test = "_method=patch&authenticity_token=" + this.authToken + "&previous_step=contact_information&step=shipping_method&checkout%5Bemail%5D=" + encodeURIComponent(this.profile.email) + "&checkout%5Bbuyer_accepts_marketing%5D=0&checkout%5Bbuyer_accepts_marketing%5D=1&checkout%5Bshipping_address%5D%5Bfirst_name%5D=&checkout%5Bshipping_address%5D%5Blast_name%5D=&checkout%5Bshipping_address%5D%5Baddress1%5D=&checkout%5Bshipping_address%5D%5Baddress2%5D=&checkout%5Bshipping_address%5D%5Bcity%5D=&checkout%5Bshipping_address%5D%5Bcountry%5D=&checkout%5Bshipping_address%5D%5Bprovince%5D=&checkout%5Bshipping_address%5D%5Bzip%5D=&checkout%5Bshipping_address%5D%5Bphone%5D="
-                        this.test += "&checkout%5Bshipping_address%5D%5Bfirst_name%5D=" + this.profile.firstName //first name
-                        this.test += "&checkout%5Bshipping_address%5D%5Blast_name%5D=" + this.profile.lastName //last name
-                        this.test += "&checkout%5Bshipping_address%5D%5Baddress1%5D=" + this.profile.address1.replaceAll(" ", "+") //address 1
-                        this.test += "&checkout%5Bshipping_address%5D%5Baddress2%5D=&checkout%5Bshipping_address%5D%5Bcity%5D=" + this.profile.city //city
-                        this.test += "&checkout%5Bshipping_address%5D%5Bcountry%5D=" + this.profile.country.replaceAll(" ", "+") //country
-                        this.test += "&checkout%5Bshipping_address%5D%5Bprovince%5D=" + abbrRegion(this.profile.state, 'abbr') //state
-                        this.test += "&checkout%5Bshipping_address%5D%5Bzip%5D=" + this.profile.zipcode //zipcode
-                        this.test += "&checkout%5Bshipping_address%5D%5Bphone%5D=" + "%28" + this.profile.phone.substring(0, 3) + "%29" + "+" + this.profile.phone.substring(3, 6) + "-" + this.profile.phone.substring(6) + "&" //phone number
-                    } else {
-                        this.test = "_method=patch&authenticity_token=" + this.authToken + "&previous_step=contact_information&step=shipping_method&checkout%5Bemail%5D=" + encodeURIComponent(this.profile.email) + "&checkout%5Bbuyer_accepts_marketing%5D=0&checkout%5Bbuyer_accepts_marketing%5D=1&checkout%5Bshipping_address%5D%5Bfirst_name%5D=&checkout%5Bshipping_address%5D%5Blast_name%5D=&checkout%5Bshipping_address%5D%5Bcompany%5D=&checkout%5Bshipping_address%5D%5Baddress1%5D=&checkout%5Bshipping_address%5D%5Baddress2%5D=&checkout%5Bshipping_address%5D%5Bcity%5D=&checkout%5Bshipping_address%5D%5Bcountry%5D=&checkout%5Bshipping_address%5D%5Bprovince%5D=&checkout%5Bshipping_address%5D%5Bzip%5D=&checkout%5Bshipping_address%5D%5Bphone%5D="
-                        this.test += "&checkout%5Bshipping_address%5D%5Bfirst_name%5D=" + this.profile.firstName //first name
-                        this.test += "&checkout%5Bshipping_address%5D%5Blast_name%5D=" + this.profile.lastName //last name
-                        this.test += "&checkout%5Bshipping_address%5D%5Bcompany%5D=&checkout%5Bshipping_address%5D%5Baddress1%5D=" + this.profile.address1.replaceAll(" ", "+") //address 1
-                        this.test += "&checkout%5Bshipping_address%5D%5Baddress2%5D=&checkout%5Bshipping_address%5D%5Bcity%5D=" + this.profile.city //city
-                        this.test += "&checkout%5Bshipping_address%5D%5Bcountry%5D=" + this.profile.country.replaceAll(" ", "+") //country
-                        this.test += "&checkout%5Bshipping_address%5D%5Bprovince%5D=" + abbrRegion(this.profile.state, 'abbr') //state
-                        this.test += "&checkout%5Bshipping_address%5D%5Bzip%5D=" + this.profile.zipcode //zipcode
-                        this.test += "&checkout%5Bshipping_address%5D%5Bphone%5D=" + "%28" + this.profile.phone.substring(0, 3) + "%29" + "+" + this.profile.phone.substring(3, 6) + "-" + this.profile.phone.substring(6) //phone
-                        this.test += "&checkout%5Bremember_me%5D=false&checkout%5Bremember_me%5D=0&checkout%5Battributes%5D%5BI-agree-to-the-Terms-and-Conditions%5D=Yes&"
-                    }
                     if (this.stopped === "false")
                         await this.send("Loaded checkout")
-                    if (this.captchaResponse != 'none') {
-                        this.fscount = root.querySelector('[value="fs_count"]').getAttribute('name')
-                        this.searchBy = this.fscount.split("-count")[0]
-                        this.searchBy = "#fs_" + this.searchBy
-                        var count = 0;
-                        this.values = root.querySelector(this.searchBy)
-                        for (var i = 0; i < this.values.childNodes.length; i++) {
-                            if (this.values.childNodes[i].tagName === "TEXTAREA") {
-                                count++;
-                                var id = this.values.childNodes[i].getAttribute('id')
-                                this.shippingPayload[id] = "";
-                            }
+                    if (root.querySelector('[value="fs_count"]') != null) {
+                        this.test = "_method=patch" //patch
+                        this.test += "&authenticity_token=" + this.authToken //auth token
+                        this.test += "&previous_step=contact_information" //previous step
+                        this.test += "&step=shipping_method" //shipping method
+                        this.test += "&checkout%5Bemail%5D=" + encodeURIComponent(this.profile.email) //email
+                        this.test += "&checkout%5Bbuyer_accepts_marketing%5D=0"
+                        this.test += "&checkout%5Bbuyer_accepts_marketing%5D=1"
+                        if (root.querySelector('[id="checkout_pick_up_in_store_selected"]') != null) {
+                            this.test += "&checkout%5Bpick_up_in_store%5D%5Bselected%5D=false" //delivery
+                            this.test += "&checkout%5Bid%5D=delivery-shipping" //delivery
                         }
+                        this.test += "&checkout%5Bshipping_address%5D%5Bfirst_name%5D="
+                        this.test += "&checkout%5Bshipping_address%5D%5Blast_name%5D="
+                        if (root.querySelector('[id="checkout_shipping_address_company"]') != null) {
+                            this.test += "&checkout%5Bshipping_address%5D%5Bcompany%5D=" //company field
+                        }
+                        this.test += "&checkout%5Bshipping_address%5D%5Baddress1%5D="
+                        this.test += "&checkout%5Bshipping_address%5D%5Baddress2%5D="
+                        this.test += "&checkout%5Bshipping_address%5D%5Bcity%5D="
+                        this.test += "&checkout%5Bshipping_address%5D%5Bcountry%5D="
+                        this.test += "&checkout%5Bshipping_address%5D%5Bprovince%5D="
+                        this.test += "&checkout%5Bshipping_address%5D%5Bzip%5D="
+                        this.test += "&checkout%5Bshipping_address%5D%5Bphone%5D="
+                        this.test += "&checkout%5Bshipping_address%5D%5Bfirst_name%5D=" + this.profile.firstName //first name
+                        this.test += "&checkout%5Bshipping_address%5D%5Blast_name%5D=" + this.profile.lastName //last name
+                        if (root.querySelector('[id="checkout_shipping_address_company"]') != null) {
+                            this.test += "&checkout%5Bshipping_address%5D%5Bcompany%5D=" //company field
+                        }
+                        this.test += "&checkout%5Bshipping_address%5D%5Baddress1%5D=" + this.profile.address1.replaceAll(" ", "+") //address 1
+                        this.test += "&checkout%5Bshipping_address%5D%5Baddress2%5D="
+                        this.test += "&checkout%5Bshipping_address%5D%5Bcity%5D=" + this.profile.city //city
+                        this.test += "&checkout%5Bshipping_address%5D%5Bcountry%5D=" + this.profile.country.replaceAll(" ", "+") //country
+                        this.test += "&checkout%5Bshipping_address%5D%5Bprovince%5D=" + abbrRegion(this.profile.state, 'abbr') //state
+                        this.test += "&checkout%5Bshipping_address%5D%5Bzip%5D=" + this.profile.zipcode //zipcode
+                        this.test += "&checkout%5Bshipping_address%5D%5Bphone%5D=" + "%28" + this.profile.phone.substring(0, 3) + "%29" + "+" + this.profile.phone.substring(3, 6) + "-" + this.profile.phone.substring(6) //phone number
+                        if (root.querySelector('[id="checkout_remember_me"]') != null) {
+                            this.test += "&checkout%5Bremember_me%5D=" //remember me
+                            this.test += "&checkout%5Bremember_me%5D=0"
+                        }
+                        if (root.querySelector('[id="i-agree__checkbox"]') != null) {
+                            this.test += "&checkout%5Battributes%5D%5BI-agree-to-the-Terms-and-Conditions%5D=Yes" //agree
+                        }
+                        if (root.querySelector('[value="fs_count"]') != null) {
+                            this.test += "&"
+                            this.fscount = root.querySelector('[value="fs_count"]').getAttribute('name')
+                            this.searchBy = this.fscount.split("-count")[0]
+                            this.searchBy = "#fs_" + this.searchBy
+                            var count = 0;
+                            this.values = root.querySelector(this.searchBy)
+                            for (var i = 0; i < this.values.childNodes.length; i++) {
+                                if (this.values.childNodes[i].tagName === "TEXTAREA") {
+                                    count++;
+                                    var id = this.values.childNodes[i].getAttribute('id')
+                                    this.shippingPayload[id] = "";
+                                }
+                            }
 
-                        this.test2 = querystring.encode(this.shippingPayload)
-                        var totalfscount = "&" + this.fscount + "=" + count
-                        totalfscount = totalfscount + "&" + this.fscount + "=fs_count"
-                        this.test2 = this.test2 + totalfscount
-                        this.shippingPayload = this.test + this.test2
+                            this.test2 = querystring.encode(this.shippingPayload)
+                            var totalfscount = "&" + this.fscount + "=" + count
+                            totalfscount = totalfscount + "&" + this.fscount + "=fs_count"
+                            this.test2 = this.test2 + totalfscount
+                            this.shippingPayload = this.test + this.test2
+                        } else {
+                            this.shippingPayload = this.test
+                        }
                         this.shippingPayload = this.shippingPayload + "&checkout%5Bclient_details%5D%5Bbrowser_width%5D=1583&checkout%5Bclient_details%5D%5Bbrowser_height%5D=789&checkout%5Bclient_details%5D%5Bjavascript_enabled%5D=1&checkout%5Bclient_details%5D%5Bcolor_depth%5D=24&checkout%5Bclient_details%5D%5Bjava_enabled%5D=false&checkout%5Bclient_details%5D%5Bbrowser_tz%5D=240"
-                        console.log("Shipping payload here")
-                        console.log(this.shippingPayload)
+                        this.log("Shipping payload here")
+                        this.log(this.shippingPayload)
                     } else {
                         this.shippingPayload = querystring.encode({
                             "_method": "patch",
@@ -1169,17 +1200,23 @@ module.exports = class ShopifyTask {
                             "checkout[attributes][I-agree-to-the-Terms-and-Conditions]": "Yes",
                             "checkout[shipping_address][phone]": this.profile.phone
                         })
-                        console.log(this.shippingPayload)
+                        this.log(this.shippingPayload)
                     }
                 }
             } catch (error) {
                 await this.setDelays()
+                if (error === "Waiting for restock") {
+                    await this.send("Waiting for restock")
+                    await sleep(this.errorDelay)
+                    await this.loadCheckout()
+                } else
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
+                    this.log(error.response.body)
                     await this.send("Error loading checkout: " + error.response.statusCode)
                     await sleep(this.errorDelay)
                     await this.loadCheckout()
                 } else if (this.stopped === "false") {
-                    console.log(error)
+                    this.log(error)
                     await this.send("Unexpected error loading checkout")
                     await sleep(this.errorDelay)
                     await this.loadCheckout()
@@ -1239,7 +1276,6 @@ module.exports = class ShopifyTask {
                     },
                     responseType: 'json'
                 }
-                console.log(this.request)
                 if (this.proxy != '-') {
                     this.request['agent'] = {
                         https: tunnel.httpsOverHttp({
@@ -1248,7 +1284,6 @@ module.exports = class ShopifyTask {
                     }
                 }
                 let response = await got(this.request);
-                console.log(response.body)
                 this.checkoutQueueToken = response.body.data.poll.token
                 var now = new Date(Date.now())
                 var then = new Date(response.body.data.poll.pollAfter)
@@ -1263,14 +1298,83 @@ module.exports = class ShopifyTask {
             } catch (error) {
                 await this.setDelays()
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
+                    this.log(error.response.body)
                     await this.send("Error polling queue: " + error.response.statusCode)
                     await sleep(this.errorDelay)
                     await this.pollQueue()
                 } else if (this.stopped === "false") {
-                    console.log(error)
+                    this.log(error)
                     await this.send("Unexpected error polling queue")
                     await sleep(this.errorDelay)
                     await this.pollQueue()
+                }
+            }
+        }
+    }
+
+    async pollQueueFast() {
+        const got = require('got');
+        const tunnel = require('tunnel');
+        if (this.stopped === "false") {
+            await this.send("Polling queue...")
+            try {
+                this.request = {
+                    method: 'post',
+                    url: this.baseLink + "/queue/poll",
+                    cookieJar: this.cookieJar,
+                    headers: {
+                        'sec-ch-ua': '" Not;A Brand";v="99", "Google Chrome";v="91", "Chromium";v="91"',
+                        'sec-ch-ua-mobile': '?0',
+                        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.77 Safari/537.36',
+                        'content-type': 'application/json',
+                        'accept': '*/*',
+                        'origin': this.baseLink,
+                        'sec-fetch-site': 'same-origin',
+                        'sec-fetch-mode': 'cors',
+                        'sec-fetch-dest': 'empty',
+                        'referer': this.baseLink + '/throttle/queue',
+                        'accept-language': 'en-US,en;q=0.9',
+                        'x-shopify-storefront-access-token': this.accessToken,
+                    },
+                    json: {
+                        "query": "{ poll(token: $token) { token pollAfter } }",
+                        "variables": {
+                            "token": this.checkoutQueueToken
+                        },
+                    },
+                    responseType: 'json'
+                }
+                if (this.proxy != '-') {
+                    this.request['agent'] = {
+                        https: tunnel.httpsOverHttp({
+                            proxy: this.proxy
+                        })
+                    }
+                }
+                let response = await got(this.request);
+                this.checkoutQueueToken = response.body.data.poll.token
+                var now = new Date(Date.now())
+                var then = new Date(response.body.data.poll.pollAfter)
+                await this.send("In queue")
+                await sleep(Math.abs(then - now))
+                if (response.body.data.poll['__typename'] === "PollContinue")
+                    await this.pollQueueFast()
+                else if (response.body.data.poll['__typename'] === "PollComplete")
+                    return;
+                else
+                    throw ("Error polling queue")
+            } catch (error) {
+                await this.setDelays()
+                if (typeof error.response != 'undefined' && this.stopped === "false") {
+                    this.log(error.response.body)
+                    await this.send("Error polling queue: " + error.response.statusCode)
+                    await sleep(this.errorDelay)
+                    await this.pollQueueFast()
+                } else if (this.stopped === "false") {
+                    this.log(error)
+                    await this.send("Unexpected error polling queue")
+                    await sleep(this.errorDelay)
+                    await this.pollQueueFast()
                 }
             }
         }
@@ -1298,7 +1402,7 @@ module.exports = class ShopifyTask {
                 } else
                     throw "Captcha not ready"
             } catch (error) {
-                await sleep(500)
+                await sleep(100)
                 await this.retrieveCaptchaResponse()
             }
         }
@@ -1340,19 +1444,34 @@ module.exports = class ShopifyTask {
                     }
                 }
                 let response = await got(this.request);
-                console.log("Shipping submitted here")
-                console.log(response.body)
-                console.log(response.statusCode)
-                if (this.stopped === "false")
-                    await this.send("Submitted shipping")
+                this.log("Shipping submitted here")
+                this.log(response.body)
+                if (this.stopped === "false") {
+                    if (response.statusCode === 302)
+                        await this.send("Submitted shipping")
+                    else
+                        throw ("Error submitting shipping")
+                }
             } catch (error) {
                 await this.setDelays()
-                if (typeof error.response != 'undefined' && this.stopped === "false") {
-                    await this.send("Error submitting shipping: " + error.response.statusCode)
+                if (error === "Error submitting shipping") {
+                    await this.send("Error submitting shipping")
                     await sleep(this.errorDelay)
                     await this.submitShipping()
+                } else
+                if (typeof error.response != 'undefined' && this.stopped === "false") {
+                    if (error.response.statusCode === 404) {
+                        await this.send("Waiting for restock")
+                        await sleep(this.errorDelay)
+                        await this.submitShipping()
+                    } else {
+                        this.log(error.response.body)
+                        await this.send("Error submitting shipping: " + error.response.statusCode)
+                        await sleep(this.errorDelay)
+                        await this.submitShipping()
+                    }
                 } else if (this.stopped === "false") {
-                    console.log(error)
+                    this.log(error)
                     await this.send("Unexpected error submitting shipping")
                     await sleep(this.errorDelay)
                     await this.submitShipping()
@@ -1399,28 +1518,41 @@ module.exports = class ShopifyTask {
                 var root = HTMLParser.parse(response.body);
                 if (typeof root.querySelectorAll(".input-radio")[0] !== 'undefined') {
                     this.shippingRate = root.querySelectorAll(".input-radio")[0].getAttribute("value")
-                    if (this.captchaResponse != 'none') {
-                        if (this.site === "Kith")
-                            this.test2 = "_method=patch&authenticity_token=" + this.authToken + "&previous_step=shipping_method&step=payment_method&checkout%5Bshipping_rate%5D%5Bid%5D=" + encodeURIComponent(this.shippingRate)
-                        else
-                            this.test2 = "_method=patch&authenticity_token=" + this.authToken + "&previous_step=shipping_method&step=payment_method&checkout%5Bshipping_rate%5D%5Bid%5D=" + encodeURIComponent(this.shippingRate) + "&checkout%5Battributes%5D%5BI-agree-to-the-Terms-and-Conditions%5D=Yes"
-                        this.fscount = root.querySelector('[value="fs_count"]').getAttribute('name')
-                        this.searchBy = this.fscount.split("-count")[0]
-                        this.searchBy = "#fs_" + this.searchBy
-                        var count = 0;
-                        this.fscountvalues = ""
-                        this.values = root.querySelector(this.searchBy)
-                        for (var i = 0; i < this.values.childNodes.length; i++) {
-                            if (this.values.childNodes[i].tagName === "TEXTAREA") {
-                                count++;
-                                this.fscountvalues += "&" + this.values.childNodes[i].getAttribute('id') + "="
-                            }
+                    if (root.querySelector('[value="fs_count"]') != null) {
+                        this.test2 = "_method=patch" //patch
+                        this.test2 += "&authenticity_token=" + this.authToken //auth token 
+                        this.test2 += "&previous_step=shipping_method" //previous step
+                        this.test2 += "&step=payment_method" //current step
+                        this.test2 += "&checkout%5Bshipping_rate%5D%5Bid%5D=" + encodeURIComponent(this.shippingRate)
+                        if (root.querySelector('[id="i-agree__checkbox"]') != null) {
+                            this.test2 += "&checkout%5Battributes%5D%5BI-agree-to-the-Terms-and-Conditions%5D=Yes" // agree
                         }
-                        this.test2 += this.fscountvalues
-                        this.test2 += "&" + this.fscount + "=" + count + "&" + this.fscount + "=" + "fs_count" + "&checkout%5Bclient_details%5D%5Bbrowser_width%5D=1263&checkout%5Bclient_details%5D%5Bbrowser_height%5D=913&checkout%5Bclient_details%5D%5Bjavascript_enabled%5D=1&checkout%5Bclient_details%5D%5Bcolor_depth%5D=24&checkout%5Bclient_details%5D%5Bjava_enabled%5D=false&checkout%5Bclient_details%5D%5Bbrowser_tz%5D=240"
+                        if (root.querySelector('[value="fs_count"]') != null) {
+                            this.fscount = root.querySelector('[value="fs_count"]').getAttribute('name')
+                            this.searchBy = this.fscount.split("-count")[0]
+                            this.searchBy = "#fs_" + this.searchBy
+                            var count = 0;
+                            this.fscountvalues = ""
+                            this.values = root.querySelector(this.searchBy)
+                            for (var i = 0; i < this.values.childNodes.length; i++) {
+                                if (this.values.childNodes[i].tagName === "TEXTAREA") {
+                                    count++;
+                                    this.fscountvalues += "&" + this.values.childNodes[i].getAttribute('id') + "="
+                                }
+                            }
+                            this.test2 += this.fscountvalues
+                            this.test2 += "&" + this.fscount + "=" + count + "&" + this.fscount + "=" + "fs_count"
+                        }
+                        this.test2 += "&checkout%5Bclient_details%5D%5Bbrowser_width%5D=1263"
+                        this.test2 += "&checkout%5Bclient_details%5D%5Bbrowser_height%5D=913"
+                        this.test2 += "&checkout%5Bclient_details%5D%5Bjavascript_enabled%5D=1"
+                        this.test2 += "&checkout%5Bclient_details%5D%5Bcolor_depth%5D=24"
+                        this.test2 += "&checkout%5Bclient_details%5D%5Bjava_enabled%5D=false"
+                        this.test2 += "&checkout%5Bclient_details%5D%5Bbrowser_tz%5D=240"
+
                         this.shippingRatePayload = this.test2
-                        console.log("Shipping rate payload here")
-                        console.log(this.shippingRatePayload)
+                        this.log("Shipping rate payload here")
+                        this.log(this.shippingRatePayload)
                     } else {
                         this.shippingRatePayload = querystring.encode({
                             '_method': 'patch',
@@ -1436,22 +1568,24 @@ module.exports = class ShopifyTask {
                             'checkout[client_details][java_enabled]': 'false',
                             'checkout[client_details][browser_tz]': '240'
                         })
-                        console.log(this.shippingRatePayload)
+                        this.log(this.shippingRatePayload)
                     }
                 } else {
                     await sleep(300)
                     await this.loadShippingRate()
                 }
-                await this.send("Loaded rates")
+                if (this.stopped === "false")
+                    await this.send("Loaded rates")
                 return;
             } catch (error) {
                 await this.setDelays()
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
+                    this.log(error.response.body)
                     await this.send("Error loading rates: " + error.response.statusCode)
                     await sleep(this.errorDelay)
                     await this.loadShippingRate()
                 } else if (this.stopped === "false") {
-                    console.log(error)
+                    this.log(error)
                     await this.send("Unexpected error loading rates")
                     await sleep(this.errorDelay)
                     await this.loadShippingRate()
@@ -1496,22 +1630,35 @@ module.exports = class ShopifyTask {
                     }
                 }
                 let response = await got(this.request);
-                console.log("submitted shipping rate here")
-                console.log(response.body)
-                console.log(response.statusCode)
+                this.log("submitted shipping rate here")
+                this.log(response.body)
                 if (this.stopped === "false") {
-                    await this.send("Submitted rate")
-                    await this.submitCard()
+                    if (response.statusCode === 302)
+                        await this.send("Submitted rate")
+                    else
+                        throw ("Error submitting rate")
                 }
                 return;
             } catch (error) {
                 await this.setDelays()
-                if (typeof error.response != 'undefined' && this.stopped === "false") {
-                    await this.send("Error submitting rate: " + error.response.statusCode)
+                if (error === "Error submitting rate") {
+                    await this.send("Error submitting rate")
                     await sleep(this.errorDelay)
                     await this.submitRate()
+                } else
+                if (typeof error.response != 'undefined' && this.stopped === "false") {
+                    if (error.response.statusCode === 404) {
+                        await this.send("Waiting for restock")
+                        await sleep(this.errorDelay)
+                        await this.submitRate()
+                    } else {
+                        this.log(error.response.body)
+                        await this.send("Error submitting rate: " + error.response.statusCode)
+                        await sleep(this.errorDelay)
+                        await this.submitRate()
+                    }
                 } else if (this.stopped === "false") {
-                    console.log(error)
+                    this.log(error)
                     await this.send("Unexpected error submitting rate")
                     await sleep(this.errorDelay)
                     await this.submitRate()
@@ -1557,30 +1704,59 @@ module.exports = class ShopifyTask {
                 var HTMLParser = require('node-html-parser');
                 var root = HTMLParser.parse(response.body);
                 if (root.querySelector('[name="checkout[payment_gateway]"]') != null) {
-                    console.log(response.body)
                     this.paymentGateway = root.querySelector('[name="checkout[payment_gateway]"]').getAttribute('value')
                     this.totalPrice = root.querySelector('[name="checkout[total_price]"]').getAttribute('value')
-                    if (this.captchaResponse != 'none') {
-                        this.test3 = "_method=patch&authenticity_token=" + this.authToken + "&previous_step=payment_method&step=&s=" + this.encryptedPayment
-                        this.fscount = root.querySelector('[value="fs_count"]').getAttribute('name')
-                        this.searchBy = this.fscount.split("-count")[0]
-                        this.searchBy = "#fs_" + this.searchBy
-                        var count = 0;
-                        this.values = root.querySelector(this.searchBy)
-                        this.fscountvalues2 = ""
-                        for (var i = 0; i < this.values.childNodes.length; i++) {
-                            if (this.values.childNodes[i].tagName === "TEXTAREA") {
-                                count++;
-                                this.fscountvalues2 += "&" + this.values.childNodes[i].getAttribute('id') + "="
+                    this.cartTotal = this.totalPrice
+                    this.cartTotal = this.cartTotal.toString()
+                    this.cartTotal = this.cartTotal.substring(0, this.cartTotal.length - 2)
+                    if (root.querySelector('[value="fs_count"]') != null) {
+                        this.test3 = "_method=patch" //patch
+                        this.test3 += "&authenticity_token=" + this.authToken //auth token
+                        this.test3 += "&previous_step=payment_method" //previous step
+                        this.test3 += "&step=" //final step
+                        this.test3 += "&s=" + this.encryptedPayment //payment
+                        if (root.querySelector('[value="fs_count"]') != null) {
+                            this.fscount = root.querySelector('[value="fs_count"]').getAttribute('name')
+                            this.searchBy = this.fscount.split("-count")[0]
+                            this.searchBy = "#fs_" + this.searchBy
+                            var count = 0;
+                            this.values = root.querySelector(this.searchBy)
+                            this.fscountvalues2 = ""
+                            for (var i = 0; i < this.values.childNodes.length; i++) {
+                                if (this.values.childNodes[i].tagName === "TEXTAREA") {
+                                    count++;
+                                    this.fscountvalues2 += "&" + this.values.childNodes[i].getAttribute('id') + "="
+                                }
                             }
+                            this.test3 += this.fscountvalues2
+                            this.test3 += "&" + this.fscount + "=" + count + "&" + this.fscount + "=" + "fs_count"
                         }
-                        this.test3 += this.fscountvalues2
-                        this.test3 += "&" + this.fscount + "=" + count + "&" + this.fscount + "=" + "fs_count"
-                        this.test3 += "&checkout%5Bpayment_gateway%5D=" + this.paymentGateway + "&checkout%5Bcredit_card%5D%5Bvault%5D=false&checkout%5Bdifferent_billing_address%5D=false&checkout%5Btotal_price%5D=" + this.totalPrice + "&complete=1&checkout%5Bclient_details%5D%5Bbrowser_width%5D=1263&checkout%5Bclient_details%5D%5Bbrowser_height%5D=913&checkout%5Bclient_details%5D%5Bjavascript_enabled%5D=1&checkout%5Bclient_details%5D%5Bcolor_depth%5D=24&checkout%5Bclient_details%5D%5Bjava_enabled%5D=false&checkout%5Bclient_details%5D%5Bbrowser_tz%5D=240"
+                        this.test3 += "&checkout%5Bpayment_gateway%5D=" + this.paymentGateway //payment gateway
+                        this.test3 += "&checkout%5Bcredit_card%5D%5Bvault%5D=false"
+                        this.test3 += "&checkout%5Bdifferent_billing_address%5D=false"
+                        if (root.querySelector('[id="checkout_remember_me"]') != null) {
+                            this.test3 += "&checkout%5Bremember_me%5D=" //remember me
+                            this.test3 += "&checkout%5Bremember_me%5D=0"
+                        }
+                        if (root.querySelector('[id="checkout_vault_phone"]') != null) {
+                            this.test3 += "&checkout%5Bvault_phone%5D=%2B1" + this.profile.phone //vault phone
+                        }
+                        this.test3 += "&checkout%5Btotal_price%5D=" + this.totalPrice //total price
+                        this.test3 += "&complete=1"
+                        this.test3 += "&checkout%5Bclient_details%5D%5Bbrowser_width%5D=1263"
+                        this.test3 += "&checkout%5Bclient_details%5D%5Bbrowser_height%5D=913"
+                        this.test3 += "&checkout%5Bclient_details%5D%5Bjavascript_enabled%5D=1"
+                        this.test3 += "&checkout%5Bclient_details%5D%5Bcolor_depth%5D=24"
+                        this.test3 += "&checkout%5Bclient_details%5D%5Bjava_enabled%5D=false"
+                        this.test3 += "&checkout%5Bclient_details%5D%5Bbrowser_tz%5D=240"
+
                         this.paymentPayload = this.test3
-                        console.log("payment payload hhere")
-                        console.log(this.paymentPayload)
+                        this.log("payment payload hhere")
+                        this.log(this.paymentPayload)
                     } else {
+                        if (typeof this.authToken === 'undefined')
+                            this.authToken = root.querySelector('[name="authenticity_token"]').getAttribute('value')
+
                         this.paymentPayload = querystring.encode({
                             '_method': 'patch',
                             'authenticity_token': this.authToken,
@@ -1600,9 +1776,11 @@ module.exports = class ShopifyTask {
                             'checkout[client_details][java_enabled]': 'false',
                             'checkout[client_details][browser_tz]': '240'
                         })
-                        console.log(this.paymentPayload)
+                        this.log(this.paymentPayload)
                     }
-                } else if (this.mode === "Launch" || this.mode === "Restock") {
+                } else if (this.mode === "Fast" || this.mode === "Prestock") {
+                    await this.setDelays()
+                    await this.send("OOS, retrying")
                     await sleep(this.monitorDelay)
                     await this.loadPayment()
                 } else {
@@ -1615,11 +1793,12 @@ module.exports = class ShopifyTask {
             } catch (error) {
                 await this.setDelays()
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
+                    this.log(error.response.body)
                     await this.send("Error loading payment: " + error.response.statusCode)
                     await sleep(this.errorDelay)
                     await this.loadPayment()
                 } else if (this.stopped === "false") {
-                    console.log(error)
+                    this.log(error)
                     await this.send("Unexpected error loading payment")
                     await sleep(this.errorDelay)
                     await this.loadPayment()
@@ -1662,14 +1841,14 @@ module.exports = class ShopifyTask {
                     }
                 }
                 let response = await got(this.request);
+                this.log(response.body)
                 var HTMLParser = require('node-html-parser');
                 var root = HTMLParser.parse(response.body);
                 if (root.querySelector("title") != null && root.querySelector("title").rawText.includes("Error"))
                     throw "Error submitting order"
                 if (this.stopped === "false" && response.statusCode == 200) {
-                    console.log(response.url)
                     await this.send("Submitted order")
-                    console.log(this.checkoutURL)
+                    this.log(this.checkoutURL)
                     await this.send("Processing...")
                     await sleep(4000)
                 }
@@ -1681,11 +1860,18 @@ module.exports = class ShopifyTask {
                     await this.submitOrder()
                 } else
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
-                    await this.send("Error submitting order: " + error.response.statusCode)
-                    await sleep(this.errorDelay)
-                    await this.submitOrder()
+                    if (error.response.statusCode === 404) {
+                        await this.send("Waiting for restock")
+                        await sleep(this.errorDelay)
+                        await this.submitOrder()
+                    } else {
+                        this.log(error.response.body)
+                        await this.send("Error submitting order: " + error.response.statusCode)
+                        await sleep(this.errorDelay)
+                        await this.submitOrder()
+                    }
                 } else if (this.stopped === "false") {
-                    console.log(error)
+                    this.log(error)
                     await this.send("Unexpected error submitting order")
                     await sleep(this.errorDelay)
                     await this.submitOrder()
@@ -1697,7 +1883,7 @@ module.exports = class ShopifyTask {
     async processPayment() {
         const got = require('got');
         const tunnel = require('tunnel');
-        console.log(this.checkoutURL)
+        this.log(this.checkoutURL)
         if (this.stopped === "false") {
             await this.send("Processing...")
             try {
@@ -1728,12 +1914,6 @@ module.exports = class ShopifyTask {
                     }
                 }
                 let response = await got(this.request);
-                console.log("body")
-                console.log(response.body)
-                console.log("status")
-                console.log(response.statusCode)
-                console.log("url")
-                console.log(response.redirectUrls)
                 var HTMLParser = require('node-html-parser');
                 var root = HTMLParser.parse(response.body);
                 if (root.querySelector("title") != null && root.querySelector("title").rawText.includes("Processing")) {
@@ -1746,6 +1926,7 @@ module.exports = class ShopifyTask {
             } catch (error) {
                 await this.setDelays()
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
+                    this.log(error.response.body)
                     if (error.response.statusCode === 429) {
                         await this.send("Checkout failed")
                         await this.sendFailError()
@@ -1755,7 +1936,7 @@ module.exports = class ShopifyTask {
                         await this.processPayment()
                     }
                 } else if (this.stopped === "false") {
-                    console.log(error)
+                    this.log(error)
                     await this.send("Unexpected error processing")
                     await sleep(this.errorDelay)
                     await this.processPayment()
@@ -1798,7 +1979,7 @@ module.exports = class ShopifyTask {
                     }
                 }
                 let response = await got(this.request);
-                console.log(response.body)
+                this.log(response.body)
                 var HTMLParser = require('node-html-parser');
                 var root = HTMLParser.parse(response.body);
                 if (root.querySelector("title") != null && root.querySelector("title").rawText.includes("Payment") || (response.body === "")) {
@@ -1814,17 +1995,413 @@ module.exports = class ShopifyTask {
             } catch (error) {
                 await this.setDelays()
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
+                    this.log(error.response.body)
                     await this.send("Error checking: " + error.response.statusCode)
                     await sleep(this.errorDelay)
                     await this.checkOrder()
                 } else if (this.stopped === "false") {
-                    console.log(error)
+                    this.log(error)
                     await this.send("Unexpected error checking")
                     await sleep(this.errorDelay)
                     await this.checkOrder()
                 }
             }
         }
+    }
+
+    async getConfig() {
+        const got = require('got');
+        const tunnel = require('tunnel');
+        if (this.stopped === "false") {
+            await this.send("Getting config...")
+            try {
+                this.request = {
+                    method: 'get',
+                    url: this.baseLink + "/payments/config.json",
+                    cookieJar: this.cookieJar,
+                    headers: {
+                        'sec-ch-ua': '" Not A;Brand";v="99", "Chromium";v="90", "Google Chrome";v="90"',
+                        'accept': 'application/json, text/javascript, */*; q=0.01',
+                        'x-requested-with': 'XMLHttpRequest',
+                        'sec-ch-ua-mobile': '?0',
+                        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.77 Safari/537.36',
+                        'sec-fetch-site': 'same-origin',
+                        'sec-fetch-mode': 'cors',
+                        'sec-fetch-dest': 'empty',
+                        'accept-language': 'en-US,en;q=0.9',
+                        'origin': this.baseLink,
+                        'referer': this.baseLink
+                    },
+                    responseType: 'json'
+                }
+                if (this.proxy != '-') {
+                    this.request['agent'] = {
+                        https: tunnel.httpsOverHttp({
+                            proxy: this.proxy
+                        })
+                    }
+                }
+                let response = await got(this.request);
+                this.accessToken = response.body.paymentInstruments.accessToken
+                if (this.stopped === "false")
+                    await this.send("Got config")
+            } catch (error) {
+                await this.setDelays()
+                if (typeof error.response != 'undefined' && this.stopped === "false") {
+                    this.log(error.response.body)
+                    await this.send("Error getting config: " + error.response.statusCode)
+                    await sleep(this.errorDelay)
+                    await this.getConfig()
+                } else if (this.stopped === "false") {
+                    this.log(error)
+                    await this.send("Unexpected error getting config")
+                    await sleep(this.errorDelay)
+                    await this.getConfig()
+                }
+            }
+        }
+    }
+
+    async createCheckout() {
+        const got = require('got');
+        const tunnel = require('tunnel');
+        if (this.stopped === "false") {
+            await this.send("Creating checkout...")
+            try {
+                this.request = {
+                    method: 'post',
+                    url: this.baseLink + "/wallets/checkouts.json",
+                    cookieJar: this.cookieJar,
+                    headers: {
+                        'sec-ch-ua': '" Not;A Brand";v="99", "Google Chrome";v="91", "Chromium";v="91"',
+                        'content-type': 'application/json',
+                        'cache-control': 'max-age=0',
+                        'sec-ch-ua-mobile': '?0',
+                        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                        'accept': '*/*',
+                        'sec-fetch-site': 'same-origin',
+                        'sec-fetch-mode': 'cors',
+                        'sec-fetch-dest': 'empty',
+                        'accept-encoding': 'gzip, deflate, br',
+                        'accept-language': 'en-US,en;q=0.9',
+                        'origin': this.baseLink,
+                        'x-shopify-storefront-access-token': this.accessToken,
+                        'x-checkout-queue-token': this.checkoutQueueToken
+                    },
+                    responseType: 'json'
+                }
+                if (this.proxy != '-') {
+                    this.request['agent'] = {
+                        https: tunnel.httpsOverHttp({
+                            proxy: this.proxy
+                        })
+                    }
+                }
+                let response = await got(this.request);
+                this.checkoutURL = response.body.checkout['web_url']
+                this.checkoutToken = response.body.checkout.token
+                if (this.stopped === "false")
+                    await this.send("Created checkout")
+            } catch (error) {
+                await this.setDelays()
+                if (error.response.statusCode === 429) {
+                    for (var i = 0; i < error.response.headers['set-cookie'].length; i++) {
+                        if (error.response.headers['set-cookie'][i].includes("_checkout_queue_token")) {
+                            this.checkoutQueueToken = error.response.headers['set-cookie'][i].split(";")[0].split("_checkout_queue_token=")[1]
+                            break;
+                        }
+                    }
+                    if (this.stopped === "false") {
+                        await this.pollQueueFast()
+                        await this.createCheckout()
+                    }
+                } else
+                if (typeof error.response != 'undefined' && this.stopped === "false") {
+                    this.log(error.response.body)
+                    await this.send("Error creating checkout: " + error.response.statusCode)
+                    await sleep(this.errorDelay)
+                    await this.createCheckout()
+                } else if (this.stopped === "false") {
+                    this.log(error)
+                    await this.send("Unexpected error creating checkout")
+                    await sleep(this.errorDelay)
+                    await this.createCheckout()
+                }
+            }
+        }
+    }
+
+    async updateCheckout() {
+        const got = require('got');
+        const tunnel = require('tunnel');
+        if (this.stopped === "false") {
+            await this.send("Updating checkout...")
+            try {
+                this.request = {
+                    method: 'put',
+                    url: this.baseLink + "/wallets/checkouts/" + this.checkoutToken + ".json",
+                    cookieJar: this.cookieJar,
+                    headers: {
+                        'sec-ch-ua': '" Not;A Brand";v="99", "Google Chrome";v="91", "Chromium";v="91"',
+                        'content-type': 'application/json',
+                        'cache-control': 'max-age=0',
+                        'sec-ch-ua-mobile': '?0',
+                        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                        'accept': '*/*',
+                        'sec-fetch-site': 'same-origin',
+                        'sec-fetch-mode': 'cors',
+                        'sec-fetch-dest': 'empty',
+                        'accept-encoding': 'gzip, deflate, br',
+                        'accept-language': 'en-US,en;q=0.9',
+                        'origin': this.baseLink,
+                        'x-shopify-storefront-access-token': this.accessToken,
+                    },
+                    json: {
+                        "checkout": {
+                            "email": this.profile.email,
+                            "cart_token": this.cartToken,
+                            "shipping_address": {
+                                "first_name": this.profile.firstName,
+                                "last_name": this.profile.lastName,
+                                "address1": this.profile.address1,
+                                "city": this.profile.city,
+                                "province_code": abbrRegion(this.profile.state, 'abbr'),
+                                "country_code": this.country,
+                                "phone": this.profile.phone,
+                                "zip": this.profile.zipcode
+                            }
+                        }
+                    },
+                    responseType: 'json'
+                }
+                if (this.proxy != '-') {
+                    this.request['agent'] = {
+                        https: tunnel.httpsOverHttp({
+                            proxy: this.proxy
+                        })
+                    }
+                }
+                let response = await got(this.request);
+                if (this.stopped === "false")
+                    await this.send("Updated checkout")
+            } catch (error) {
+                await this.setDelays()
+                if (typeof error.response != 'undefined' && this.stopped === "false") {
+                    this.log(error.response.body)
+                    await this.send("Error updating checkout: " + error.response.statusCode)
+                    await sleep(this.errorDelay)
+                    await this.createCheckout()
+                } else if (this.updateCheckout === "false") {
+                    this.log(error)
+                    await this.send("Unexpected error updating checkout")
+                    await sleep(this.errorDelay)
+                    await this.updateCheckout()
+                }
+            }
+        }
+    }
+
+    async pollFastRates() {
+        const got = require('got');
+        const tunnel = require('tunnel');
+        if (this.stopped === "false") {
+            await this.send("Loading rates...")
+            try {
+                this.request = {
+                    method: 'get',
+                    url: this.baseLink + "/wallets/checkouts/" + this.checkoutToken + "/shipping_rates.json",
+                    cookieJar: this.cookieJar,
+                    headers: {
+                        'sec-ch-ua': '" Not;A Brand";v="99", "Google Chrome";v="91", "Chromium";v="91"',
+                        'content-type': 'application/json',
+                        'cache-control': 'max-age=0',
+                        'sec-ch-ua-mobile': '?0',
+                        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                        'accept': '*/*',
+                        'sec-fetch-site': 'same-origin',
+                        'sec-fetch-mode': 'cors',
+                        'sec-fetch-dest': 'empty',
+                        'accept-language': 'en-US,en;q=0.9',
+                        'origin': this.baseLink,
+                        'referer': this.baseLink,
+                        'x-shopify-storefront-access-token': this.accessToken,
+                    },
+                    responseType: 'json'
+                }
+                if (this.proxy != '-') {
+                    this.request['agent'] = {
+                        https: tunnel.httpsOverHttp({
+                            proxy: this.proxy
+                        })
+                    }
+                }
+                let response = await got(this.request);
+                console.log(response.body['shipping_rates'])
+                if (response.body.hasOwnProperty('shipping_rates') == false) {
+                    await sleep(300)
+                    await this.pollFastRates()
+                } else {
+                    this.shippingRate = response.body['shipping_rates'][0].id
+                    this.log(this.shippingRate)
+                    if (this.stopped === "false")
+                        await this.send("Got rates")
+                }
+            } catch (error) {
+                await this.setDelays()
+                if (typeof error.response != 'undefined' && this.stopped === "false") {
+                    this.log(error.response.body)
+                    await this.send("Error getting rates: " + error.response.statusCode)
+                    await sleep(this.errorDelay)
+                    await this.pollFastRates()
+                } else if (this.stopped === "false") {
+                    this.log(error)
+                    await this.send("Unexpected error getting rates")
+                    await sleep(this.errorDelay)
+                    await this.pollFastRates()
+                }
+            }
+        }
+    }
+
+    async addShippingFast() {
+        const got = require('got');
+        const tunnel = require('tunnel');
+        if (this.stopped === "false") {
+            await this.send("Submitting rate...")
+            try {
+                this.request = {
+                    method: 'put',
+                    url: this.baseLink + "/wallets/checkouts/" + this.checkoutToken + ".json",
+                    cookieJar: this.cookieJar,
+                    headers: {
+                        'sec-ch-ua': '" Not;A Brand";v="99", "Google Chrome";v="91", "Chromium";v="91"',
+                        'content-type': 'application/json',
+                        'cache-control': 'max-age=0',
+                        'sec-ch-ua-mobile': '?0',
+                        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                        'accept': '*/*',
+                        'sec-fetch-site': 'same-origin',
+                        'sec-fetch-mode': 'cors',
+                        'sec-fetch-dest': 'empty',
+                        'accept-language': 'en-US,en;q=0.9',
+                        'origin': this.baseLink,
+                        'referer': this.baseLink,
+                        'x-shopify-storefront-access-token': this.accessToken,
+                    },
+                    json: {
+                        "checkout": {
+                            "shipping_line": {
+                                "handle": this.shippingRate
+                            }
+                        }
+                    },
+                    responseType: 'json'
+                }
+                if (this.proxy != '-') {
+                    this.request['agent'] = {
+                        https: tunnel.httpsOverHttp({
+                            proxy: this.proxy
+                        })
+                    }
+                }
+                let response = await got(this.request);
+                if (this.stopped === "false")
+                    await this.send("Submitted rate")
+            } catch (error) {
+                await this.setDelays()
+                if (typeof error.response != 'undefined' && this.stopped === "false") {
+                    this.log(error.response.body)
+                    await this.send("Error submitting rates: " + error.response.statusCode)
+                    await sleep(this.errorDelay)
+                    await this.addShippingFast()
+                } else if (this.stopped === "false") {
+                    this.log(error)
+                    await this.send("Unexpected error submitting rates")
+                    await sleep(this.errorDelay)
+                    await this.addShippingFast()
+                }
+            }
+        }
+    }
+
+
+    async calculateTaxes() {
+        const got = require('got');
+        const tunnel = require('tunnel');
+        if (this.stopped === "false") {
+            await this.send("Calculating taxes...")
+            try {
+                this.request = {
+                    method: 'put',
+                    url: this.location,
+                    cookieJar: this.cookieJar,
+                    headers: {
+                        'sec-ch-ua': '" Not;A Brand";v="99", "Google Chrome";v="91", "Chromium";v="91"',
+                        'content-type': 'application/json',
+                        'cache-control': 'max-age=0',
+                        'sec-ch-ua-mobile': '?0',
+                        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                        'accept': '*/*',
+                        'sec-fetch-site': 'same-origin',
+                        'sec-fetch-mode': 'cors',
+                        'sec-fetch-dest': 'empty',
+                        'accept-language': 'en-US,en;q=0.9',
+                        'origin': this.baseLink,
+                        'referer': this.baseLink,
+                        'x-shopify-storefront-access-token': this.accessToken,
+                    },
+                    responseType: 'json'
+                }
+                if (this.proxy != '-') {
+                    this.request['agent'] = {
+                        https: tunnel.httpsOverHttp({
+                            proxy: this.proxy
+                        })
+                    }
+                }
+                let response = await got(this.request);
+                if (response.body.checkout['tax_lines'].length == 0) {
+                    await sleep(50)
+                    await this.calculateTaxes()
+                }
+            } catch (error) {
+                await this.setDelays()
+                if (typeof error.response != 'undefined' && this.stopped === "false") {
+                    this.log(error.response.body)
+                    await this.send("Error calculating taxes: " + error.response.statusCode)
+                    await sleep(this.errorDelay)
+                    await this.calculateTaxes()
+                } else if (this.stopped === "false") {
+                    this.log(error)
+                    await this.send("Unexpected error calculating rates")
+                    await sleep(this.errorDelay)
+                    await this.calculateTaxes()
+                }
+            }
+        }
+    }
+
+    log(message) {
+        const electron = require('electron');
+        const configDir = (electron.app || electron.remote.app).getPath('userData');
+        const winston = require('winston');
+        const logConfiguration = {
+            transports: [
+                new winston.transports.Console({}),
+                new winston.transports.File({
+                    filename: configDir + '/logs/' + this.taskId + '.log'
+                })
+            ],
+            format: winston.format.combine(
+                winston.format.timestamp({
+                    format: 'MMM-DD-YYYY HH:mm:ss'
+                }),
+                winston.format.printf(info => `[${[info.timestamp]}] [${this.taskId}]: ${info.message}`),
+            )
+        };
+        const logger = winston.createLogger(logConfiguration);
+
+        logger.info(message)
     }
 
     async findProduct() {
@@ -1839,7 +2416,6 @@ module.exports = class ShopifyTask {
     async stopTask() {
         this.stopped = "true";
         await this.sendProductTitle(this.link)
-        console.log("Stopped")
         this.send("Stopped")
     }
 
@@ -1875,17 +2451,19 @@ module.exports = class ShopifyTask {
 
     async send(status) {
         const { ipcRenderer } = require('electron');
+        this.log(status)
         ipcRenderer.send('updateStatus1', this.taskId, status)
     }
 
     async updateStat(stat) {
         //this.window.webContents.send("updateStats", stat);
-        console.log(stat)
+        this.log(stat)
     }
 
     async initialize() {
         await this.send("Started")
-        await this.setDelays()
+        await this.formatCard()
+        await this.submitCard()
 
         if (this.accounts != "-") {
             if (this.stopped === "false")
@@ -1895,52 +2473,7 @@ module.exports = class ShopifyTask {
                 await this.clearCart()
         }
 
-        if (this.mode === "Restock") {
-
-            if (this.stopped === "false")
-                await this.findRandomItem()
-
-            if (this.stopped === "false")
-                await this.addToCart()
-
-            if (this.stopped === "false")
-                await this.loadCheckout()
-
-            if (this.stopped === "false")
-                await this.submitShipping()
-
-            if (this.stopped === "false")
-                await this.loadShippingRate()
-
-            if (this.stopped === "false")
-                await this.submitRate()
-
-            if (this.stopped === "false")
-                await this.loadPayment()
-
-            if (this.stopped === "false")
-                await this.clearCart()
-
-            if (this.stopped === "false")
-                await this.findProduct()
-
-            if (this.stopped === "false")
-                await this.addToCart()
-
-            if (this.stopped === "false")
-                await this.loadPayment()
-
-            if (this.stopped === "false")
-                await this.submitOrder()
-
-            if (this.stopped === "false")
-                await this.processPayment()
-
-            if (this.stopped === "false")
-                await this.checkOrder()
-        }
-
-        if (this.mode === "Launch") {
+        if (this.mode === "Prestock") {
             if (this.stopped === "false")
                 await this.waitForCheckpoint()
 
@@ -1985,6 +2518,43 @@ module.exports = class ShopifyTask {
 
             if (this.stopped === "false")
                 await this.checkOrder()
+        }
+
+
+        if (this.mode === "Fast") {
+            if (this.stopped === "false")
+                await this.getConfig()
+
+            if (this.stopped === "false")
+                await this.createCheckout()
+
+            if (this.stopped === "false")
+                await this.findProduct()
+
+            if (this.stopped === "false")
+                await this.addToCart()
+
+            if (this.stopped === "false")
+                await this.updateCheckout()
+
+            if (this.stopped === "false")
+                await this.pollFastRates()
+
+            if (this.stopped === "false")
+                await this.addShippingFast()
+
+            if (this.stopped === "false")
+                await this.loadPayment()
+
+            if (this.stopped === "false")
+                await this.submitOrder()
+
+            if (this.stopped === "false")
+                await this.processPayment()
+
+            if (this.stopped === "false")
+                await this.checkOrder()
+
         }
 
         if (this.mode === "Preload") {
@@ -2063,6 +2633,7 @@ module.exports = class ShopifyTask {
                 await this.checkOrder()
         }
     }
+
 }
 
 

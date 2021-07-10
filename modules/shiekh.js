@@ -45,6 +45,8 @@ module.exports = class ShiekhTask {
 
     async sendFail() {
         const got = require('got');
+        this.quickTaskLink = "http://localhost:4444/quicktask?storetype=Shiekh&input=" + this.link
+
         got({
                 method: 'post',
                 url: 'https://venetiabots.com/api/fail',
@@ -59,7 +61,8 @@ module.exports = class ShiekhTask {
                     "price": Math.trunc(this.cartTotal),
                     "timestamp": new Date(Date.now()).toISOString(),
                     "productTitle": this.productTitle,
-                    "image": this.imageURL
+                    "image": this.imageURL,
+                    "quicktask": this.quickTaskLink
                 },
                 responseType: 'json'
             }).then(response => {
@@ -143,6 +146,8 @@ module.exports = class ShiekhTask {
 
     async sendSuccess() {
         const got = require('got');
+        this.quickTaskLink = "http://localhost:4444/quicktask?storetype=Shiekh&input=" + this.link
+
         got({
                 method: 'post',
                 url: 'https://venetiabots.com/api/success',
@@ -157,7 +162,8 @@ module.exports = class ShiekhTask {
                     "productTitle": this.productTitle,
                     "price": Math.trunc(this.cartTotal),
                     "timestamp": new Date(Date.now()).toISOString(),
-                    "image": this.imageURL
+                    "image": this.imageURL,
+                    "quicktask": this.quickTaskLink
                 }
             }).then(response => {
                 console.log("Finished")

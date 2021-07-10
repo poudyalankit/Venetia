@@ -34,6 +34,97 @@
     background: #5DA9FF;
 }
 
+.quickTasks {
+    position: absolute;
+    width: 503px;
+    height: 120px;
+    left: 104px;
+    top: 639px;
+    background: #222233;
+    border-radius: 8px;
+}
+
+.profileQTTitle {
+    position: absolute;
+    width: 44px;
+    height: 21px;
+    left: 22px;
+    top: 63px;
+    font-family: Poppins;
+    font-style: normal;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 21px;
+    color: #FFFFFF;
+}
+
+.proxyQTTitle {
+    position: absolute;
+    width: 44px;
+    height: 21px;
+    left: 180px;
+    top: 63px;
+    font-family: Poppins;
+    font-style: normal;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 21px;
+    color: #FFFFFF;
+}
+
+.proxyQTSelect {
+    position: absolute;
+    height: 21px;
+    left: 180px;
+    top: 85px;
+    font-family: Poppins;
+    font-style: normal;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 21px;
+    color: #FFFFFF;
+}
+
+.sizeQTTitle {
+    position: absolute;
+    width: 44px;
+    height: 21px;
+    left: 338px;
+    top: 63px;
+    font-family: Poppins;
+    font-style: normal;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 21px;
+    color: #FFFFFF;
+}
+
+.sizeQTSelect {
+    position: absolute;
+    height: 21px;
+    left: 338px;
+    top: 85px;
+    font-family: Poppins;
+    font-style: normal;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 21px;
+    color: #FFFFFF;
+}
+
+.profileQTSelect {
+    position: absolute;
+    height: 21px;
+    left: 22px;
+    top: 85px;
+    font-family: Poppins;
+    font-style: normal;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 21px;
+    color: #FFFFFF;
+}
+
 .customSites {
     position: absolute;
     width: 503px;

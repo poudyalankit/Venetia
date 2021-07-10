@@ -51,10 +51,10 @@ module.exports = class FootsitesTask {
         this.adyenMonth;
         this.adyenYear;
         if (this.link.includes("https")) {
-            this.sku = this.link.split("/")[5].split(".html")[0];
+            this.sku = this.link.split("/")[this.link.split("/").length - 1].split(".html")[0];
         } else
             this.sku = this.link
-
+        console.log(this.link.split("/")[this.link.split("/").length - 1].split(".html")[0])
         this.profile = getProfileInfo(taskInfo.profile);
         this.proxyArray = getProxyInfo(taskInfo.proxies);
         this.proxy = this.proxyArray.sample();
@@ -120,6 +120,8 @@ module.exports = class FootsitesTask {
 
     async sendFail() {
         const got = require('got');
+        this.quickTaskLink = "http://localhost:4444/quicktask?storetype=Footsites&input=" + "https://" + this.baseLink + "/product/~/" + this.sku + ".html"
+
         if (this.size === "RS") {
             for (var i = 0; i < this.sizesinStock.length; i++) {
                 if (this.sizesinStock[i].productid === this.productID) {
@@ -142,7 +144,8 @@ module.exports = class FootsitesTask {
                     "price": Math.trunc(this.cartTotal),
                     "timestamp": new Date(Date.now()).toISOString(),
                     "productTitle": this.productTitle,
-                    "image": "https://images.footlocker.com/pi/" + this.sku + "/large/" + this.sku + ".jpeg"
+                    "image": "https://images.footlocker.com/pi/" + this.sku + "/large/" + this.sku + ".jpeg",
+                    "quicktask": this.quickTaskLink
                 },
                 responseType: 'json'
             }).then(response => {
@@ -222,6 +225,8 @@ module.exports = class FootsitesTask {
 
     async sendSuccess() {
         const got = require('got');
+        this.quickTaskLink = "http://localhost:4444/quicktask?storetype=Footsites&input=" + "https://" + this.baseLink + "/product/~/" + this.sku + ".html"
+
         if (this.size === "RS") {
             for (var i = 0; i < this.sizesinStock.length; i++) {
                 if (this.sizesinStock[i].productid === this.productID) {
@@ -244,7 +249,8 @@ module.exports = class FootsitesTask {
                     "productTitle": this.productTitle,
                     "price": Math.trunc(this.cartTotal),
                     "timestamp": new Date(Date.now()).toISOString(),
-                    "image": "https://images.footlocker.com/pi/" + this.sku + "/large/" + this.sku + ".jpeg"
+                    "image": "https://images.footlocker.com/pi/" + this.sku + "/large/" + this.sku + ".jpeg",
+                    "quicktask": this.quickTaskLink
                 }
             }).then(response => {
                 console.log("Finished")
@@ -545,6 +551,7 @@ module.exports = class FootsitesTask {
                         })
                     }
                 }
+                console.log(this.request)
                 let response = await got(this.request);
                 this.csrftoken = response.body.data.csrfToken;
                 console.log("Got CSRF Token: " + this.csrftoken)
@@ -554,7 +561,7 @@ module.exports = class FootsitesTask {
                 }
             } catch (error) {
                 await this.setDelays()
-                console.log(error.response.body)
+                console.log(error)
                 if (typeof error.response != 'undefined') {
                     if (error.response.statusCode === 403 && this.stopped === "false") {
                         /*if (typeof error.response.body.url != 'undefined' && error.response.body.url.includes("t=bv")) {
@@ -685,10 +692,8 @@ module.exports = class FootsitesTask {
             try {
                 this.request = {
                     method: 'get',
-                    url: 'https://www.' + this.baseLink + '/api/products/pdp/' + this.link + "?cache=none",
+                    url: 'https://www.' + this.baseLink + '/api/products/pdp/' + this.sku + "?cache=none",
                     cookieJar: this.cookieJar,
-                    withCredentials: true,
-                    timeout: 6000,
                     headers: {
                         'authority': 'www.' + this.baseLink,
                         'content-length': '0',
@@ -713,7 +718,7 @@ module.exports = class FootsitesTask {
                 let response = await got(this.request);
                 if (response.url.includes("queue-it")) {
                     await this.send("Queue-it")
-                    this.targetUrl = 'https://www.' + this.baseLink + '/api/products/pdp/' + this.link
+                    this.targetUrl = 'https://www.' + this.baseLink + '/api/products/pdp/' + this.sku
                     this.queueitUrl = response.url
                     await this.handleQueueit()
                     await this.getProductID()
@@ -724,7 +729,7 @@ module.exports = class FootsitesTask {
                     if (this.size === "RS") {
                         this.sizesinStock = []
                         for (var i = 0; i < response.body.variantAttributes.length; i++) {
-                            if (response.body.variantAttributes[i].sku === this.link) {
+                            if (response.body.variantAttributes[i].sku === this.sku) {
                                 this.variant = response.body.variantAttributes[i].code
                             }
                         }
@@ -746,7 +751,7 @@ module.exports = class FootsitesTask {
                         }
                     } else {
                         for (var i = 0; i < response.body.variantAttributes.length; i++) {
-                            if (response.body.variantAttributes[i].sku === this.link) {
+                            if (response.body.variantAttributes[i].sku === this.sku) {
                                 this.variant = response.body.variantAttributes[i].code
                             }
                         }
@@ -826,7 +831,7 @@ module.exports = class FootsitesTask {
             try {
                 this.request = {
                     method: 'post',
-                    url: 'https://www.' + this.baseLink + '/apigate/users/carts/current/entries',
+                    url: 'https://www.' + this.baseLink + '/api/users/carts/current/entries',
                     cookieJar: this.cookieJar,
                     headers: {
                         'authority': 'www.' + this.baseLink,
@@ -1493,7 +1498,7 @@ module.exports = class FootsitesTask {
 
     async stopTask() {
         this.stopped = "true";
-        await this.sendProductTitle(this.sku)
+        await this.sendProductTitle(this.link)
         console.log("Stopped")
         this.send("Stopped")
     }

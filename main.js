@@ -94,6 +94,52 @@ captchaSharing.post("/venetia/addtoQueue", async(req, res) => {
     })
 });
 
+captchaSharing.get("/quicktask", async(req, res) => {
+    if (req.query.storetype.toLowerCase() === "shopify") {
+        var shopify = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/shopifyStores2.json'), { encoding: 'utf8', flag: 'r' }));
+        var customshopify = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/shopifyStores.json'), { encoding: 'utf8', flag: 'r' }));
+        for (var i = 0; i < customshopify.length; i++) {
+            shopify.push({
+                site: customshopify[i].site,
+                baseLink: customshopify[i].baseLink
+            })
+        }
+        for (var i = 0; i < shopify.length; i++) {
+            if (req.query.input.split("/cart")[0].toLowerCase() === shopify[i].baseLink.toLowerCase()) {
+                win.webContents.send('quicktask', shopify[i].site, req.query.input)
+                res.send("Task created successfully")
+                break;
+            }
+        }
+    } else if (req.query.storetype.toLowerCase() === "shiekh") {
+        win.webContents.send('quicktask', "Shiekh", req.query.input)
+        res.send("Task created successfully")
+    } else if (req.query.storetype.toLowerCase() === "federalpremium") {
+        win.webContents.send('quicktask', "Federal Premium", req.query.input)
+        res.send("Task created successfully")
+    } else if (req.query.storetype.toLowerCase() === "ssense") {
+        win.webContents.send('quicktask', "SSENSE", req.query.input)
+        res.send("Task created successfully")
+    } else if (req.query.storetype.toLowerCase() === "footsites") {
+        if (req.query.input.toLowerCase().includes("kidsfootlocker.com"))
+            var store = "KidsFootLocker"
+        else if (req.query.input.toLowerCase().includes("footlocker.ca"))
+            var store = "FootLockerCA"
+        else if (req.query.input.toLowerCase().includes("footlocker.com"))
+            var store = "FootLocker"
+        else if (req.query.input.toLowerCase().includes("champssports.com"))
+            var store = "ChampsSports"
+        else if (req.query.input.toLowerCase().includes("footaction.com"))
+            var store = "FootAction"
+        else if (req.query.input.toLowerCase().includes("eastbay.com"))
+            var store = "EastBay"
+
+        win.webContents.send('quicktask', store, req.query.input)
+        res.send("Task created successfully")
+    } else
+        res.send("Site not available for quick tasks")
+});
+
 captchaSharing.get("/venetia/solvedCaptchas", async(req, res) => {
     if (typeof req.query.id != 'undefined') {
         for (var i = 0; i < solvedCaptchas.length; i++) {
@@ -125,22 +171,20 @@ captchaSharing.post("/venetia/addToSolvedCaptchas", async(req, res) => {
 });
 
 captchaSharing.get("/venetia/viewCaptchaQueue", async(req, res) => {
-    var alreadytaken = []
-    if (typeof req.query.windowid != 'undefined') {
-        for (var i = 0; i < captchaQueue.length; i++) {
-            if (typeof captchaQueue[i].windowid === 'undefined') {
-                alreadytaken.push(captchaQueue[i].windowid)
-            }
+    var alreadyTaken = []
+    for (var j = 0; j < captchaQueue.length; j++) {
+        if (typeof captchaQueue[j].windowid != 'undefined') {
+            alreadyTaken.push(captchaQueue[j].windowid)
         }
-        alreadytaken = alreadytaken.join()
-        for (var i = 0; i < captchaQueue.length; i++) {
-            if (typeof captchaQueue[i].windowid === 'undefined' && alreadytaken.includes(captchaQueue[i].windowid) == false) {
-                captchaQueue[i].windowid = req.query.windowid
-                break;
-            }
-        }
-        res.json(captchaQueue[i])
     }
+    for (var i = 0; i < captchaQueue.length; i++) {
+        if (typeof captchaQueue[i].windowid === 'undefined') {
+            captchaQueue[i].windowid = req.query.windowid
+            res.json(captchaQueue[i])
+            break;
+        }
+    }
+
     res.json({
         "message": "No captchas available to solve"
     })
@@ -191,7 +235,7 @@ let taskArray = []
 let win;
 
 client.updatePresence({
-    details: 'v0.4.1',
+    details: 'v0.4.7',
     startTimestamp: Date.now(),
     largeImageKey: "venetia",
     largeImageText: "Venetia",
@@ -340,6 +384,16 @@ ipcMain.on('taskinfo', (event, taskInfo) => {
     else if (x === 'backendB')
         backendB.webContents.send('taskinfo1', taskInfo)
 });
+
+ipcMain.on('startQT', (event, taskInfo) => {
+    var x = backendArray.sample()
+    if (x === 'backendA')
+        backendA.webContents.send('taskinfo1', taskInfo)
+    else if (x === 'backendB')
+        backendB.webContents.send('taskinfo1', taskInfo)
+});
+
+
 
 ipcMain.on('stopTask', (event, taskNumber) => {
     backendA.webContents.send('stopTask1', taskNumber)

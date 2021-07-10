@@ -257,7 +257,6 @@
                             <option value="FootLocker">FootLocker</option>
                             <option value="FootLockerCA">FootLockerCA</option>
                             <option value="KidsFootLocker">KidsFootLocker</option>
-                            <option value="LadyFootLocker">LadyFootLocker</option>
                             <option value="Shiekh">Shiekh</option>
                             <option value="SSENSE">SSENSE</option>
                             <option value="Supreme">Supreme</option>
@@ -524,7 +523,7 @@
         <div class="updateBox">
             <div class="updateBoxTitle">Software Information</div>
             <div class="currentVersionTitle">Current Version</div>
-            <div class="currentVersionText">0.4.1</div>
+            <div class="currentVersionText">0.4.7</div>
             <button class="updateButton" onclick="update()">Update</button>
         </div>
         <div class="customSites">
@@ -532,7 +531,8 @@
             <div class="customSitesSubtitle">Add a custom Shopify store</div>
             <div class="shopifySites">
                 <select id="shopifyStores" class="select2" style="width: 254px">
-             
+                <option value=""></option>
+
                 </select>
             </div>
             <button class="addStoreButton" onclick="addStore()">Add</button>
@@ -555,6 +555,59 @@
                         <button class="addStoreConfirmButton" onclick="addStoreConfirm(); closeStoreModal();">Add</button>
                     </div>
                 </div>
+            </div>
+        </div>
+        <div class="quickTasks">
+            <div class="customSitesTitle">Quick Tasks</div>
+            <div class="customSitesSubtitle">Settings for quick tasks</div>
+
+            <div class="profileQTTitle">Profile</div>
+            <div class="profileQTSelect">
+                <select id="profileQTSelect" class="select2" style="width: 129px" onchange="saveQT()">
+                      
+                          </select>
+            </div>
+
+            <div class="proxyQTTitle">Proxies</div>
+            <div class="proxyQTSelect">
+                <select id="proxyQTSelect" class="select2" style="width: 129px" onchange="saveQT()">
+                      
+                          </select>
+            </div>
+
+            <div class="sizeQTTitle">Size</div>
+            <div class="sizeQTSelect">
+                <select id="sizeQTSelect" class="select2" style="width: 129px" onchange="saveQT()">
+            <option value=""></option>
+            <option value="RS">Random</option>
+            <option value="XXS">XXS</option>
+            <option value="XS">XS</option>
+            <option value="S">S</option>
+            <option value="M">M</option>
+            <option value="L">L</option>
+            <option value="XL">XL</option>
+            <option value="3">3</option>
+            <option value="3.5">3.5</option>
+            <option value="4">4</option>
+            <option value="4.5">4.5</option>
+            <option value="5">5</option>
+            <option value="5.5">5.5</option>
+            <option value="6">6</option>
+            <option value="6.5">6.5</option>
+            <option value="7">7</option>
+            <option value="7.5">7.5</option>
+            <option value="8">8</option>
+            <option value="8.5">8.5</option>
+            <option value="9">9</option>
+            <option value="9.5">9.5</option>
+            <option value="10">10</option>
+            <option value="10.5">10.5</option>
+            <option value="11">11</option>
+            <option value="11.5">11.5</option>
+            <option value="12">12</option>
+            <option value="12.5">12.5</option>
+            <option value="13">13</option>
+                          </select>
             </div>
         </div>
     </div>

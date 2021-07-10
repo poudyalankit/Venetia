@@ -39,16 +39,23 @@ module.exports = class SSENSETask {
         this.proxyArray = getProxyInfo(taskInfo.proxies);
         this.proxy = this.proxyArray.sample();
         this.oglink = this.link
-        if (this.link.includes("+")) {
-            this.sku = this.link.substring(1)
+
+        if (this.link.length == 15) {
+            this.sku = this.link
             this.productTitle = this.sku
         } else if (this.link.includes("http") == false) {
             this.link = "https://www.ssense.com/en-us/men/product/essentials/~/" + this.link
+        }
+        if (this.profile.country === "Canada") {
+            this.country = "CA"
+        } else {
+            this.country = "US"
         }
     }
 
     async sendFail() {
         const got = require('got');
+        this.quickTaskLink = "http://localhost:4444/quicktask?storetype=SSENSE&input=" + this.oglink
         got({
                 method: 'post',
                 url: 'https://venetiabots.com/api/fail',
@@ -63,7 +70,8 @@ module.exports = class SSENSETask {
                     "price": Math.trunc(this.cartTotal),
                     "timestamp": new Date(Date.now()).toISOString(),
                     "productTitle": this.productTitle,
-                    "image": "https://img.ssensemedia.com/images/b_white,g_center,f_auto,q_auto:best/" + this.sku.substring(0, this.sku.length - 2) + "_1/image.jpg"
+                    "image": "https://img.ssensemedia.com/images/b_white,g_center,f_auto,q_auto:best/" + this.sku.substring(0, this.sku.length - 2) + "_1/image.jpg",
+                    "quicktask": this.quickTaskLink
                 },
                 responseType: 'json'
             }).then(response => {
@@ -143,6 +151,7 @@ module.exports = class SSENSETask {
 
     async sendSuccess() {
         const got = require('got');
+        this.quickTaskLink = "http://localhost:4444/quicktask?storetype=SSENSE&input=" + this.oglink
         got({
                 method: 'post',
                 url: 'https://venetiabots.com/api/success',
@@ -157,7 +166,8 @@ module.exports = class SSENSETask {
                     "productTitle": this.productTitle,
                     "price": Math.trunc(this.cartTotal),
                     "timestamp": new Date(Date.now()).toISOString(),
-                    "image": "https://img.ssensemedia.com/images/b_white,g_center,f_auto,q_auto:best/" + this.sku.substring(0, this.sku.length - 2) + "_1/image.jpg"
+                    "image": "https://img.ssensemedia.com/images/b_white,g_center,f_auto,q_auto:best/" + this.sku.substring(0, this.sku.length - 2) + "_1/image.jpg",
+                    "quicktask": this.quickTaskLink
                 }
             }).then(response => {
                 console.log("Finished")
@@ -234,6 +244,7 @@ module.exports = class SSENSETask {
 
     async sendSuccessPayPal() {
         const got = require('got');
+        this.quickTaskLink = "http://localhost:4444/quicktask?storetype=SSENSE&input=" + this.oglink
         got({
                 method: 'post',
                 url: 'https://venetiabots.com/api/success',
@@ -248,7 +259,8 @@ module.exports = class SSENSETask {
                     "productTitle": this.productTitle,
                     "price": Math.trunc(this.cartTotal),
                     "timestamp": new Date(Date.now()).toISOString(),
-                    "image": "https://img.ssensemedia.com/images/b_white,g_center,f_auto,q_auto:best/" + this.sku.substring(0, this.sku.length - 2) + "_1/image.jpg"
+                    "image": "https://img.ssensemedia.com/images/b_white,g_center,f_auto,q_auto:best/" + this.sku.substring(0, this.sku.length - 2) + "_1/image.jpg",
+                    "quicktask": this.quickTaskLink
                 }
             }).then(response => {
                 console.log("Finished")
@@ -373,9 +385,8 @@ module.exports = class SSENSETask {
                 await this.setDelays()
                 if (this.stopped === "false") {
                     this.send("Error authenticating, retrying")
-                    await this.cookieJar.setCookie("auth=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjdXN0b21lciI6eyJpZCI6NjMzNDUyNDEsImVtYWlsIjoiaW91bmlvbmFvZmluQGdtaWFsLmNvbSIsInJvbGUiOiJndWVzdCJ9LCJleHBpcmVfYXQiOiIyMDIxLTYtMTQgMjE6MjM6MTEiLCJpYXQiOjE2MjEyODY1OTEsImV4cCI6MTYyMzcwNTc5MX0.3Jknz9zl5GQbN9S3jNhikrJt5x4pkwWeoSTTW9nk7NU; Path=/; Expires=Mon, 14 Jun 2021 21:23:11 GMT", "https://www.ssense.com")
+                    await this.cookieJar.setCookie("auth=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjdXN0b21lciI6eyJpZCI6NjU1MTE3MjEsImVtYWlsIjoiaXVnYmFpdWF3ZWl1Z2l1QGdtYWlsLmNvbSIsInJvbGUiOiJndWVzdCJ9LCJleHBpcmVfYXQiOiIyMDIxLTctMjMgMDQ6MDk6MjciLCJpYXQiOjE2MjQ1OTQxNjcsImV4cCI6MTYyNzAxMzM2N30.mWwJerl-58tGxAMmUSYM8mVLCGRdehhw-G5_9O6MiT0; Path=/; Expires=Fri, 23 Jul 2021 04:09:27 GMT", "https://www.ssense.com")
                     await sleep(this.errorDelay)
-                    await this.login()
                 }
             }
         }
@@ -766,7 +777,7 @@ module.exports = class SSENSETask {
                     method: 'get',
                     url: 'https://www.ssense.com/en-us/api/checkout/shipping.json',
                     searchParams: {
-                        country_code: "US",
+                        country_code: this.country,
                         state_code: abbrRegion(this.profile.state, "abbr")
                     },
                     cookieJar: this.cookieJar,
@@ -836,7 +847,7 @@ module.exports = class SSENSETask {
                     method: 'get',
                     url: 'https://www.ssense.com/en-us/api/checkout/taxes.json',
                     searchParams: {
-                        country_code: "US",
+                        country_code: this.country,
                         state_code: abbrRegion(this.profile.state, "abbr"),
                         sub_total: this.cartTotal,
                         shipping: this.shipping,
@@ -933,7 +944,7 @@ module.exports = class SSENSETask {
                             "lastName": this.profile.lastName,
                             "company": "",
                             "address1": this.profile.address1,
-                            "countryCode": "US",
+                            "countryCode": this.country,
                             "stateCode": abbrRegion(this.profile.state, "abbr"),
                             "postCode": this.profile.zipcode,
                             "city": this.profile.city,
@@ -958,7 +969,7 @@ module.exports = class SSENSETask {
                             "lastName": this.profile.lastName,
                             "company": "",
                             "address1": this.profile.address1,
-                            "countryCode": "US",
+                            "countryCode": this.country,
                             "stateCode": abbrRegion(this.profile.state, "abbr"),
                             "postCode": this.profile.zipcode,
                             "city": this.profile.city,
@@ -1040,7 +1051,7 @@ module.exports = class SSENSETask {
                             "lastName": this.profile.lastName,
                             "company": "",
                             "address1": this.profile.address1,
-                            "countryCode": "US",
+                            "countryCode": this.country,
                             "stateCode": abbrRegion(this.profile.state, "abbr"),
                             "postCode": this.profile.zipcode,
                             "city": this.profile.city,
@@ -1145,7 +1156,6 @@ module.exports = class SSENSETask {
 
     async initialize() {
         await this.send("Started")
-        await this.setDelays()
 
         if (this.stopped === "false" && this.mode === "Preload") {
             if (this.stopped === "false")

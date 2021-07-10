@@ -86,51 +86,66 @@
         const ipcRenderer = require('electron').ipcRenderer
         const electron = require('electron');
         const got = require('got');
-
-        var search = setInterval(lookforcaptchas, 300)
+        const sleep = (waitTimeInMs) => new Promise(resolve => setTimeout(resolve, waitTimeInMs));
+        var solving = false
+        var search = setInterval(lookforcaptchas, 100)
         async function lookforcaptchas() {
-            let response = await got({
-                method: "get",
-                url: "http://localhost:4444/venetia/viewCaptchaQueue?windowid=" + remote.getCurrentWindow().id,
-                responseType: "json"
-            })
-            console.log(response.body)
-            if (typeof response.body.id != 'undefined') {
-                clearInterval(search)
-                remote.getCurrentWindow().focus()
-                console.log(response.body.taskProxy)
-                if (response.body.taskProxy != "-") {
-                    if (Object.keys(response.body.taskProxy).length == 2)
-                        remote.getCurrentWindow().getBrowserView(0).webContents.session.setProxy({
-                            proxyRules: "https://" + response.body.taskProxy.host + ":" + response.body.taskProxy.port
-                        })
-                    else if (Object.keys(response.body.taskProxy).length == 3) {
-                        var newProxy = response.body.taskProxy.host + ":" + response.body.taskProxy.port
-                        ipcRenderer.send('authHarvesterProxy', remote.getCurrentWindow().id, newProxy, response.body.taskProxy.proxyAuth)
-                    }
-                } else {
-                    remote.getCurrentWindow().getBrowserView(0).webContents.session.setProxy({
-                        proxyRules: null
-                    })
-                }
-                for (var i = 0; i < response.body.sessionCookies.length; i++) {
-                    await remote.getCurrentWindow().getBrowserView(0).webContents.session.cookies.remove("https://" + response.body.sessionCookies[i].domain, response.body.sessionCookies[i].key)
-                }
-                for (var i = 0; i < response.body.sessionCookies.length; i++) {
-                    await remote.getCurrentWindow().getBrowserView(0).webContents.session.cookies.set({
-                        "url": "https://" + response.body.sessionCookies[i].domain,
-                        "name": response.body.sessionCookies[i].key,
-                        "value": response.body.sessionCookies[i].value,
-                        "expirationDate": new Date(response.body.sessionCookies[i].expires).getTime()
-                    })
-                }
-                remote.getCurrentWindow().getBrowserView(0).webContents.loadURL(response.body.siteURL, {
-                    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.77 Safari/537.36'
+            if (solving == false) {
+                let response = await got({
+                    method: "get",
+                    url: "http://localhost:4444/venetia/viewCaptchaQueue?windowid=" + remote.getCurrentWindow().id,
+                    responseType: "json"
                 })
+                console.log(response.body)
+                if (typeof response.body.id != 'undefined') {
+                    solving = true
+                    clearInterval(search)
+                    search = 0
+                    remote.getCurrentWindow().focus()
+                    if (response.body.taskProxy != "-") {
+                        if (Object.keys(response.body.taskProxy).length == 2)
+                            remote.getCurrentWindow().getBrowserView(0).webContents.session.setProxy({
+                                proxyRules: "https://" + response.body.taskProxy.host + ":" + response.body.taskProxy.port
+                            })
+                        else if (Object.keys(response.body.taskProxy).length == 3) {
+                            var newProxy = response.body.taskProxy.host + ":" + response.body.taskProxy.port
+                            ipcRenderer.send('authHarvesterProxy', remote.getCurrentWindow().id, newProxy, response.body.taskProxy.proxyAuth)
+                        }
+                    } else {
+                        remote.getCurrentWindow().getBrowserView(0).webContents.session.setProxy({
+                            proxyRules: null
+                        })
+                    }
+                    var d = await remote.getCurrentWindow().getBrowserView(0).webContents.session.cookies.get({
+                        url: "https://" + response.body.sessionCookies[0].domain
+                    })
+                    console.log(d)
+                    for (var i = 0; i < d.length; i++) {
+                        await remote.getCurrentWindow().getBrowserView(0).webContents.session.cookies.remove("https://" + d[i].domain, d[i].name)
+                    }
+                    d = await remote.getCurrentWindow().getBrowserView(0).webContents.session.cookies.get({
+                        url: "https://" + response.body.sessionCookies[0].domain
+                    })
+                    for (var i = 0; i < response.body.sessionCookies.length; i++) {
+                        await remote.getCurrentWindow().getBrowserView(0).webContents.session.cookies.set({
+                            "url": "https://" + response.body.sessionCookies[i].domain,
+                            "name": response.body.sessionCookies[i].key,
+                            "value": response.body.sessionCookies[i].value,
+                            "expirationDate": new Date(response.body.sessionCookies[i].expires).getTime()
+                        })
+                    }
+                    d = await remote.getCurrentWindow().getBrowserView(0).webContents.session.cookies.get({
+                        url: "https://" + response.body.sessionCookies[0].domain
+                    })
+                    remote.getCurrentWindow().getBrowserView(0).webContents.loadURL(response.body.siteURL, {
+                        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.77 Safari/537.36'
+                    })
 
-                document.getElementById("resetButton").style.display = "block"
-                await remote.getCurrentWindow().getBrowserView(0).webContents.executeJavaScript(`
-                 const sleep = (waitTimeInMs) => new Promise(resolve => setTimeout(resolve, waitTimeInMs));
+                    document.getElementById("resetButton").style.display = "block"
+                    await remote.getCurrentWindow().getBrowserView(0).webContents.executeJavaScript(`
+                 var sleep = (waitTimeInMs) => new Promise(resolve => setTimeout(resolve, waitTimeInMs));
+                
+
                 if(document.body.parentElement.innerHTML.includes("hcaptcha"))
                     collecthcaptcha()
                 else
@@ -148,19 +163,11 @@
                         "captcha": grecaptcha.getResponse()
                     }
      
-  
-                var response = await fetch('` + response.body.siteURL + `', {
-                            method: 'POST',
-                            headers: {
-                            'content-type': 'application/x-www-form-urlencoded',
-                            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.77 Safari/537.36'
-                            },
-                            body: "authenticity_token=" + document.getElementsByName("authenticity_token")[0].getAttribute("value") + "&g-recaptcha-response=" + grecaptcha.getResponse() + "&data_via=cookie&commit="
-                        });
-     console.log(response)
+                    var y = document.getElementsByClassName("ui-button--primary")[0];
+                    console.log(y)
+                    y.click()
 
-        
-                    return x
+                                   return x
                  }
 
                     async function collecthcaptcha()
@@ -175,36 +182,38 @@
                         "captcha": hcaptcha.getResponse()
                     }
      
-  
-                var response = await fetch('` + response.body.siteURL + `', {
-                            method: 'POST',
-                            headers: {
-                            'content-type': 'application/x-www-form-urlencoded',
-                            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.77 Safari/537.36'
-                            },
-                            body: "authenticity_token=" + document.getElementsByName("authenticity_token")[0].getAttribute("value") + "&h-recaptcha-response=" + hcaptcha.getResponse() + "&data_via=cookie" + "&hcaptcha_challenge_response_token=" + document.getElementById("hcaptcha_challenge_response_token").value + "&hcaptcha_data=" + document.getElementById("hcaptcha_data").value + "&commit="
-                        });
-                            console.log(response)
+                    var y = document.getElementsByClassName("ui-button--primary")[0];
+                    y.click()
+
                     return x
                  }
 
                     `).then(async(ans) => {
-                    var y = await remote.getCurrentWindow().getBrowserView(0).webContents.session.cookies.get({
-                        url: "https://" + response.body.sessionCookies[0].domain
-                    })
-                    await got({
-                        method: "post",
-                        url: "http://localhost:4444/venetia/addToSolvedCaptchas",
-                        json: {
-                            "id": response.body.id,
-                            "captchaResponse": ans,
-                            "cookies": y
+                        var y = await remote.getCurrentWindow().getBrowserView(0).webContents.session.cookies.get({
+                            url: "https://" + response.body.sessionCookies[0].domain
+                        })
+                        while (JSON.stringify(y).includes("_shopify_checkpoint") == false) {
+                            await sleep(100)
+                            y = await remote.getCurrentWindow().getBrowserView(0).webContents.session.cookies.get({
+                                url: "https://" + response.body.sessionCookies[0].domain
+                            })
                         }
-                    }).then(() => {
-                        remote.getCurrentWindow().getBrowserView(0).webContents.loadFile("harvester.html")
-                        var search = setInterval(lookforcaptchas, 300)
+                        console.log(JSON.stringify(y))
+                        await got({
+                            method: "post",
+                            url: "http://localhost:4444/venetia/addToSolvedCaptchas",
+                            json: {
+                                "id": response.body.id,
+                                "captchaResponse": ans,
+                                "cookies": y
+                            }
+                        }).then(() => {
+                            remote.getCurrentWindow().getBrowserView(0).webContents.loadFile("harvester.html")
+                            solving = false
+                            var search = setInterval(lookforcaptchas, 100)
+                        })
                     })
-                })
+                }
             }
         }
 
@@ -214,7 +223,8 @@
 
         function resetCaptcha() {
             remote.getCurrentWindow().getBrowserView(0).webContents.loadFile("harvester.html")
-            var search = setInterval(lookforcaptchas, 300)
+            solving = false
+            var search = setInterval(lookforcaptchas, 100)
         }
 
         function minimize() {

@@ -7,6 +7,7 @@ var path = require('path')
 const configDir = (electron.app || electron.remote.app).getPath('userData');
 
 var fs = require('fs');
+const { controllers } = require('chart.js');
 
 var statusCache = {}
 var titleCache = {}
@@ -98,7 +99,7 @@ function googleSignIn() {
 
 function modeChoices() {
 
-    if (document.getElementById("siteTask").value === "FootLockerCA" || document.getElementById("siteTask").value === "LadyFootLocker" || document.getElementById("siteTask").value === "FootLocker" || document.getElementById("siteTask").value === "EastBay" || document.getElementById("siteTask").value === "ChampsSports" || document.getElementById("siteTask").value === "FootAction" || document.getElementById("siteTask").value === "KidsFootLocker") {
+    if (document.getElementById("siteTask").value === "FootLockerCA" || document.getElementById("siteTask").value === "FootLocker" || document.getElementById("siteTask").value === "EastBay" || document.getElementById("siteTask").value === "ChampsSports" || document.getElementById("siteTask").value === "FootAction" || document.getElementById("siteTask").value === "KidsFootLocker") {
         var select = document.getElementById("modeTask")
         document.getElementById("captchaLess").checked = false;
         document.getElementById("accountTask").disabled = false;
@@ -132,7 +133,6 @@ function modeChoices() {
         select.options.length = 0;
         select.options[select.options.length] = new Option("Safe", "Safe");
         select.options[select.options.length] = new Option("Preload", "Preload");
-
         //select.options[select.options.length] = new Option("Fast", "Fast");
         document.getElementById("captchaLess").style = "position: absolute; top: 510px; left:440px; display: block"
         document.getElementById("captchaLessLabel").style = "position: absolute; top: 513px; font-size: 12px; width: 200px; left: 476px; display: block; color: white;font-family: Poppins;"
@@ -169,24 +169,6 @@ function modeChoices() {
         document.getElementById("profileTask").disabled = false;
         document.getElementById("quantityTask").disabled = false;
         document.getElementById("linkTask").disabled = false;
-        select.options.length = 0;
-        select.options[select.options.length] = new Option("Fast", "Fast");
-        document.getElementById("captchaLess").style = "display: none;"
-        document.getElementById("captchaLessLabel").style = "display: none;"
-        document.getElementById("captchaLess").checked = false;
-    }
-
-    if (document.getElementById("siteTask").value === "Pacsun") {
-        var select = document.getElementById("modeTask")
-        document.getElementById("accountTask").disabled = true;
-        document.getElementById("modeTask").disabled = false;
-        document.getElementById("sizeTask").disabled = false;
-        document.getElementById("proxyTask").disabled = false;
-        document.getElementById("profileTask").disabled = false;
-        document.getElementById("quantityTask").disabled = false;
-        document.getElementById("linkTask").disabled = false;
-        document.getElementById("scheduleFeature").style = "display: none";
-
         select.options.length = 0;
         select.options[select.options.length] = new Option("Fast", "Fast");
         document.getElementById("captchaLess").style = "display: none;"
@@ -239,8 +221,8 @@ function modeChoices() {
             select.options.length = 0;
             select.options[select.options.length] = new Option("Safe", "Safe");
             select.options[select.options.length] = new Option("Preload", "Preload");
-            select.options[select.options.length] = new Option("Launch", "Launch");
-            select.options[select.options.length] = new Option("Restock", "Restock");
+            select.options[select.options.length] = new Option("Fast", "Fast");
+            select.options[select.options.length] = new Option("Prestock", "Prestock");
             document.getElementById("captchaLess").style = "display: none;"
             document.getElementById("captchaLessLabel").style = "display: none;"
             document.getElementById("captchaLess").checked = false;
@@ -250,7 +232,7 @@ function modeChoices() {
 }
 
 function modeChoices2() {
-    if (document.getElementById("siteTask2").value === "FootLockerCA" || document.getElementById("siteTask2").value === "LadyFootLocker" || document.getElementById("siteTask2").value === "FootLocker" || document.getElementById("siteTask2").value === "EastBay" || document.getElementById("siteTask2").value === "ChampsSports" || document.getElementById("siteTask2").value === "FootAction" || document.getElementById("siteTask2").value === "KidsFootLocker") {
+    if (document.getElementById("siteTask2").value === "FootLockerCA" || document.getElementById("siteTask2").value === "FootLocker" || document.getElementById("siteTask2").value === "EastBay" || document.getElementById("siteTask2").value === "ChampsSports" || document.getElementById("siteTask2").value === "FootAction" || document.getElementById("siteTask2").value === "KidsFootLocker") {
         var select = document.getElementById("modeTask2")
         document.getElementById("captchaLess2").checked = false;
         document.getElementById("accountTask2").disabled = false;
@@ -328,23 +310,6 @@ function modeChoices2() {
         document.getElementById("captchaLess2").checked = false;
     }
 
-    if (document.getElementById("siteTask2").value === "Pacsun") {
-        var select = document.getElementById("modeTask2")
-        document.getElementById("accountTask2").disabled = true;
-        document.getElementById("modeTask2").disabled = false;
-        document.getElementById("sizeTask2").disabled = false;
-        document.getElementById("proxyTask2").disabled = false;
-        document.getElementById("profileTask2").disabled = false;
-        document.getElementById("quantityTask2").disabled = false;
-        document.getElementById("linkTask2").disabled = false;
-        document.getElementById("scheduleFeature2").style = "display: none";
-
-        select.options.length = 0;
-        select.options[select.options.length] = new Option("Fast", "Fast");
-        document.getElementById("captchaLess2").style = "display: none;"
-        document.getElementById("captchaLessLabel2").style = "display: none;"
-        document.getElementById("captchaLess2").checked = false;
-    }
 
     if (document.getElementById("siteTask2").value === "Supreme") {
         var select = document.getElementById("modeTask2")
@@ -391,8 +356,9 @@ function modeChoices2() {
             select.options.length = 0;
             select.options[select.options.length] = new Option("Safe", "Safe");
             select.options[select.options.length] = new Option("Preload", "Preload");
-            select.options[select.options.length] = new Option("Launch", "Launch");
-            select.options[select.options.length] = new Option("Restock", "Restock");
+            select.options[select.options.length] = new Option("Fast", "Fast");
+            select.options[select.options.length] = new Option("Prestock", "Prestock");
+
             document.getElementById("captchaLess2").style = "display: none;"
             document.getElementById("captchaLessLabel2").style = "display: none;"
             document.getElementById("captchaLess2").checked = false;
@@ -718,7 +684,6 @@ window.onload = function() {
 
         switch ($(this).attr("data-action")) {
 
-            // A case for each action. Your actions here
             case "first":
                 addGroup()
                 break;
@@ -735,8 +700,21 @@ window.onload = function() {
     });
     require('select2')($);
 
-    $('#shopifyStores').select2();
+    $('#shopifyStores').select2({
+        placeholder: "Add a custom store"
+    });
 
+    $('#profileQTSelect').select2({
+        placeholder: "Select profile"
+    });
+
+    $('#proxyQTSelect').select2({
+        placeholder: "Select proxies"
+    });
+
+    $('#sizeQTSelect').select2({
+        placeholder: "Select size"
+    });
 
     $('#siteTask').select2({
         placeholder: "Select site"
@@ -887,6 +865,8 @@ window.onload = function() {
         var x = JSON.parse(data);
         var shopifysites = document.getElementById("shopifyStores")
         shopifysites.options.length = 0;
+        shopifysites.options[shopifysites.options.length] = new Option('', '')
+
         for (var i = 0; i < x.length; i++) {
             shopifysites.options[shopifysites.options.length] = new Option(x[i].site, x[i].site);
         }
@@ -962,7 +942,11 @@ window.onload = function() {
 
     fs.readFile(path.join(configDir, '/userdata/settings.json'), 'utf-8', (err, data) => {
         if (err) {
-            fs.writeFile(path.join(configDir, '/userdata/settings.json'), JSON.stringify([{ "webhook": "", "checkoutSound": false, "retryCheckouts": false, "systemNotifs": false }]), function(err) {})
+            fs.writeFile(path.join(configDir, '/userdata/settings.json'), JSON.stringify([{ "webhook": "", "checkoutSound": false, "retryCheckouts": false, "systemNotifs": false }, {
+                "qtProfile": "",
+                "qtProxy": "",
+                "qtSize": ""
+            }]), function(err) {})
             throw err;
         }
         data = JSON.parse(data)
@@ -981,6 +965,35 @@ window.onload = function() {
             document.getElementById("systemNotifs").checked = true
             document.getElementById("systemNotifs").style['background-color'] = '#e06767'
         }
+
+        if (typeof data[1] == 'undefined') {
+            fs.writeFile(path.join(configDir, '/userdata/settings.json'), JSON.stringify([{ "webhook": "", "checkoutSound": false, "retryCheckouts": false, "systemNotifs": false }, {
+                "qtProfile": "",
+                "qtProxy": "",
+                "qtSize": ""
+            }]), function(err) {})
+        }
+
+        var select = document.getElementById('profileQTSelect');
+        select.options.length = 0;
+        select.options[select.options.length] = new Option('', '')
+        for (var i = 1; i < document.getElementById('profiles2').rows.length; i++) {
+            select.options[select.options.length] = new Option(document.getElementById('profiles2').rows[i].cells[0].textContent, document.getElementById('profiles2').rows[i].cells[0].textContent);
+        }
+
+        var select = document.getElementById('proxyQTSelect');
+        select.options.length = 0;
+        select.options[select.options.length] = new Option('', '')
+        select.options[select.options.length + 1] = new Option('No Proxy', '-')
+        for (var i = 1; i < document.getElementById('proxies2').rows.length; i++) {
+            select.options[select.options.length] = new Option(document.getElementById('proxies2').rows[i].cells[0].textContent, document.getElementById('proxies2').rows[i].cells[0].textContent);
+        }
+
+        $('#profileQTSelect').val(data[1].qtProfile);
+        $('#proxyQTSelect').val(data[1].qtProxy);
+        $('#sizeQTSelect').val(data[1].qtSize);
+        $('#sizeQTSelect').trigger('change')
+
     });
 
     fs.readFile(path.join(configDir, '/userdata/apiKey.json'), 'utf-8', (err, data) => {
@@ -994,6 +1007,7 @@ window.onload = function() {
     });
 
     analytics()
+
 };
 
 function updateAnalytics() {
@@ -1021,7 +1035,7 @@ function updateAnalytics() {
                     "<td>" + success[i]['Size'] + "</td>" + "<td>" + checkoutDate + "</td>"
             }
             document.getElementById("totalSpent").textContent = "$" + total.toString()
-            var checkouts = [0, 0, 0, 0, 0]
+            var checkouts = [0, 0, 0, 0, 0, 0, 0]
             for (var i = 1; i < document.getElementById('checkoutsTable').rows.length; i++) {
                 if (document.getElementById('checkoutsTable').rows[i].cells[4].textContent.includes("Jan"))
                     checkouts[0]++
@@ -1033,6 +1047,10 @@ function updateAnalytics() {
                                 checkouts[3]++
                                 else if (document.getElementById('checkoutsTable').rows[i].cells[4].textContent.includes("May"))
                                     checkouts[4]++
+                                    else if (document.getElementById('checkoutsTable').rows[i].cells[4].textContent.includes("Jun"))
+                                        checkouts[5]++
+                                        else if (document.getElementById('checkoutsTable').rows[i].cells[4].textContent.includes("Jul"))
+                                            checkouts[6]++
 
             }
             const Chart = require('chart.js')
@@ -1040,7 +1058,7 @@ function updateAnalytics() {
             var myChart = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', "Jun", "Jul"],
                     datasets: [{
                         label: 'Checkouts per Month',
                         data: checkouts,
@@ -1582,6 +1600,7 @@ function renameKey(obj, oldKey, newKey) {
 
 
 function editGroup(group) {
+    console.log(group)
     var groups = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/tasks.json'), { encoding: 'utf8', flag: 'r' }));
     var index = group.parentElement.parentElement.rowIndex
     var gname = group.value
@@ -1929,6 +1948,7 @@ function closeEditor() {
 function taskCreator() {
     if (document.getElementById('groups').rows.length > 0)
         document.getElementById("taskCreator").style.display = "block";
+
 }
 
 function removeStore() {
@@ -1939,6 +1959,8 @@ function removeStore() {
     }
     var shopifysites = document.getElementById("shopifyStores")
     shopifysites.options.length = 0;
+    shopifysites.options[shopifysites.options.length] = new Option('', '')
+
     for (var i = 0; i < currentStores.length; i++) {
         shopifysites.options[shopifysites.options.length] = new Option(currentStores[i].site, currentStores[i].site);
     }
@@ -1973,6 +1995,7 @@ function addStoreConfirm() {
     })
     var shopifysites = document.getElementById("shopifyStores")
     shopifysites.options.length = 0;
+    shopifysites.options[shopifysites.options.length] = new Option('', '')
     for (var i = 0; i < currentStores.length; i++) {
         shopifysites.options[shopifysites.options.length] = new Option(currentStores[i].site, currentStores[i].site);
     }
@@ -2174,6 +2197,94 @@ ipcRenderer.on('updateStatus', (event, taskNumber, status) => {
     }
 });
 
+ipcRenderer.on('quicktask', (event, site, input) => {
+    const remote = require('electron').remote;
+    tasks()
+    if (document.getElementById('groups').rows.length == 0)
+        addGroup()
+    var tasks2 = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/tasks.json'), { encoding: 'utf8', flag: 'r' }));
+    var gname = document.getElementById('groups').rows[0].cells[0].children[0].value
+    var gindex = 0
+    document.getElementById("groups").rows[0].cells[0].click()
+    remote.getCurrentWindow().focus()
+    var id = makeid(5)
+    var tableRef = document.getElementById('tasks').getElementsByTagName('tbody')[0];
+    var row = tableRef.insertRow()
+    if (site === "Shiekh")
+        var mode = "Fast"
+    else if (site === "Federal Premium")
+        var mode = "Fast"
+    else if (site === "FootLocker")
+        var mode = "Release"
+    else if (site === "EastBay")
+        var mode = "Release"
+    else if (site === "FootAction")
+        var mode = "Release"
+    else if (site === "ChampsSports")
+        var mode = "Release"
+    else if (site === "FootLockerCA")
+        var mode = "Release"
+    else if (site === "KidsFootLocker")
+        var mode = "Release"
+    else if (site === "SSENSE")
+        var mode = "Safe"
+    else {
+        var mode = "Safe"
+    }
+
+    row.innerHTML =
+        "<td>" + id + "</td>" +
+        "<td>" + site + "</td>" +
+        "<td>" + mode + "</td>" + "<td class='link'>" + input + "</td>" +
+        "<td >" + document.getElementById("sizeQTSelect").value + "</td>" +
+        "<td>" + document.getElementById("profileQTSelect").value + "</td>" +
+        "<td>" + document.getElementById("proxyQTSelect").value + "</td>" +
+        "<td>" + 'Stopped' + "</td>"
+    row.setAttribute("onclick", "selectRow(this)")
+    var task = {
+        [id]: {
+            "site": site,
+            "mode": mode,
+            "product": input,
+            "size": document.getElementById("sizeQTSelect").value,
+            "profile": document.getElementById("profileQTSelect").value,
+            "proxies": document.getElementById("proxyQTSelect").value,
+            "accounts": "-",
+            "schedule": {
+                "hour": "",
+                "minute": "",
+                "second": ""
+            }
+        }
+    }
+    tasks2[gindex][gname].push(task)
+
+    fs.writeFile(path.join(configDir, '/userdata/tasks.json'), JSON.stringify(tasks2), function(err) {
+        if (err) throw err;
+        console.log('Tasks saved!');
+    });
+    document.getElementById('groups').rows[gindex].cells[0].children[1].textContent = (document.getElementById('tasks').rows.length - 1).toString() + " tasks"
+
+    var task3 = {
+        "id": id,
+        "site": site,
+        "mode": mode,
+        "product": input,
+        "size": document.getElementById("sizeQTSelect").value,
+        "profile": document.getElementById("profileQTSelect").value,
+        "proxies": document.getElementById("proxyQTSelect").value,
+        "accounts": "-",
+        "schedule": {
+            "hour": "",
+            "minute": "",
+            "second": ""
+        }
+    }
+    ipcRenderer.send('startQT', task3)
+
+
+});
+
 ipcRenderer.on('updateStats', (event, stat) => {
     /* if (stat === "checkouts") {
          var checkouts = parseInt(document.getElementById("totalCheckouts").textContent.split("checkouts")[0])
@@ -2319,6 +2430,20 @@ function saveProxies() {
     });
 }
 
+function saveQT() {
+    if (document.getElementById("settingsDiv").style.display === "block") {
+        var settings = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/settings.json'), { encoding: 'utf8', flag: 'r' }));
+        console.log(document.getElementById("proxyQTSelect").value)
+        settings[1] = {
+            "qtProfile": document.getElementById("profileQTSelect").value,
+            "qtProxy": document.getElementById("proxyQTSelect").value,
+            "qtSize": document.getElementById("sizeQTSelect").value
+        }
+        fs.writeFile(path.join(configDir, '/userdata/settings.json'), JSON.stringify(settings), function(err) {
+            if (err) throw err;
+        });
+    }
+}
 
 function clearFields() {
     document.getElementById('firstname').value = ''
@@ -2586,6 +2711,27 @@ function tasks() {
 }
 
 function settings() {
+    var select = document.getElementById('profileQTSelect');
+    select.options.length = 0;
+    select.options[select.options.length] = new Option('', '')
+    for (var i = 1; i < document.getElementById('profiles2').rows.length; i++) {
+        select.options[select.options.length] = new Option(document.getElementById('profiles2').rows[i].cells[0].textContent, document.getElementById('profiles2').rows[i].cells[0].textContent);
+    }
+
+    var select = document.getElementById('proxyQTSelect');
+    select.options.length = 0;
+    select.options[select.options.length] = new Option('', '')
+    select.options[select.options.length + 1] = new Option('No Proxy', '-')
+    for (var i = 1; i < document.getElementById('proxies2').rows.length; i++) {
+        select.options[select.options.length] = new Option(document.getElementById('proxies2').rows[i].cells[0].textContent, document.getElementById('proxies2').rows[i].cells[0].textContent);
+    }
+
+    var settings = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/settings.json'), { encoding: 'utf8', flag: 'r' }));
+
+    $('#profileQTSelect').val(settings[1].qtProfile);
+    $('#proxyQTSelect').val(settings[1].qtProxy);
+    $('#sizeQTSelect').val(settings[1].qtSize);
+
     document.getElementById("settingsIcon").style.opacity = 1.0
     document.getElementById("analyticsIcon").style.opacity = 0.3
     document.getElementById("accountIcon").style.opacity = 0.3

@@ -1,7 +1,7 @@
 module.exports = class SSENSEFastTask {
     constructor(taskInfo) {
         var tokens = [
-            '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'
+            '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'
         ]
         this.authToken = tokens.sample()
         require('log-timestamp');
@@ -36,7 +36,6 @@ module.exports = class SSENSEFastTask {
         this.proxyArray = getProxyInfo(taskInfo.proxies);
         this.proxy = this.proxyArray.sample();
         this.oglink = this.link
-        this.sku = this.link
     }
 
     async sendFail() {
@@ -468,18 +467,16 @@ module.exports = class SSENSEFastTask {
 
 
     async getSKU() {
-        const axios = require('axios').default;
+        const got = require('got');
+        const tunnel = require('tunnel');
         const { v4: uuidv4 } = require('uuid');
-        console.log(this.link)
+
         if (this.stopped === "false") {
             await this.send("Getting product info")
             try {
-                let response = await axios({
+                this.request = {
                     method: 'post',
-                    url: 'https://mobile.ssense.com/',
-                    withCredentials: true,
-                    jar: this.cookieJar,
-                    timeout: 6000,
+                    url: 'https://mobile.ssense.com',
                     headers: {
                         'build': '1156',
                         'Content-Type': 'application/json',
@@ -490,7 +487,6 @@ module.exports = class SSENSEFastTask {
                         'x-brand-gender-category': 'false',
                         'x-get-products-version': 'v2',
                         'x-home-personalized-enabled': true,
-                        'token': this.loginToken,
                         'x-markdown-ab': 'markdown_v2_0-desc',
                         'x-se-auth': this.authToken
                     },
@@ -501,8 +497,18 @@ module.exports = class SSENSEFastTask {
                             "languageCode": "en",
                             "productId": this.link
                         }
+                    },
+                    responseType: 'json'
+                }
+                if (this.proxy != '-') {
+                    this.request['agent'] = {
+                        https: tunnel.httpsOverHttp({
+                            proxy: this.proxy
+                        })
                     }
-                })
+                }
+                let response = await got(this.request);
+                console.log(response.body)
                 console.log(response.body.data.getProductDetail)
                 if (this.stopped === "false") {
                     if (typeof response.body.data.getProductDetail != 'undefined' && response.body.data.getProductDetail != null && response.body.data.getProductDetail.sizes.length > 0) {
@@ -529,12 +535,10 @@ module.exports = class SSENSEFastTask {
                         }
                     } else throw "Sizes not available"
                 }
-
-
             } catch (error) {
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
                     console.log(error)
-                    await this.send("Error getting SKU: " + error.response.status)
+                    await this.send("Error getting SKU: " + error.response.statusCode)
                     await sleep(3500)
                     await this.getSKU()
                 } else if (error === "Monitoring" && this.stopped === "false") {
@@ -1314,14 +1318,14 @@ module.exports = class SSENSEFastTask {
     }
 
     async initialize() {
-        if (this.stopped === "false")
-            await this.login()
+        //if (this.stopped === "false")
+        //    await this.login()
 
-        if (this.stopped === "false")
-            await this.startCart()
+        //if (this.stopped === "false")
+        //   await this.startCart()
 
-        // if (this.stopped === "false" && typeof this.sku === 'undefined')
-        //   await this.getSKU()
+        if (this.stopped === "false" && typeof this.sku === 'undefined')
+            await this.getSKU()
 
         if (this.stopped === "false")
             await this.addToCart()

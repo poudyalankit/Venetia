@@ -3,6 +3,8 @@ const { ipcRenderer } = electron;
 const configDir = (electron.app || electron.remote.app).getPath('userData');
 var path = require('path')
 const SSENSETask = require(path.join(__dirname, '/modules/ssense.js'));
+
+const SSENSEFastTask = require(path.join(__dirname, '/modules/ssensefasttask.js'));
 const FootsitesTask = require(path.join(__dirname, '/modules/footsites.js'));
 const SupremeTask = require(path.join(__dirname, '/modules/supreme.js'));
 const SupremeHybridTask = require(path.join(__dirname, '/modules/supremehybrid.js'));
