@@ -12,9 +12,11 @@
 
 <body>
     <ul class='custom-menu'>
-        <li data-action="first">Create Group</li>
-        <li data-action="second">Delete Selected</li>
+        <li data-action="first" class="menuText">Create Group</li>
+        <li data-action="second" class="menuText">Delete Selected</li>
     </ul>
+
+
 
     <div class="tableTitle" id="analyticsTitle">
 
@@ -48,7 +50,7 @@
 
 
 
-    <div class="sidebar" style="-webkit-app-region: drag">
+    <div class="sidebar">
         <div class="minimize">
             <a href="#" draggable="false" onclick="minimize()">
                 <img draggable="false" src="./images/minus.png">
@@ -161,7 +163,8 @@
     </div>
 
     <div id="taskView" style="display: none">
-        <input type="text" id="filterGroups" onkeyup="filterGroups()" class="groupFilter" placeholder="Search groups">
+
+        <input type="text" id="filterGroups" onkeyup="filterGroups()" class="groupFilter" spellcheck="false" placeholder="Search groups">
 
         <div class="groupTable" rules=none menu="true">
             <table id="groups" class="groups" menu="true">
@@ -173,9 +176,9 @@
             <div class="tableTitle" style="left: 320px;">
                 Tasks
             </div>
-            <button id="delaysButton" style="display: none" class="delaysButton" onclick="delayModal()">Delays</button>
+            <img id="delaysButton" src="images/delays.png" style="display: none" class="delaysButton" onclick="delayModal()">
 
-            <input type="text" id="filterInput" onkeyup="filterTable()" class="taskFilter" placeholder="Search tasks"><br>
+            <input type="text" id="filterInput" onkeyup="filterTable()" class="taskFilter" spellcheck="false" placeholder="Search tasks"><br>
             <button id="createButton" disabled class="createTask" onclick="taskCreator()">
                         Create
                     </button>
@@ -188,12 +191,11 @@
             <button class="deleteTask" onclick="deleteSelected()">
                Delete
             </button>
-            <button class="cloneTask" onclick="cloneSelected()">
-                Clone
-            </button>
-            <button class="editTask" id="editButton" disabled onclick="taskEditor()">
-                Edit
-            </button>
+            <img draggable="false" onclick="cloneSelected()" class="cloneTask" src="./images/duplicate.png">
+            <img draggable="false" id="editButton" onclick="taskEditor()" disabled class="editTask" class="cloneTask" src="./images/edit.png">
+
+
+
             <div class="taskTable">
                 <table id="tasks" class="tasks" rules=none>
                     <tr class="tasks">
@@ -209,12 +211,14 @@
 
                 </table>
             </div>
-            <div id="delayModal" class="modal animate__animated animate__zoomIn animate__faster" style='display: none'>
+            <div id="darkenBackground" class="darkenBackground"></div>
+
+            <div id="delayModal" onclick="closeDelayModal(event)" class="modal animate__animated animate__zoomIn animate__faster" style='display: none'>
                 <div class="modal-content" style="height: 262px; width: 350px; margin: 21% auto">
                     <div class="modalHeaderBackground" style="width: 350px">
                         <div class="modalHeader">Delays</div>
                         <div class="closeModal" style="top:10px; left: 320px;">
-                            <a onclick="closeDelayModal()" href="#" draggable="false">
+                            <a onclick="closeDelayModal(event)" href="#" draggable="false">
                                 <img draggable="false" src="./images/x.png">
                             </a>
                         </div>
@@ -224,13 +228,14 @@
                         <input class="storeNameEntry" id="monitorDelay" style="width: 270px;" spellcheck="false" placeholder="3000" type="text">
                         <div class="baseLinkTitle">Error Delay</div>
                         <input class="baseLinkEntry" id="errorDelay" spellcheck="false" style="width: 270px;" placeholder="3000" type="text">
-                        <button class="addStoreConfirmButton" style="left: 210px;" onclick="saveDelays(); closeDelayModal();">Save</button>
+                        <button class="addStoreConfirmButton" style="left: 210px;" onclick="saveDelays(); closeDelayModal(event);">Save</button>
                     </div>
                 </div>
             </div>
         </div>
-        <div id="taskCreator" class="modal animate__animated animate__zoomIn animate__faster">
-            <div class="modal-content">
+
+        <div id="taskCreator" onclick="closeModal(event)" class="modal animate__animated animate__zoomIn animate__faster">
+            <div id="modalContent" class="modal-content">
                 <div class="modalHeaderBackground">
                     <div class="modalHeader">Task Creator</div>
                 </div>
@@ -240,7 +245,7 @@
                     Captchaless
                 </div>
                 <div class="closeModal">
-                    <a onclick="closeModal()" href="#" draggable="false">
+                    <a onclick="closeModal(event)" href="#" draggable="false">
                         <img draggable="false" src="./images/x.png">
                     </a>
                 </div>
@@ -344,12 +349,12 @@
                     <input type="text" id="minuteTaskEntry" maxlength="2" placeholder="59" class="minuteTaskEntry"><br>
                     <input type="text" id="secondTaskEntry" maxlength="2" placeholder="45" class="secondTaskEntry"><br>
                 </div>
-                <button class="addTaskButton" onclick="addTask()">Create Task</button>
+                <button class="addTaskButton" onclick="addTask()">Add</button>
             </div>
 
         </div>
 
-        <div id="taskEditor" class="modal animate__animated animate__zoomIn animate__faster">
+        <div id="taskEditor" onclick="closeEditor(event)" class="modal animate__animated animate__zoomIn animate__faster">
             <div class="modal-content">
                 <div class="modalHeaderBackground">
                     <div class="modalHeader">Task Editor</div>
@@ -360,7 +365,7 @@
                     Captchaless
                 </div>
                 <div class="closeModal">
-                    <a onclick="closeEditor()" href="#" draggable="false">
+                    <a onclick="closeEditor(event)" href="#" draggable="false">
                         <img draggable="false" src="./images/x.png">
                     </a>
                 </div>
@@ -465,7 +470,7 @@
                     <input type="text" id="minuteTaskEntry2" maxlength="2" placeholder="59" class="minuteTaskEntry"><br>
                     <input type="text" id="secondTaskEntry2" maxlength="2" placeholder="45" class="secondTaskEntry"><br>
                 </div>
-                <button class="addTaskButton" onclick="editSelected()">Edit Task</button>
+                <button class="addTaskButton" onclick="editSelected()">Save</button>
             </div>
 
         </div>
@@ -523,7 +528,7 @@
         <div class="updateBox">
             <div class="updateBoxTitle">Software Information</div>
             <div class="currentVersionTitle">Current Version</div>
-            <div class="currentVersionText">0.4.7</div>
+            <div class="currentVersionText">0.4.9</div>
             <button class="updateButton" onclick="update()">Update</button>
         </div>
         <div class="customSites">
@@ -537,12 +542,14 @@
             </div>
             <button class="addStoreButton" onclick="addStore()">Add</button>
             <button class="removeStoreButton" onclick="removeStore()">Delete</button>
-            <div id="storeAdder" class="modal animate__animated animate__zoomIn animate__faster" style='display: none'>
+            <div id="darkenBackground2" class="darkenBackground"></div>
+
+            <div id="storeAdder" onclick="closeStoreModal(event)" class="modal animate__animated animate__zoomIn animate__faster" style='display: none'>
                 <div class="modal-content" style="height: 262px; margin: 21% auto">
                     <div class="modalHeaderBackground">
                         <div class="modalHeader">Custom Store</div>
                         <div class="closeModal" style="top:10px; left: 458px;">
-                            <a onclick="closeStoreModal()" href="#" draggable="false">
+                            <a onclick="closeStoreModal(event)" href="#" draggable="false">
                                 <img draggable="false" src="./images/x.png">
                             </a>
                         </div>
@@ -552,7 +559,7 @@
                         <input class="storeNameEntry" id="storeNameEntry" spellcheck="false" placeholder="Kith" type="text">
                         <div class="baseLinkTitle">Base Link</div>
                         <input class="baseLinkEntry" id="baseLinkEntry" spellcheck="false" placeholder="https://kith.com" type="text">
-                        <button class="addStoreConfirmButton" onclick="addStoreConfirm(); closeStoreModal();">Add</button>
+                        <button class="addStoreConfirmButton" onclick="addStoreConfirm(); closeStoreModal(event);">Add</button>
                     </div>
                 </div>
             </div>
@@ -776,9 +783,11 @@
 
             </table>
         </div>
+
     </div>
 
 
+    <div class="dragBar"></div>
 
 
 

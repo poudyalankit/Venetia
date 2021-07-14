@@ -1,37 +1,7 @@
-.custom-menu {
-    display: none;
-    z-index: 1000;
-    position: absolute;
-    overflow: hidden;
-    white-space: nowrap;
-    font-family: Poppins;
-    background: #1e202f;
+.menuText {
     color: white;
-    border-radius: 5px;
-    padding: 0;
-    font-size: 14px;
-}
-
-.delaysButton {
-    position: absolute;
-    width: 83px;
-    height: 27px;
-    left: 1148px;
-    top: 58px;
     font-family: Poppins;
-    font-style: normal;
-    border-radius: 8px;
-    border: 1px solid #5291da;
-    outline: none;
-    cursor: pointer;
-    background: transparent;
-    color: #FFFFFF;
-    transition-property: background;
-    transition-duration: 0.4s;
-}
-
-.delaysButton:hover {
-    background: #5DA9FF;
+    font-size: 12px;
 }
 
 .quickTasks {
@@ -282,16 +252,30 @@
     color: #FFFFFF;
 }
 
+.custom-menu {
+    display: none;
+    z-index: 1000;
+    height: 68px;
+    width: 128px;
+    position: absolute;
+    overflow: hidden;
+    white-space: nowrap;
+    font-family: Poppins;
+    background: #1e202f;
+    color: white;
+    border-radius: 8px;
+    padding: 0;
+    font-size: 14px;
+}
+
 .custom-menu li {
     padding: 8px 12px;
     cursor: pointer;
-    list-style-type: none;
-    transition: all .3s ease;
-    user-select: none;
+    transition-duration: 0.4s;
 }
 
 .custom-menu li:hover {
-    background-color: #181a26;
+    background-color: #292c3f;
 }
 
 .addStoreButton {
@@ -605,13 +589,13 @@
 .webhookEntry {
     position: absolute;
     width: 540px;
-    height: 20px;
+    height: 32px;
     left: 22px;
     top: 81px;
     background: #1e202f;
     padding-left: 8px;
     border-radius: 8px;
-    font-size: 12px;
+    font-size: 13px;
     outline: none;
     font-family: 'Poppins';
     color: white;
@@ -633,9 +617,9 @@
 .validateWebhook {
     position: absolute;
     width: 106px;
-    height: 29px;
+    height: 32px;
     left: 22px;
-    top: 122px;
+    top: 126px;
     border: 1px solid #5DA9FF;
     box-sizing: border-box;
     border-radius: 8px;
@@ -716,9 +700,9 @@
 
 .updateButton {
     position: absolute;
-    width: 106px;
-    height: 29px;
-    left: 451px;
+    width: 95px;
+    height: 32px;
+    left: 470px;
     top: 57px;
     outline: none;
     border: 1px solid #5DA9FF;
@@ -734,7 +718,7 @@
 .resetDataButton {
     position: absolute;
     width: 73px;
-    height: 23px;
+    height: 28px;
     left: 489px;
     top: 50px;
     border: 1px solid #E06767;
@@ -1685,7 +1669,7 @@ body {
 .deactivateButton {
     position: absolute;
     width: 106px;
-    height: 29px;
+    height: 32px;
     left: 365px;
     top: 25px;
     font-family: Poppins;
@@ -1790,12 +1774,43 @@ body {
     font-weight: bold;
 }
 
+.createTask {
+    position: absolute;
+    width: 83px;
+    height: 32px;
+    left: 320px;
+    top: 51px;
+    background: transparent;
+    border-radius: 8px;
+    outline: none;
+    border: 1px solid #4fcf91;
+    color: white;
+    font-family: 'Poppins';
+    cursor: pointer;
+    transition-property: background;
+    transition-duration: 0.4s;
+}
+
+.delaysButton:hover {
+    background: #5DA9FF;
+}
+
+.createTask:hover {
+    background: #4fcf91;
+}
+
+.createTask:disabled {
+    cursor: not-allowed;
+    color: white;
+    border: 1px solid #3d8a64;
+}
+
 .taskFilter {
     position: absolute;
     width: 260px;
-    height: 25px;
-    left: 320px;
-    top: 54px;
+    height: 32px;
+    left: 610px;
+    top: 50px;
     color: white;
     font-family: 'Poppins';
     font-size: 12px;
@@ -1806,6 +1821,67 @@ body {
     padding-left: 8px;
     transition-property: box-shadow;
     transition-duration: 0.4s;
+}
+
+.cloneTask {
+    position: absolute;
+    left: 415px;
+    top: 49px;
+    background: transparent;
+    border-radius: 8px;
+    outline: none;
+    font-family: 'Poppins';
+    color: white;
+    cursor: pointer;
+    border: 1px solid #5DA9FF;
+    transition-property: background;
+    transition-duration: 0.4s;
+    z-index: 1;
+}
+
+.cloneTask:hover {
+    background: #5DA9FF;
+}
+
+.delaysButton {
+    position: absolute;
+    left: 509px;
+    top: 49px;
+    font-family: Poppins;
+    font-style: normal;
+    border-radius: 8px;
+    outline: none;
+    cursor: pointer;
+    border: 1px solid #4fcf91;
+    background: transparent;
+    color: #FFFFFF;
+    transition-property: background;
+    transition-duration: 0.4s;
+    z-index: 1;
+}
+
+.delaysButton:hover {
+    background: #4fcf91;
+}
+
+.editTask {
+    position: absolute;
+    left: 462px;
+    top: 49px;
+    background: transparent;
+    border-radius: 8px;
+    outline: none;
+    font-family: 'Poppins';
+    z-index: 1;
+    border: 1px solid #e06767;
+    color: white;
+    cursor: pointer;
+    transition-property: background;
+    transition-duration: 0.4s;
+}
+
+.editTask:hover {
+    background: #e06767;
 }
 
 .groupFilter {
@@ -1819,7 +1895,7 @@ body {
     position: absolute;
     padding-left: 8px;
     top: 54px;
-    height: 25px;
+    height: 32px;
     width: 160px;
     left: 99px;
     transition-property: box-shadow;
@@ -1851,7 +1927,7 @@ body {
     width: 150px;
     height: 640px;
     overflow-x: hidden;
-    top: 85px;
+    top: 90px;
     left: 99px;
     overflow-y: scroll;
     table-layout: fixed;
@@ -1935,14 +2011,28 @@ table.groups {
     border-spacing: 0 10px;
 }
 
-table.groups td {
+table.groups tr {
     cursor: pointer;
+    background: #1e202f;
+}
+
+.rowClicked {
+    background: #292c3f !important;
 }
 
 table.tasks td {
-    cursor: pointer;
     text-align: left;
     padding-left: 10px;
+}
+
+table.tasks tr {
+    background: #1e202f;
+    transition-duration: 0.4s;
+    transition-property: background;
+}
+
+table.tasks tr:hover {
+    background: #292c3f;
 }
 
 table.tasks th {
@@ -1962,14 +2052,12 @@ table.checkoutsTable td {
 
 .taskTable {
     position: absolute;
-    position: absolute;
     width: 912px;
     height: 640px;
-    top: 85px;
+    top: 90px;
     left: 320px;
     background: #181a26;
     overflow-y: auto;
-    table-layout: fixed;
     overflow-x: hidden;
     padding-right: 10px;
     white-space: nowrap;
@@ -1982,26 +2070,6 @@ th {
     font-weight: lighter;
     font-size: 14px;
     text-align: center;
-}
-
-.webhookSubmit {
-    position: absolute;
-    width: 24px;
-    height: 24px;
-    left: 640px;
-    top: 120px;
-    opacity: 1;
-    transition: 0.3s;
-}
-
-.webhookSubmit:hover {
-    opacity: 0.3
-}
-
-th.select {
-    width: 40px;
-    max-width: 40px;
-    background-color: #292c3f;
 }
 
 th.id {
@@ -2023,8 +2091,8 @@ th.mode {
 }
 
 th.link {
-    width: 300px;
-    max-width: 300px;
+    width: 260px;
+    max-width: 260px;
     background-color: #292c3f;
 }
 
@@ -2037,12 +2105,14 @@ th.size {
 th.profile3 {
     width: 70px;
     max-width: 70px;
+    word-wrap: normal;
     background-color: #292c3f;
 }
 
 th.proxy3 {
     width: 70px;
     max-width: 70px;
+    word-wrap: normal;
     background-color: #292c3f;
 }
 
@@ -2073,7 +2143,7 @@ th.status2 {
     font-style: normal;
     font-weight: normal;
     outline: none;
-    font-size: 12px;
+    font-size: 14px;
 }
 
 .select2-search input {
@@ -2135,10 +2205,9 @@ th.status2 {
 .siteTaskEntry {
     position: absolute;
     width: 169px;
-    height: 23px;
+    height: 32px;
     left: 440px;
     top: 285px;
-    background: #292c3f;
     border-radius: 8px;
     color: white;
     font-family: 'Poppins';
@@ -2449,26 +2518,45 @@ button {
 
 .addTaskButton {
     position: absolute;
-    width: 169px;
-    height: 26px;
-    left: 650px;
+    width: 83px;
+    height: 32px;
+    left: 735px;
     top: 560px;
     font-family: 'Poppins';
-    color: #4fcf91;
+    color: white;
     background: transparent;
     border-radius: 8px;
     cursor: pointer;
     outline: 0;
     border: 1px solid #4fcf91;
+    transition-property: background;
+    transition-duration: 0.4s;
+}
+
+.addTaskButton:hover {
+    background: #4fcf91;
+}
+
+.darkenBackground {
+    display: none;
+    width: 1260px;
+    position: fixed;
+    height: 781px;
+    background-color: rgba(0, 0, 0, 0.4);
+    z-index: 1;
+    right: 1px;
+    bottom: 1px;
+    outline: 0;
+    opacity: 1;
 }
 
 .modal {
     display: none;
     position: fixed;
-    z-index: 1;
     opacity: 1;
-    background-color: rgba(0, 0, 0, 0.4);
+    background-color: transparent;
     outline: 0;
+    z-index: 1;
     width: 1260px;
     right: 1px;
     bottom: 1px;
@@ -2495,10 +2583,10 @@ button {
     top: 198px;
 }
 
-table.tasks td.link {
+table.tasks td {
     overflow: hidden;
     white-space: nowrap;
-    max-width: 295px;
+    max-width: 140px;
 }
 
 table.tasks td:first-child {
@@ -2536,7 +2624,6 @@ td {
     font-size: 13px;
     padding-top: 10px;
     padding-bottom: 10px;
-    background-color: #1e202f;
 }
 
 th.size {
@@ -2588,11 +2675,17 @@ th.date {
     width: 140px;
 }
 
+.fixed {
+    position: fixed;
+    top: 0;
+    left: 0;
+}
+
 th {
     text-align: center;
+    position: sticky;
     top: 0;
     height: 30px;
-    position: sticky;
     z-index: 1;
     font-weight: 600 !important;
     background-color: #292c3f;
@@ -2614,14 +2707,8 @@ th {
 
 tr {
     opacity: 1;
-    transition: 0.3;
     -webkit-app-region: no-drag;
     -webkit-user-select: none;
-}
-
-tr:hover {
-    opacity: 1;
-    background: #292c3f;
 }
 
 .checkoutsIcon {
@@ -2810,6 +2897,17 @@ a {
     overflow-y: auto;
 }
 
+.dragBar {
+    background-color: transparent;
+    width: 1214px;
+    height: 40px;
+    z-index: 1;
+    -webkit-app-region: drag;
+    top: 0px;
+    left: 40px;
+    position: absolute;
+}
+
 .sidebar {
     position: absolute;
     width: 85px;
@@ -2868,7 +2966,6 @@ a {
     -webkit-app-region: no-drag;
     -webkit-user-select: none;
     opacity: 1;
-    transition: 0.3s;
 }
 
 .proxyListNameTitle {
@@ -2916,45 +3013,17 @@ a {
     outline: 0;
 }
 
-.createTask {
-    position: absolute;
-    width: 83px;
-    height: 27px;
-    left: 330px;
-    top: 739px;
-    background: transparent;
-    border-radius: 8px;
-    outline: none;
-    border: 1px solid #4fcf91;
-    color: white;
-    font-family: 'Poppins';
-    cursor: pointer;
-    transition-property: background;
-    transition-duration: 0.4s;
-}
-
-.createTask:hover {
-    background: #4fcf91;
-}
-
-.createTask:disabled {
-    cursor: not-allowed;
-    color: white;
-    border: 1px solid #3d8a64;
-}
-
 .editTask:disabled {
     cursor: not-allowed;
     color: white;
-    border: 1px solid #5291da;
 }
 
 .startTask {
     position: absolute;
     width: 83px;
-    height: 27px;
-    left: 681px;
-    top: 739px;
+    height: 32px;
+    left: 960px;
+    top: 49px;
     background: transparent;
     border-radius: 8px;
     outline: none;
@@ -2973,9 +3042,9 @@ a {
 .stopTask {
     position: absolute;
     width: 83px;
-    height: 27px;
-    left: 775px;
-    top: 739px;
+    height: 32px;
+    left: 1055px;
+    top: 49px;
     background: transparent;
     border-radius: 8px;
     border: 1px solid #e06767;
@@ -2994,9 +3063,9 @@ a {
 .deleteTask {
     position: absolute;
     width: 83px;
-    height: 27px;
-    left: 424px;
-    top: 739px;
+    height: 32px;
+    left: 1148px;
+    top: 49px;
     background: transparent;
     border-radius: 8px;
     outline: none;
@@ -3011,46 +3080,4 @@ a {
 
 .deleteTask:hover {
     background: #e06767;
-}
-
-.cloneTask {
-    position: absolute;
-    width: 83px;
-    height: 27px;
-    left: 1032px;
-    top: 739px;
-    background: transparent;
-    border-radius: 8px;
-    outline: none;
-    border: 1px solid #5DA9FF;
-    font-family: 'Poppins';
-    color: white;
-    cursor: pointer;
-    transition-property: background;
-    transition-duration: 0.4s;
-}
-
-.cloneTask:hover {
-    background: #5DA9FF;
-}
-
-.editTask {
-    position: absolute;
-    width: 83px;
-    height: 27px;
-    left: 1126px;
-    top: 739px;
-    background: transparent;
-    border-radius: 8px;
-    outline: none;
-    border: 1px solid #5DA9FF;
-    font-family: 'Poppins';
-    color: white;
-    cursor: pointer;
-    transition-property: background;
-    transition-duration: 0.4s;
-}
-
-.editTask:hover {
-    background: #5DA9FF;
 }

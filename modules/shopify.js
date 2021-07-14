@@ -42,6 +42,8 @@ module.exports = class ShopifyTask {
         this.plainLink = this.baseLink.split("https://")[1]
         this.insecurelink = "http://" + this.plainLink
         if (this.link.startsWith("http") && this.link.includes(this.cartLink) == false) {
+            if (this.link.includes("?"))
+                this.link = this.link.split("?")[0]
             this.searchMethod = "link"
         } else if (this.link.includes(this.cartLink) == true) {
             this.productVariant2 = this.link.split("/cart/")[1].split(":")[0]
@@ -702,7 +704,6 @@ module.exports = class ShopifyTask {
                 await this.sendProductTitle(this.productTitle)
                 if (this.size === "RS") {
                     this.productVariant = response.body.product.variants.sample().id;
-                    this.log(this.productVariant)
                     await this.send("Found product")
                     return;
                 } else {
@@ -796,7 +797,6 @@ module.exports = class ShopifyTask {
                 await this.sendProductTitle(this.productTitle)
                 if (this.size === "RS") {
                     this.productVariant = response.body.product.variants.sample().id;
-                    this.log(this.productVariant)
                     await this.send("Found product")
                     return;
                 } else {
@@ -908,6 +908,7 @@ module.exports = class ShopifyTask {
         const tunnel = require('tunnel');
         const querystring = require('querystring')
         if (this.stopped === "false") {
+            this.log(this.productVariant)
             await this.send("Adding to cart...")
             try {
                 this.request = {
@@ -1516,6 +1517,29 @@ module.exports = class ShopifyTask {
                 let response = await got(this.request);
                 var HTMLParser = require('node-html-parser');
                 var root = HTMLParser.parse(response.body);
+                if (response.url.includes("/checkpoint")) {
+                    await this.send("Found checkpoint")
+                    var HTMLParser = require('node-html-parser');
+                    var root = HTMLParser.parse(response.body);
+                    if (this.stopped === "false")
+                        await this.sendCaptchaCheckpoint()
+
+                    if (this.stopped === "false")
+                        await this.retrieveCaptchaResponse()
+
+                    await this.loadShippingRate()
+                } else if (response.url.includes("/queue")) {
+                    for (var i = 0; i < response.headers['set-cookie'].length; i++) {
+                        if (response.headers['set-cookie'][i].includes("_checkout_queue_token")) {
+                            this.checkoutQueueToken = response.headers['set-cookie'][i].split(";")[0].split("_checkout_queue_token=")[1]
+                            break;
+                        }
+                    }
+                    if (this.stopped === "false") {
+                        await this.pollQueue()
+                        await this.loadShippingRate()
+                    }
+                } else
                 if (typeof root.querySelectorAll(".input-radio")[0] !== 'undefined') {
                     this.shippingRate = root.querySelectorAll(".input-radio")[0].getAttribute("value")
                     if (root.querySelector('[value="fs_count"]') != null) {
@@ -1703,6 +1727,29 @@ module.exports = class ShopifyTask {
                 let response = await got(this.request);
                 var HTMLParser = require('node-html-parser');
                 var root = HTMLParser.parse(response.body);
+                if (response.url.includes("/checkpoint")) {
+                    await this.send("Found checkpoint")
+                    var HTMLParser = require('node-html-parser');
+                    var root = HTMLParser.parse(response.body);
+                    if (this.stopped === "false")
+                        await this.sendCaptchaCheckpoint()
+
+                    if (this.stopped === "false")
+                        await this.retrieveCaptchaResponse()
+
+                    await this.loadPayment()
+                } else if (response.url.includes("/queue")) {
+                    for (var i = 0; i < response.headers['set-cookie'].length; i++) {
+                        if (response.headers['set-cookie'][i].includes("_checkout_queue_token")) {
+                            this.checkoutQueueToken = response.headers['set-cookie'][i].split(";")[0].split("_checkout_queue_token=")[1]
+                            break;
+                        }
+                    }
+                    if (this.stopped === "false") {
+                        await this.pollQueue()
+                        await this.loadPayment()
+                    }
+                } else
                 if (root.querySelector('[name="checkout[payment_gateway]"]') != null) {
                     this.paymentGateway = root.querySelector('[name="checkout[payment_gateway]"]').getAttribute('value')
                     this.totalPrice = root.querySelector('[name="checkout[total_price]"]').getAttribute('value')
@@ -1980,14 +2027,15 @@ module.exports = class ShopifyTask {
                 }
                 let response = await got(this.request);
                 this.log(response.body)
+                this.log(response.url)
                 var HTMLParser = require('node-html-parser');
                 var root = HTMLParser.parse(response.body);
                 if (root.querySelector("title") != null && root.querySelector("title").rawText.includes("Payment") || (response.body === "")) {
                     await this.send("Checkout failed")
-                    await this.sendFail()
-                } else if (root.querySelector("title") != null && root.querySelector("title").rawText.includes("Thank")) {
+                        //await this.sendFail()
+                } else if ((root.querySelector("title") != null && root.querySelector("title").rawText.includes("Thank")) || response.body.toLowerCase().includes("thank")) {
                     await this.send("Check email")
-                    await this.sendSuccess()
+                        //await this.sendSuccess()
                 } else {
                     await sleep(3000)
                     await this.checkOrder()
@@ -2186,6 +2234,18 @@ module.exports = class ShopifyTask {
                     await this.send("Updated checkout")
             } catch (error) {
                 await this.setDelays()
+                if (error.response.statusCode === 412) {
+                    for (var i = 0; i < error.response.headers['set-cookie'].length; i++) {
+                        if (error.response.headers['set-cookie'][i].includes("_checkout_queue_token")) {
+                            this.checkoutQueueToken = error.response.headers['set-cookie'][i].split(";")[0].split("_checkout_queue_token=")[1]
+                            break;
+                        }
+                    }
+                    if (this.stopped === "false") {
+                        await this.pollQueueFast()
+                        await this.updateCheckout()
+                    }
+                } else
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
                     this.log(error.response.body)
                     await this.send("Error updating checkout: " + error.response.statusCode)
@@ -2248,8 +2308,21 @@ module.exports = class ShopifyTask {
                 }
             } catch (error) {
                 await this.setDelays()
+                if (error.response.statusCode === 412) {
+                    for (var i = 0; i < error.response.headers['set-cookie'].length; i++) {
+                        if (error.response.headers['set-cookie'][i].includes("_checkout_queue_token")) {
+                            this.checkoutQueueToken = error.response.headers['set-cookie'][i].split(";")[0].split("_checkout_queue_token=")[1]
+                            break;
+                        }
+                    }
+                    if (this.stopped === "false") {
+                        await this.pollQueueFast()
+                        await this.pollFastRates()
+                    }
+                } else
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
                     this.log(error.response.body)
+                    console.log(error.response.body)
                     await this.send("Error getting rates: " + error.response.statusCode)
                     await sleep(this.errorDelay)
                     await this.pollFastRates()
@@ -2309,6 +2382,18 @@ module.exports = class ShopifyTask {
                     await this.send("Submitted rate")
             } catch (error) {
                 await this.setDelays()
+                if (error.response.statusCode === 412) {
+                    for (var i = 0; i < error.response.headers['set-cookie'].length; i++) {
+                        if (error.response.headers['set-cookie'][i].includes("_checkout_queue_token")) {
+                            this.checkoutQueueToken = error.response.headers['set-cookie'][i].split(";")[0].split("_checkout_queue_token=")[1]
+                            break;
+                        }
+                    }
+                    if (this.stopped === "false") {
+                        await this.pollQueueFast()
+                        await this.addShippingFast()
+                    }
+                } else
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
                     this.log(error.response.body)
                     await this.send("Error submitting rates: " + error.response.statusCode)
@@ -2462,8 +2547,10 @@ module.exports = class ShopifyTask {
 
     async initialize() {
         await this.send("Started")
+
         await this.formatCard()
         await this.submitCard()
+
 
         if (this.accounts != "-") {
             if (this.stopped === "false")

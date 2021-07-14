@@ -235,7 +235,7 @@ let taskArray = []
 let win;
 
 client.updatePresence({
-    details: 'v0.4.7',
+    details: 'v0.4.9',
     startTimestamp: Date.now(),
     largeImageKey: "venetia",
     largeImageText: "Venetia",
@@ -247,6 +247,7 @@ function keyAuth() {
         width: 682,
         height: 366,
         backgroundColor: '#181a26',
+
         icon: path.join(__dirname, 'images/logo.png'),
         frame: false,
         webPreferences: {

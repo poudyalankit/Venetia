@@ -3,11 +3,13 @@ const electron = require('electron');
 
 const { ipcRenderer } = electron;
 var path = require('path')
+var isMouseDown = false;
 
 const configDir = (electron.app || electron.remote.app).getPath('userData');
 
 var fs = require('fs');
 const { controllers } = require('chart.js');
+const { eventNames } = require('process');
 
 var statusCache = {}
 var titleCache = {}
@@ -407,7 +409,7 @@ function deleteSelected() {
         var tasks = document.getElementById("tasks");
         var rowCount = tasks.rows.length;
         for (var x = rowCount - 1; x > 0; x--) {
-            if (document.getElementById('tasks').rows[x].cells[0].style['border-left'] === "1px solid rgb(224, 103, 103)") {
+            if (document.getElementById('tasks').rows[x].classList.contains("rowClicked")) {
                 groups[groupIndex][groupName].splice([x - 1], 1)
                 tasks.deleteRow(x)
             }
@@ -423,8 +425,10 @@ function deleteSelected() {
 
 
 function taskEditor() {
-    if (document.getElementById('groups').rows.length > 0)
+    if (document.getElementById('groups').rows.length > 0) {
+        document.getElementById("darkenBackground").style.display = "block";
         document.getElementById("taskEditor").style.display = "block";
+    }
 }
 
 
@@ -441,7 +445,7 @@ function cloneSelected() {
     }
     var groups = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/tasks.json'), { encoding: 'utf8', flag: 'r' }));
     for (var i = 0; i < document.getElementById('tasks').rows.length; i++) {
-        if (document.getElementById('tasks').rows[i].cells[0].style['border-left'] === "1px solid rgb(224, 103, 103)") {
+        if (document.getElementById('tasks').rows[i].classList.contains("rowClicked")) {
             var id = makeid(5)
             var task = {
                 [id]: {
@@ -469,7 +473,6 @@ function cloneSelected() {
                 "<td>" + task[id].profile + "</td>" +
                 "<td>" + task[id].proxies + "</td>" +
                 "<td>" + 'Stopped' + "</td>"
-            row.setAttribute("onclick", "selectRow(this)")
             groups[gindex][gname].push(task)
         }
     }
@@ -637,17 +640,21 @@ window.onload = function() {
                     deleteSelected()
             }
             if (event.ctrlKey && event.key === 's') {
-                for (var i = 1; i < document.getElementById('tasks').rows.length; i++) {
-                    if (document.getElementById("taskCreator").style.display != "block")
-                        deselectAll(document.getElementById('tasks').rows[i])
+                if (document.getElementById("taskCreator").style.display != "block") {
+                    for (var i = 1; i < document.getElementById('tasks').rows.length; i++) {
+                        if (document.getElementById("tasks").rows[i].style.display != "none")
+                            deselectAll(document.getElementById('tasks').rows[i])
+                    }
                 }
             }
             if (event.ctrlKey && event.key === 'a') {
                 if (document.activeElement.tagName != "INPUT") {
                     event.preventDefault()
-                    for (var i = 1; i < document.getElementById('tasks').rows.length; i++) {
-                        if (document.getElementById("taskCreator").style.display != "block")
-                            selectAll(document.getElementById('tasks').rows[i])
+                    if (document.getElementById("taskCreator").style.display != "block") {
+                        for (var i = 1; i < document.getElementById('tasks').rows.length; i++) {
+                            if (document.getElementById("tasks").rows[i].style.display != "none")
+                                selectAll(document.getElementById('tasks').rows[i])
+                        }
                     }
                 }
             }
@@ -672,18 +679,78 @@ window.onload = function() {
     });
 
 
+    $("#tasks").on('mousedown', function() {
+        if (event.target.tagName === "TD") {
+            var row = event.target.parentElement
+            if (event.shiftKey) {
+                var startRowIndex;
+                for (var i = 0; i < document.getElementById("tasks").rows.length; i++) {
+                    if (document.getElementById("tasks").rows[i].classList.contains("rowClicked")) {
+                        startRowIndex = i;
+                        break;
+                    }
+                }
+                if (startRowIndex < row.closest("tr").rowIndex)
+                    for (var j = startRowIndex; j <= row.closest("tr").rowIndex; j++) {
+                        if (document.getElementById('tasks').rows[j].style.display != "none") {
+                            document.getElementById("tasks").rows[j].classList.add("rowClicked");
+                        }
+                    }
+                else {
+                    for (var i = 0; i < document.getElementById("tasks").rows.length; i++) {
+                        if (document.getElementById("tasks").rows[i].classList.contains("rowClicked") && i != row.closest("tr").rowIndex) {
+                            startRowIndex = i;
+                            break;
+                        }
+                    }
+                    for (var j = row.closest("tr").rowIndex; j <= startRowIndex; j++) {
+                        if (document.getElementById('tasks').rows[j].style.display != "none") {
+                            document.getElementById("tasks").rows[j].classList.add("rowClicked")
+                        }
+                    }
+                }
+            } else {
+                if (event.ctrlKey) {
+                    if (row.classList.contains("rowClicked")) {
+                        row.classList.remove("rowClicked")
+                    } else
+                        row.classList.add("rowClicked")
+                } else {
+                    for (var i = 0; i < document.getElementById("tasks").rows.length; i++) {
+                        document.getElementById("tasks").rows[i].classList.remove("rowClicked")
+                    }
+                    row.classList.add("rowClicked")
+                }
+            }
+            isMouseDown = true;
+        }
+    });
+
+    $("#tasks").on('mouseover', function() {
+        if (isMouseDown) {
+            if (event.target.tagName === "TD") {
+                var row = event.target.parentElement
+                row.classList.add("rowClicked")
+            }
+        }
+    });
+
+    $(document)
+        .mouseup(function() {
+            isMouseDown = false;
+        });
+
+
+
     $(document).bind("mousedown", function(e) {
         if (!$(e.target).parents(".custom-menu").length > 0) {
-
             $(".custom-menu").hide(100);
         }
     });
 
 
     $(".custom-menu li").click(function() {
-
         switch ($(this).attr("data-action")) {
-
             case "first":
                 addGroup()
                 break;
@@ -691,17 +758,18 @@ window.onload = function() {
                 deleteGroup();
                 break;
         }
-
         $(".custom-menu").hide(100);
     });
+
     $(document).on('click', 'a[href^="http"]', function(event) {
         event.preventDefault();
         shell.openExternal(this.href);
     });
+
     require('select2')($);
 
     $('#shopifyStores').select2({
-        placeholder: "Add a custom store"
+        placeholder: "Select store"
     });
 
     $('#profileQTSelect').select2({
@@ -713,7 +781,8 @@ window.onload = function() {
     });
 
     $('#sizeQTSelect').select2({
-        placeholder: "Select size"
+        placeholder: "Select size",
+        tags: true
     });
 
     $('#siteTask').select2({
@@ -730,7 +799,8 @@ window.onload = function() {
     });
 
     $('#sizeTask').select2({
-        placeholder: "Select size"
+        placeholder: "Select size",
+        tags: true
     });
 
     $('#profileTask').select2({
@@ -756,7 +826,8 @@ window.onload = function() {
     });
 
     $('#sizeTask2').select2({
-        placeholder: "Select size"
+        placeholder: "Select size",
+        tags: true
     });
 
     $('#profileTask2').select2({
@@ -1411,70 +1482,15 @@ function createProfile() {
 
 }
 
-function selectRow(row) {
-    if (row.children[0].style['border-left'] === "1px solid rgb(224, 103, 103)") {
-        row.children[0].style.border = "0"
-        row.children[1].style.border = "0"
-        row.children[2].style.border = "0"
-        row.children[3].style.border = "0"
-        row.children[4].style.border = "0"
-        row.children[5].style.border = "0"
-        row.children[6].style.border = "0"
-        row.children[7].style.border = "0"
-    } else {
-        row.children[0].style['border-left'] = "1px solid #e06767"
-        row.children[0].style['border-bottom'] = "1px solid #e06767"
-        row.children[0].style['border-top'] = "1px solid #e06767"
-        row.children[7].style['border-right'] = "1px solid #e06767"
-        row.children[7].style['border-top'] = "1px solid #e06767"
-        row.children[7].style['border-bottom'] = "1px solid #e06767"
-        row.children[1].style['border-top'] = "1px solid #e06767"
-        row.children[1].style['border-bottom'] = "1px solid #e06767"
-        row.children[2].style['border-top'] = "1px solid #e06767"
-        row.children[2].style['border-bottom'] = "1px solid #e06767"
-        row.children[3].style['border-top'] = "1px solid #e06767"
-        row.children[3].style['border-bottom'] = "1px solid #e06767"
-        row.children[4].style['border-top'] = "1px solid #e06767"
-        row.children[4].style['border-bottom'] = "1px solid #e06767"
-        row.children[5].style['border-top'] = "1px solid #e06767"
-        row.children[5].style['border-bottom'] = "1px solid #e06767"
-        row.children[6].style['border-top'] = "1px solid #e06767"
-        row.children[6].style['border-bottom'] = "1px solid #e06767"
-    }
-}
 
 
 function selectAll(row) {
-    row.children[0].style['border-left'] = "1px solid #e06767"
-    row.children[0].style['border-bottom'] = "1px solid #e06767"
-    row.children[0].style['border-top'] = "1px solid #e06767"
-    row.children[7].style['border-right'] = "1px solid #e06767"
-    row.children[7].style['border-top'] = "1px solid #e06767"
-    row.children[7].style['border-bottom'] = "1px solid #e06767"
-    row.children[1].style['border-top'] = "1px solid #e06767"
-    row.children[1].style['border-bottom'] = "1px solid #e06767"
-    row.children[2].style['border-top'] = "1px solid #e06767"
-    row.children[2].style['border-bottom'] = "1px solid #e06767"
-    row.children[3].style['border-top'] = "1px solid #e06767"
-    row.children[3].style['border-bottom'] = "1px solid #e06767"
-    row.children[4].style['border-top'] = "1px solid #e06767"
-    row.children[4].style['border-bottom'] = "1px solid #e06767"
-    row.children[5].style['border-top'] = "1px solid #e06767"
-    row.children[5].style['border-bottom'] = "1px solid #e06767"
-    row.children[6].style['border-top'] = "1px solid #e06767"
-    row.children[6].style['border-bottom'] = "1px solid #e06767"
+    row.classList.add("rowClicked")
 }
 
 
 function deselectAll(row) {
-    row.children[0].style.border = "0"
-    row.children[1].style.border = "0"
-    row.children[2].style.border = "0"
-    row.children[3].style.border = "0"
-    row.children[4].style.border = "0"
-    row.children[5].style.border = "0"
-    row.children[6].style.border = "0"
-    row.children[7].style.border = "0"
+    row.classList.remove("rowClicked")
 }
 
 
@@ -1593,14 +1609,10 @@ function saveHarvester() {
     });
 }
 
-function renameKey(obj, oldKey, newKey) {
-    obj[newKey] = obj[oldKey];
-    delete obj[oldKey];
-}
+
 
 
 function editGroup(group) {
-    console.log(group)
     var groups = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/tasks.json'), { encoding: 'utf8', flag: 'r' }));
     var index = group.parentElement.parentElement.rowIndex
     var gname = group.value
@@ -1651,7 +1663,6 @@ function viewGroup(group) {
             "<td>" + groups[groupindex][groupName][i][id].profile + "</td>" +
             "<td>" + groups[groupindex][groupName][i][id].proxies + "</td>" +
             "<td>" + status + "</td>"
-        row.setAttribute("onclick", "selectRow(this)")
         if (status.toUpperCase().includes("ERROR") || status === "Checkout failed") {
             document.getElementById('tasks').rows[row.rowIndex].cells[7].style.color = "#e06767"
         } else if (status === "Check email" || status === "Check webhook") {
@@ -1769,7 +1780,7 @@ function editSelected() {
         mode += "-NC"
 
     for (var i = 0; i < document.getElementById('tasks').rows.length; i++) {
-        if (document.getElementById('tasks').rows[i].cells[0].style['border-left'] === "1px solid rgb(224, 103, 103)") {
+        if (document.getElementById('tasks').rows[i].classList.contains("rowClicked")) {
             if (site != "") {
                 document.getElementById("tasks").rows[i].cells[1].textContent = site;
                 groups[gindex][gname][i - 1][document.getElementById('tasks').rows[i].cells[0].textContent]['site'] = site
@@ -1818,7 +1829,7 @@ function editSelected() {
         if (err) throw err;
         console.log('Tasks saved!');
     });
-    closeEditor()
+    closeEditor(event)
     stopSelected()
 }
 
@@ -1872,7 +1883,6 @@ function addTask() {
                         "<td>" + profile + "</td>" +
                         "<td>" + proxies + "</td>" +
                         "<td>" + 'Stopped' + "</td>"
-                    row.setAttribute("onclick", "selectRow(this)")
                     var task = {
                         [id]: {
                             "site": site,
@@ -1905,7 +1915,6 @@ function addTask() {
                     "<td>" + profile + "</td>" +
                     "<td>" + proxies + "</td>" +
                     "<td>" + 'Stopped' + "</td>"
-                row.setAttribute("onclick", "selectRow(this)")
                 var task = {
                     [id]: {
                         "site": site,
@@ -1936,18 +1945,13 @@ function addTask() {
 
 }
 
-function closeEditor() {
-    document.getElementById("taskEditor").classList.add('animate__zoomOut')
-    document.getElementById("taskEditor").addEventListener('animationend', () => {
-        document.getElementById("taskEditor").classList.remove('animate__zoomOut')
-        document.getElementById('taskEditor').style.display = "none"
-    }, { once: true });
-}
 
 
 function taskCreator() {
-    if (document.getElementById('groups').rows.length > 0)
+    if (document.getElementById('groups').rows.length > 0) {
+        document.getElementById("darkenBackground").style.display = "block";
         document.getElementById("taskCreator").style.display = "block";
+    }
 
 }
 
@@ -2019,6 +2023,7 @@ function addStoreConfirm() {
 }
 
 function addStore() {
+    document.getElementById('darkenBackground2').style.display = "block"
     document.getElementById("storeAdder").style.display = "block";
 }
 
@@ -2040,6 +2045,7 @@ function saveDelays() {
 }
 
 function delayModal() {
+    document.getElementById("darkenBackground").style.display = "block";
     document.getElementById("delayModal").style.display = "block";
     var delays = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/delays.json'), 'utf-8'))
     var index;
@@ -2053,29 +2059,50 @@ function delayModal() {
     document.getElementById("errorDelay").value = delays[index].error
 }
 
-function closeStoreModal() {
-    document.getElementById("storeAdder").classList.add('animate__zoomOut')
-    document.getElementById("storeAdder").addEventListener('animationend', () => {
-        document.getElementById("storeAdder").classList.remove('animate__zoomOut')
-        document.getElementById('storeAdder').style.display = "none"
-    }, { once: true });
+function closeStoreModal(event) {
+    if (event.target.tagName === "IMG" || event.target.className.split(" ")[0] === "modal" || event.target.className.includes('addStoreConfirmButton')) {
+        document.getElementById('darkenBackground2').style.display = "none"
+        document.getElementById("storeAdder").classList.add('animate__zoomOut')
+        document.getElementById("storeAdder").addEventListener('animationend', () => {
+            document.getElementById("storeAdder").classList.remove('animate__zoomOut')
+            document.getElementById('storeAdder').style.display = "none"
+        }, { once: true });
+    }
 }
 
-function closeModal() {
-    document.getElementById("taskCreator").classList.add('animate__zoomOut')
-    document.getElementById("taskCreator").addEventListener('animationend', () => {
-        document.getElementById("taskCreator").classList.remove('animate__zoomOut')
-        document.getElementById('taskCreator').style.display = "none"
-    }, { once: true });
+function closeEditor(event) {
+    if (event.target.tagName === "IMG" || event.target.className.split(" ")[0] === "modal" || event.target.className.includes('addTaskButton')) {
+        document.getElementById('darkenBackground').style.display = "none"
+        document.getElementById("taskEditor").classList.add('animate__zoomOut')
+        document.getElementById("taskEditor").addEventListener('animationend', () => {
+            document.getElementById("taskEditor").classList.remove('animate__zoomOut')
+            document.getElementById('taskEditor').style.display = "none"
+        }, { once: true });
+    }
 }
 
 
-function closeDelayModal() {
-    document.getElementById("delayModal").classList.add('animate__zoomOut')
-    document.getElementById("delayModal").addEventListener('animationend', () => {
-        document.getElementById("delayModal").classList.remove('animate__zoomOut')
-        document.getElementById('delayModal').style.display = "none"
-    }, { once: true });
+function closeModal(event) {
+    if (event.target.tagName === "IMG" || event.target.className.split(" ")[0] === "modal") {
+        document.getElementById('darkenBackground').style.display = "none"
+        document.getElementById("taskCreator").classList.add('animate__zoomOut')
+        document.getElementById("taskCreator").addEventListener('animationend', () => {
+            document.getElementById("taskCreator").classList.remove('animate__zoomOut')
+            document.getElementById('taskCreator').style.display = "none"
+        }, { once: true });
+    }
+}
+
+
+function closeDelayModal(event) {
+    if (event.target.tagName === "IMG" || event.target.className.split(" ")[0] === "modal" || event.target.className.includes('addStoreConfirmButton')) {
+        document.getElementById('darkenBackground').style.display = "none"
+        document.getElementById("delayModal").classList.add('animate__zoomOut')
+        document.getElementById("delayModal").addEventListener('animationend', () => {
+            document.getElementById("delayModal").classList.remove('animate__zoomOut')
+            document.getElementById('delayModal').style.display = "none"
+        }, { once: true });
+    }
 }
 
 async function startSelected() {
@@ -2089,7 +2116,31 @@ async function startSelected() {
         }
     }
     for (var i = 1; i < document.getElementById('tasks').rows.length; i++) {
-        if (document.getElementById('tasks').rows[i].cells[0].style['border-left'] === "1px solid rgb(224, 103, 103)" && document.getElementById('tasks').rows[i].cells[7].textContent === "Stopped") {
+        if (document.getElementById('tasks').rows[i].classList.contains("rowClicked") && document.getElementById('tasks').rows[i].cells[7].textContent === "Stopped") {
+            var task = {
+                "taskID": document.getElementById('tasks').rows[i].cells[0].textContent,
+                "taskIndex": i - 1,
+                "groupName": groupName,
+                "groupIndex": groupIndex
+            }
+            ipcRenderer.send('taskinfo', task)
+        }
+    }
+}
+
+
+async function startAll() {
+    var groupName;
+    var groupIndex;
+    for (var i = 0; i < document.getElementById('groups').rows.length; i++) {
+        if (document.getElementById('groups').rows[i].cells[0].style.border === "1px solid rgb(224, 103, 103)") {
+            groupName = document.getElementById('groups').rows[i].cells[0].children[0].value;
+            groupIndex = i;
+            break;
+        }
+    }
+    for (var i = 1; i < document.getElementById('tasks').rows.length; i++) {
+        if (document.getElementById('tasks').rows[i].cells[7].textContent === "Stopped") {
             var task = {
                 "taskID": document.getElementById('tasks').rows[i].cells[0].textContent,
                 "taskIndex": i - 1,
@@ -2137,7 +2188,7 @@ function resetSettings() {
 
 async function stopSelected() {
     for (var i = 1; i < document.getElementById('tasks').rows.length; i++) {
-        if (document.getElementById('tasks').rows[i].cells[0].style['border-left'] === "1px solid rgb(224, 103, 103)") {
+        if (document.getElementById('tasks').rows[i].classList.contains("rowClicked")) {
             delete statusCache[document.getElementById('tasks').rows[i].cells[0].textContent]
             delete titleCache[document.getElementById('tasks').rows[i].cells[0].textContent]
             var task = { "taskID": document.getElementById('tasks').rows[i].cells[0].textContent }
@@ -2191,8 +2242,10 @@ ipcRenderer.on('updateStatus', (event, taskNumber, status) => {
             document.getElementById("tasks").rows[taskNumber].cells[7].style.color = "#FFFFFF";
     } else {
         if (status === "Check email" || status === "Check webhook") {
-            var audio = new Audio(path.join(__dirname, 'images/checkoutsound.mp3'));
-            audio.play();
+            if (document.getElementById("checkoutSound").checked == true) {
+                var audio = new Audio(path.join(__dirname, 'images/checkoutsound.wav'));
+                audio.play();
+            }
         }
     }
 });
@@ -2240,7 +2293,6 @@ ipcRenderer.on('quicktask', (event, site, input) => {
         "<td>" + document.getElementById("profileQTSelect").value + "</td>" +
         "<td>" + document.getElementById("proxyQTSelect").value + "</td>" +
         "<td>" + 'Stopped' + "</td>"
-    row.setAttribute("onclick", "selectRow(this)")
     var task = {
         [id]: {
             "site": site,
