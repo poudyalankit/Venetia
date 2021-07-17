@@ -135,7 +135,7 @@ function modeChoices() {
         select.options.length = 0;
         select.options[select.options.length] = new Option("Safe", "Safe");
         select.options[select.options.length] = new Option("Preload", "Preload");
-        //select.options[select.options.length] = new Option("Fast", "Fast");
+        select.options[select.options.length] = new Option("Fast", "Fast");
         document.getElementById("captchaLess").style = "position: absolute; top: 510px; left:440px; display: block"
         document.getElementById("captchaLessLabel").style = "position: absolute; top: 513px; font-size: 12px; width: 200px; left: 476px; display: block; color: white;font-family: Poppins;"
         document.getElementById("captchaLess").checked = false;
@@ -665,18 +665,74 @@ window.onload = function() {
     window.$ = window.jQuery = require('jquery');
     const shell = require('electron').shell;
 
-    $(document).bind("contextmenu", function(event) {
 
+    $(".groupTable").on('contextmenu', function() {
         event.preventDefault();
-        if ($(event.target).is("[menu]")) {
-            $(".custom-menu").finish().toggle(100).
+        $(".custom-menu-groups").finish().show(100).
+        css({
+            top: event.pageY + "px",
+            left: event.pageX + "px"
+        });
+    });
 
-            css({
-                top: event.pageY + "px",
-                left: event.pageX + "px"
-            });
+    $(".taskTable").on('contextmenu', function() {
+        event.preventDefault();
+        if (event.target.tagName === "TD") {
+            event.target.parentElement.classList.add("rowClicked")
+        }
+        $(".custom-menu-tasks").finish().show(100).
+        css({
+            top: event.pageY + "px",
+            left: event.pageX + "px"
+        });
+    });
+
+
+    $(document).on("mousedown", function(e) {
+        if (!$(e.target).parents(".custom-menu-groups").length > 0) {
+            $(".custom-menu-groups").hide(100);
+        }
+        if (!$(e.target).parents(".custom-menu-tasks").length > 0) {
+            $(".custom-menu-tasks").hide(100);
         }
     });
+
+
+    $(".custom-menu-groups li").click(function() {
+        switch ($(this).attr("data-action")) {
+            case "first":
+                addGroup()
+                break;
+            case "second":
+                deleteGroup();
+                break;
+        }
+        $(".custom-menu-groups").hide(100);
+    });
+
+
+    $(".custom-menu-tasks li").click(function() {
+        switch ($(this).attr("data-action")) {
+            case "first":
+                startSelected()
+                break;
+            case "second":
+                stopSelected();
+                break;
+            case "third":
+                deleteSelected();
+                break;
+            case "fourth":
+                taskEditor();
+                break;
+            case "fifth":
+                cloneSelected();
+                break;
+        }
+        $(".custom-menu-tasks").hide(100);
+    });
+
+
 
 
     $("#tasks").on('mousedown', function() {
@@ -742,24 +798,6 @@ window.onload = function() {
 
 
 
-    $(document).bind("mousedown", function(e) {
-        if (!$(e.target).parents(".custom-menu").length > 0) {
-            $(".custom-menu").hide(100);
-        }
-    });
-
-
-    $(".custom-menu li").click(function() {
-        switch ($(this).attr("data-action")) {
-            case "first":
-                addGroup()
-                break;
-            case "second":
-                deleteGroup();
-                break;
-        }
-        $(".custom-menu").hide(100);
-    });
 
     $(document).on('click', 'a[href^="http"]', function(event) {
         event.preventDefault();
@@ -800,8 +838,11 @@ window.onload = function() {
 
     $('#sizeTask').select2({
         placeholder: "Select size",
-        tags: true
+        tags: true,
     });
+
+    //$('#sizeTask').attr('multiple', 'multiple');
+
 
     $('#profileTask').select2({
         placeholder: "Select profile"
@@ -1149,6 +1190,7 @@ function updateAnalytics() {
                     }]
                 },
                 options: {
+                    maintainAspectRatio: false,
                     scales: {
                         yAxes: [{
                             ticks: {

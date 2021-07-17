@@ -474,7 +474,6 @@ module.exports = class ShopifyTask {
                     }
                 }
                 let response = await got(this.request);
-                this.log(response.body)
             } catch (error) {
                 await this.setDelays()
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
@@ -1075,7 +1074,6 @@ module.exports = class ShopifyTask {
                     }
                 }
                 let response = await got(this.request);
-                this.log(response.body)
                 if (response.url.includes("/checkpoint")) {
                     await this.send("Found checkpoint")
                     var HTMLParser = require('node-html-parser');
@@ -1098,12 +1096,12 @@ module.exports = class ShopifyTask {
                         await this.pollQueue()
                         await this.loadCheckout()
                     }
+                } else if (response.headers['content-location'] != null && response.headers['content-location'].includes("/stock_problems") && this.stopped === "false") {
+                    throw "Waiting for restock"
                 } else if (this.stopped === "false") {
                     this.checkoutURL = response.url
                     var HTMLParser = require('node-html-parser');
                     var root = HTMLParser.parse(response.body);
-                    if (root.querySelector('[name="authenticity_token"]') == null)
-                        throw "Waiting for restock"
                     this.authToken = root.querySelector('[name="authenticity_token"]').getAttribute('value')
                     if (this.stopped === "false")
                         await this.send("Loaded checkout")
@@ -1112,7 +1110,11 @@ module.exports = class ShopifyTask {
                         this.test += "&authenticity_token=" + this.authToken //auth token
                         this.test += "&previous_step=contact_information" //previous step
                         this.test += "&step=shipping_method" //shipping method
-                        this.test += "&checkout%5Bemail%5D=" + encodeURIComponent(this.profile.email) //email
+                        if (root.querySelector('[id="checkout_email_or_phone"]') != null) {
+                            this.test += "&checkout%5Bemail_or_phone%5D=" + encodeURIComponent(this.profile.email)
+                        } else {
+                            this.test += "&checkout%5Bemail%5D=" + encodeURIComponent(this.profile.email) //email
+                        }
                         this.test += "&checkout%5Bbuyer_accepts_marketing%5D=0"
                         this.test += "&checkout%5Bbuyer_accepts_marketing%5D=1"
                         if (root.querySelector('[id="checkout_pick_up_in_store_selected"]') != null) {
@@ -1138,7 +1140,7 @@ module.exports = class ShopifyTask {
                         }
                         this.test += "&checkout%5Bshipping_address%5D%5Baddress1%5D=" + this.profile.address1.replaceAll(" ", "+") //address 1
                         this.test += "&checkout%5Bshipping_address%5D%5Baddress2%5D="
-                        this.test += "&checkout%5Bshipping_address%5D%5Bcity%5D=" + this.profile.city //city
+                        this.test += "&checkout%5Bshipping_address%5D%5Bcity%5D=" + this.profile.city.replaceAll(" ", "+") //city
                         this.test += "&checkout%5Bshipping_address%5D%5Bcountry%5D=" + this.profile.country.replaceAll(" ", "+") //country
                         this.test += "&checkout%5Bshipping_address%5D%5Bprovince%5D=" + abbrRegion(this.profile.state, 'abbr') //state
                         this.test += "&checkout%5Bshipping_address%5D%5Bzip%5D=" + this.profile.zipcode //zipcode
@@ -1174,7 +1176,6 @@ module.exports = class ShopifyTask {
                             this.shippingPayload = this.test
                         }
                         this.shippingPayload = this.shippingPayload + "&checkout%5Bclient_details%5D%5Bbrowser_width%5D=1583&checkout%5Bclient_details%5D%5Bbrowser_height%5D=789&checkout%5Bclient_details%5D%5Bjavascript_enabled%5D=1&checkout%5Bclient_details%5D%5Bcolor_depth%5D=24&checkout%5Bclient_details%5D%5Bjava_enabled%5D=false&checkout%5Bclient_details%5D%5Bbrowser_tz%5D=240"
-                        this.log("Shipping payload here")
                         this.log(this.shippingPayload)
                     } else {
                         this.shippingPayload = querystring.encode({
@@ -1445,18 +1446,16 @@ module.exports = class ShopifyTask {
                     }
                 }
                 let response = await got(this.request);
-                this.log("Shipping submitted here")
-                this.log(response.body)
-                if (this.stopped === "false") {
-                    if (response.statusCode === 302)
-                        await this.send("Submitted shipping")
-                    else
-                        throw ("Error submitting shipping")
+                if (response.headers['content-location'] != null && response.headers['content-location'].includes("/stock_problems") && this.stopped === "false") {
+                    throw "Waiting for restock"
+                } else if (this.stopped === "false") {
+                    await this.send("Submitted shipping")
+                    this.log(response.statusCode)
                 }
             } catch (error) {
                 await this.setDelays()
-                if (error === "Error submitting shipping") {
-                    await this.send("Error submitting shipping")
+                if (error === "Waiting for restock") {
+                    await this.send("Waiting for restock")
                     await sleep(this.errorDelay)
                     await this.submitShipping()
                 } else
@@ -1539,6 +1538,8 @@ module.exports = class ShopifyTask {
                         await this.pollQueue()
                         await this.loadShippingRate()
                     }
+                } else if (response.headers['content-location'] != null && response.headers['content-location'].includes("/stock_problems") && this.stopped === "false") {
+                    throw "Waiting for restock"
                 } else
                 if (typeof root.querySelectorAll(".input-radio")[0] !== 'undefined') {
                     this.shippingRate = root.querySelectorAll(".input-radio")[0].getAttribute("value")
@@ -1575,7 +1576,6 @@ module.exports = class ShopifyTask {
                         this.test2 += "&checkout%5Bclient_details%5D%5Bbrowser_tz%5D=240"
 
                         this.shippingRatePayload = this.test2
-                        this.log("Shipping rate payload here")
                         this.log(this.shippingRatePayload)
                     } else {
                         this.shippingRatePayload = querystring.encode({
@@ -1603,6 +1603,11 @@ module.exports = class ShopifyTask {
                 return;
             } catch (error) {
                 await this.setDelays()
+                if (error === "Waiting for restock") {
+                    await this.send("Waiting for restock")
+                    await sleep(this.errorDelay)
+                    await this.loadShippingRate()
+                } else
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
                     this.log(error.response.body)
                     await this.send("Error loading rates: " + error.response.statusCode)
@@ -1654,19 +1659,17 @@ module.exports = class ShopifyTask {
                     }
                 }
                 let response = await got(this.request);
-                this.log("submitted shipping rate here")
-                this.log(response.body)
+                if (response.headers['content-location'] != null && response.headers['content-location'].includes("/stock_problems") && this.stopped === "false") {
+                    throw "Waiting for restock"
+                } else
                 if (this.stopped === "false") {
-                    if (response.statusCode === 302)
-                        await this.send("Submitted rate")
-                    else
-                        throw ("Error submitting rate")
+                    await this.send("Submitted rate")
+                    this.log(response.statusCode)
                 }
-                return;
             } catch (error) {
                 await this.setDelays()
-                if (error === "Error submitting rate") {
-                    await this.send("Error submitting rate")
+                if (error === "Waiting for restock") {
+                    await this.send("Waiting for restock")
                     await sleep(this.errorDelay)
                     await this.submitRate()
                 } else
@@ -1749,6 +1752,11 @@ module.exports = class ShopifyTask {
                         await this.pollQueue()
                         await this.loadPayment()
                     }
+                } else if (response.headers['content-location'] != null && response.headers['content-location'].includes("/stock_problems") && this.stopped === "false") {
+                    await this.setDelays()
+                    await this.send("OOS, retrying")
+                    await sleep(this.monitorDelay)
+                    await this.loadPayment()
                 } else
                 if (root.querySelector('[name="checkout[payment_gateway]"]') != null) {
                     this.paymentGateway = root.querySelector('[name="checkout[payment_gateway]"]').getAttribute('value')
@@ -1781,6 +1789,9 @@ module.exports = class ShopifyTask {
                         this.test3 += "&checkout%5Bpayment_gateway%5D=" + this.paymentGateway //payment gateway
                         this.test3 += "&checkout%5Bcredit_card%5D%5Bvault%5D=false"
                         this.test3 += "&checkout%5Bdifferent_billing_address%5D=false"
+                        if (root.querySelector('[id="post_purchase_page_requested"]') != null) {
+                            this.test3 += "&checkout%5Bpost_purchase_page_requested%5D=0" //post purchase page requested
+                        }
                         if (root.querySelector('[id="checkout_remember_me"]') != null) {
                             this.test3 += "&checkout%5Bremember_me%5D=" //remember me
                             this.test3 += "&checkout%5Bremember_me%5D=0"
@@ -1798,7 +1809,6 @@ module.exports = class ShopifyTask {
                         this.test3 += "&checkout%5Bclient_details%5D%5Bbrowser_tz%5D=240"
 
                         this.paymentPayload = this.test3
-                        this.log("payment payload hhere")
                         this.log(this.paymentPayload)
                     } else {
                         if (typeof this.authToken === 'undefined')
@@ -1825,11 +1835,6 @@ module.exports = class ShopifyTask {
                         })
                         this.log(this.paymentPayload)
                     }
-                } else if (this.mode === "Fast" || this.mode === "Prestock") {
-                    await this.setDelays()
-                    await this.send("OOS, retrying")
-                    await sleep(this.monitorDelay)
-                    await this.loadPayment()
                 } else {
                     await sleep(300)
                     await this.loadPayment()
@@ -1888,20 +1893,21 @@ module.exports = class ShopifyTask {
                     }
                 }
                 let response = await got(this.request);
-                this.log(response.body)
                 var HTMLParser = require('node-html-parser');
                 var root = HTMLParser.parse(response.body);
-                if (root.querySelector("title") != null && root.querySelector("title").rawText.includes("Error"))
-                    throw "Error submitting order"
-                if (this.stopped === "false" && response.statusCode == 200) {
+                if (response.headers['content-location'] != null && response.headers['content-location'].includes("/process") && this.stopped === "false") {
                     await this.send("Submitted order")
                     this.log(this.checkoutURL)
-                    await this.send("Processing...")
-                    await sleep(4000)
-                }
+                } else if (response.body.includes("Error")) {
+                    throw "Error submitting order"
+                } else throw "OOS, retrying"
             } catch (error) {
                 await this.setDelays()
-                if (error === "Error submitting order") {
+                if (error === "OOS, retrying") {
+                    await this.send("OOS, retrying")
+                    await sleep(this.errorDelay)
+                    await this.submitOrder()
+                } else if (error === "Error submitting order") {
                     await this.send("Error submitting order")
                     await sleep(this.errorDelay)
                     await this.submitOrder()
@@ -1963,12 +1969,21 @@ module.exports = class ShopifyTask {
                 let response = await got(this.request);
                 var HTMLParser = require('node-html-parser');
                 var root = HTMLParser.parse(response.body);
-                if (root.querySelector("title") != null && root.querySelector("title").rawText.includes("Processing")) {
+                if (response.headers['content-location'] != null && response.headers['content-location'].includes("/thank") && this.stopped === "false") {
+                    await this.send("Check email")
+                    await this.sendSuccess()
+                } else
+                if (response.headers['content-location'] != null && response.headers['content-location'].includes("/process") && this.stopped === "false") {
                     await this.send("Processing...")
-                    await sleep(4000)
+                    await sleep(2000)
                     await this.processPayment()
-                } else {
-                    return;
+                } else if (response.headers['content-location'] == null) {
+                    await this.send("Processing...")
+                    await sleep(2000)
+                    await this.processPayment()
+                } else if (response.headers['content-location'] != null && response.headers['content-location'].includes(this.checkoutURL) && this.stopped === "false") {
+                    await this.send("Checkout failed")
+                    await this.sendFail()
                 }
             } catch (error) {
                 await this.setDelays()
@@ -1987,71 +2002,6 @@ module.exports = class ShopifyTask {
                     await this.send("Unexpected error processing")
                     await sleep(this.errorDelay)
                     await this.processPayment()
-                }
-            }
-        }
-    }
-
-
-    async checkOrder() {
-        const got = require('got');
-        const tunnel = require('tunnel');
-        if (this.stopped === "false") {
-            await this.send("Checking order...")
-            try {
-                this.request = {
-                    method: 'get',
-                    url: this.checkoutURL + "/thank_you",
-                    cookieJar: this.cookieJar,
-                    headers: {
-                        'sec-ch-ua': '" Not A;Brand";v="99", "Chromium";v="90", "Google Chrome";v="90"',
-                        'accept': 'application/json, text/javascript, */*; q=0.01',
-                        'x-requested-with': 'XMLHttpRequest',
-                        'sec-ch-ua-mobile': '?0',
-                        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.77 Safari/537.36',
-                        'content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
-                        'sec-fetch-site': 'same-origin',
-                        'sec-fetch-mode': 'cors',
-                        'sec-fetch-dest': 'empty',
-                        'accept-language': 'en-US,en;q=0.9',
-                        'origin': this.baseLink,
-                        'referer': this.baseLink
-                    }
-                }
-                if (this.proxy != '-') {
-                    this.request['agent'] = {
-                        https: tunnel.httpsOverHttp({
-                            proxy: this.proxy
-                        })
-                    }
-                }
-                let response = await got(this.request);
-                this.log(response.body)
-                this.log(response.url)
-                var HTMLParser = require('node-html-parser');
-                var root = HTMLParser.parse(response.body);
-                if (root.querySelector("title") != null && root.querySelector("title").rawText.includes("Payment") || (response.body === "")) {
-                    await this.send("Checkout failed")
-                        //await this.sendFail()
-                } else if ((root.querySelector("title") != null && root.querySelector("title").rawText.includes("Thank")) || response.body.toLowerCase().includes("thank")) {
-                    await this.send("Check email")
-                        //await this.sendSuccess()
-                } else {
-                    await sleep(3000)
-                    await this.checkOrder()
-                }
-            } catch (error) {
-                await this.setDelays()
-                if (typeof error.response != 'undefined' && this.stopped === "false") {
-                    this.log(error.response.body)
-                    await this.send("Error checking: " + error.response.statusCode)
-                    await sleep(this.errorDelay)
-                    await this.checkOrder()
-                } else if (this.stopped === "false") {
-                    this.log(error)
-                    await this.send("Unexpected error checking")
-                    await sleep(this.errorDelay)
-                    await this.checkOrder()
                 }
             }
         }
@@ -2296,7 +2246,6 @@ module.exports = class ShopifyTask {
                     }
                 }
                 let response = await got(this.request);
-                console.log(response.body['shipping_rates'])
                 if (response.body.hasOwnProperty('shipping_rates') == false) {
                     await sleep(300)
                     await this.pollFastRates()
@@ -2308,21 +2257,8 @@ module.exports = class ShopifyTask {
                 }
             } catch (error) {
                 await this.setDelays()
-                if (error.response.statusCode === 412) {
-                    for (var i = 0; i < error.response.headers['set-cookie'].length; i++) {
-                        if (error.response.headers['set-cookie'][i].includes("_checkout_queue_token")) {
-                            this.checkoutQueueToken = error.response.headers['set-cookie'][i].split(";")[0].split("_checkout_queue_token=")[1]
-                            break;
-                        }
-                    }
-                    if (this.stopped === "false") {
-                        await this.pollQueueFast()
-                        await this.pollFastRates()
-                    }
-                } else
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
-                    this.log(error.response.body)
-                    console.log(error.response.body)
+                    this.log(JSON.stringify(error.response.body))
                     await this.send("Error getting rates: " + error.response.statusCode)
                     await sleep(this.errorDelay)
                     await this.pollFastRates()
@@ -2382,20 +2318,8 @@ module.exports = class ShopifyTask {
                     await this.send("Submitted rate")
             } catch (error) {
                 await this.setDelays()
-                if (error.response.statusCode === 412) {
-                    for (var i = 0; i < error.response.headers['set-cookie'].length; i++) {
-                        if (error.response.headers['set-cookie'][i].includes("_checkout_queue_token")) {
-                            this.checkoutQueueToken = error.response.headers['set-cookie'][i].split(";")[0].split("_checkout_queue_token=")[1]
-                            break;
-                        }
-                    }
-                    if (this.stopped === "false") {
-                        await this.pollQueueFast()
-                        await this.addShippingFast()
-                    }
-                } else
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
-                    this.log(error.response.body)
+                    this.log(JSON.stringify(error.response.body))
                     await this.send("Error submitting rates: " + error.response.statusCode)
                     await sleep(this.errorDelay)
                     await this.addShippingFast()
@@ -2603,8 +2527,6 @@ module.exports = class ShopifyTask {
             if (this.stopped === "false")
                 await this.processPayment()
 
-            if (this.stopped === "false")
-                await this.checkOrder()
         }
 
 
@@ -2638,9 +2560,6 @@ module.exports = class ShopifyTask {
 
             if (this.stopped === "false")
                 await this.processPayment()
-
-            if (this.stopped === "false")
-                await this.checkOrder()
 
         }
 
@@ -2684,8 +2603,6 @@ module.exports = class ShopifyTask {
             if (this.stopped === "false")
                 await this.processPayment()
 
-            if (this.stopped === "false")
-                await this.checkOrder()
         }
 
         if (this.mode === "Safe") {
@@ -2715,9 +2632,6 @@ module.exports = class ShopifyTask {
 
             if (this.stopped === "false")
                 await this.processPayment()
-
-            if (this.stopped === "false")
-                await this.checkOrder()
         }
     }
 

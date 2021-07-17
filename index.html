@@ -11,9 +11,17 @@
 </head>
 
 <body>
-    <ul class='custom-menu'>
+    <ul class='custom-menu-groups'>
         <li data-action="first" class="menuText">Create Group</li>
         <li data-action="second" class="menuText">Delete Selected</li>
+    </ul>
+
+    <ul class='custom-menu-tasks'>
+        <li data-action="first" class="menuText">Start Selected</li>
+        <li data-action="second" class="menuText">Stop Selected</li>
+        <li data-action="third" class="menuText">Delete Selected</li>
+        <li data-action="fourth" class="menuText">Edit Selected</li>
+        <li data-action="fifth" class="menuText">Duplicate Selected</li>
     </ul>
 
 
@@ -282,7 +290,6 @@
                     <select disabled="true" class="select2" style="width: 169px" id="sizeTask">
                             <option value=""></option>
                             <option value="RS">Random</option>
-                            <option value="" disabled>Clothing</option>
                             <option value="XXS">XXS</option>
             <option value="XS">XS</option>
             <option value="S">S</option>
@@ -528,7 +535,7 @@
         <div class="updateBox">
             <div class="updateBoxTitle">Software Information</div>
             <div class="currentVersionTitle">Current Version</div>
-            <div class="currentVersionText">0.4.9</div>
+            <div class="currentVersionText">0.4.14</div>
             <button class="updateButton" onclick="update()">Update</button>
         </div>
         <div class="customSites">

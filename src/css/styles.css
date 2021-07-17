@@ -252,7 +252,33 @@
     color: #FFFFFF;
 }
 
-.custom-menu {
+.custom-menu-tasks {
+    display: none;
+    z-index: 1000;
+    height: 170px;
+    width: 140px;
+    position: absolute;
+    overflow: hidden;
+    white-space: nowrap;
+    font-family: Poppins;
+    background: #222233;
+    color: white;
+    border-radius: 8px;
+    padding: 0;
+    font-size: 14px;
+}
+
+.custom-menu-tasks li {
+    padding: 8px 12px;
+    cursor: pointer;
+    transition-duration: 0.4s;
+}
+
+.custom-menu-tasks li:hover {
+    background-color: #292c3f;
+}
+
+.custom-menu-groups {
     display: none;
     z-index: 1000;
     height: 68px;
@@ -261,20 +287,20 @@
     overflow: hidden;
     white-space: nowrap;
     font-family: Poppins;
-    background: #1e202f;
+    background: #222233;
     color: white;
     border-radius: 8px;
     padding: 0;
     font-size: 14px;
 }
 
-.custom-menu li {
+.custom-menu-groups li {
     padding: 8px 12px;
     cursor: pointer;
     transition-duration: 0.4s;
 }
 
-.custom-menu li:hover {
+.custom-menu-groups li:hover {
     background-color: #292c3f;
 }
 
@@ -433,10 +459,10 @@
 
 .graph {
     position: absolute;
-    width: 640px;
-    height: 378px;
-    left: 130px;
-    top: 40px;
+    width: 51%;
+    height: 48%;
+    left: 10%;
+    top: 5%;
     background: #1e202f;
     border-radius: 8px;
 }
@@ -1688,87 +1714,6 @@ body {
     background: #E06767;
 }
 
-.totalCheckouts {
-    position: absolute;
-    width: 122px;
-    height: 30px;
-    left: 132px;
-    top: 92px;
-    border-radius: 10px;
-    background: #4fcf91;
-    border: 0;
-    outline: 0;
-}
-
-.totalCheckoutsNumber {
-    position: absolute;
-    width: 120px;
-    height: 21px;
-    left: 141px;
-    top: 97px;
-    font-family: 'Poppins';
-    font-style: normal;
-    font-weight: normal;
-    font-size: 14px;
-    line-height: 21px;
-    color: #FFFFFF;
-    -webkit-user-select: none;
-}
-
-.totalCarts {
-    position: absolute;
-    width: 122px;
-    height: 30px;
-    left: 277px;
-    top: 92px;
-    border-radius: 10px;
-    background: #5DA9FF;
-    border: 0;
-    outline: 0;
-}
-
-.totalCartsNumber {
-    position: absolute;
-    width: 120px;
-    height: 21px;
-    left: 286px;
-    top: 97px;
-    font-family: 'Poppins';
-    font-style: normal;
-    font-weight: normal;
-    font-size: 14px;
-    line-height: 21px;
-    color: #FFFFFF;
-    -webkit-user-select: none;
-}
-
-.totalFails {
-    position: absolute;
-    width: 122px;
-    height: 30px;
-    left: 422px;
-    top: 92px;
-    border-radius: 10px;
-    background: #e06767;
-    border: 0;
-    outline: 0;
-}
-
-.totalFailsNumber {
-    position: absolute;
-    width: 120px;
-    height: 21px;
-    left: 431px;
-    top: 97px;
-    font-family: 'Poppins';
-    font-style: normal;
-    font-weight: normal;
-    font-size: 14px;
-    line-height: 21px;
-    color: #FFFFFF;
-    -webkit-user-select: none;
-}
-
 ::-webkit-input-placeholder {
     font-family: 'Poppins';
     font-weight: bold;
@@ -1923,9 +1868,9 @@ body {
 }
 
 .groupTable {
-    position: absolute;
+    position: fixed;
     width: 150px;
-    height: 640px;
+    height: 86%;
     overflow-x: hidden;
     top: 90px;
     left: 99px;
@@ -2672,7 +2617,7 @@ td.checkouts {
 }
 
 th.date {
-    width: 140px;
+    width: 15%;
 }
 
 .fixed {
@@ -2713,15 +2658,28 @@ tr {
 
 .checkoutsIcon {
     position: absolute;
-    left: 300px;
-    top: 50px;
+    left: 80%;
+    top: 25%;
+}
+
+.totalSpentAmount {
+    position: absolute;
+    left: 6%;
+    top: 50%;
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: bold;
+    -webkit-app-region: no-drag;
+    -webkit-user-select: none;
+    font-size: 42px;
+    line-height: 36px;
+    color: #FFFFFF;
 }
 
 .totalCheckoutsAmount {
     position: absolute;
-    height: 36px;
-    left: 23px;
-    top: 110px;
+    left: 6%;
+    top: 50%;
     font-family: 'Poppins';
     font-style: normal;
     font-weight: bold;
@@ -2734,9 +2692,8 @@ tr {
 
 .totalFailuresAmount {
     position: absolute;
-    height: 36px;
-    left: 23px;
-    top: 110px;
+    left: 6%;
+    top: 50%;
     font-family: 'Poppins';
     font-style: normal;
     font-weight: bold;
@@ -2749,43 +2706,37 @@ tr {
 
 .totalSpentText {
     position: absolute;
-    height: 36px;
-    left: 25px;
-    top: 40px;
+    left: 6%;
+    top: 18%;
     font-family: 'Poppins';
     font-weight: lighter;
     -webkit-app-region: no-drag;
     -webkit-user-select: none;
-    font-size: 20px;
-    line-height: 36px;
+    font-size: 120%;
     color: #FFFFFF;
 }
 
 .totalCheckoutsText {
     position: absolute;
-    height: 36px;
-    left: 25px;
-    top: 40px;
+    left: 6%;
+    top: 18%;
     font-family: 'Poppins';
     font-weight: lighter;
     -webkit-app-region: no-drag;
     -webkit-user-select: none;
-    font-size: 20px;
-    line-height: 36px;
+    font-size: 120%;
     color: #FFFFFF;
 }
 
 .totalFailuresText {
     position: absolute;
-    height: 36px;
-    left: 25px;
-    top: 40px;
+    left: 6%;
+    top: 18%;
     font-family: 'Poppins';
     font-weight: lighter;
     -webkit-app-region: no-drag;
     -webkit-user-select: none;
-    font-size: 20px;
-    line-height: 36px;
+    font-size: 120%;
     color: #FFFFFF;
 }
 
@@ -2824,43 +2775,28 @@ a {
     color: #FFFFFF;
 }
 
-.totalSpentAmount {
-    position: absolute;
-    height: 36px;
-    left: 23px;
-    top: 110px;
-    font-family: 'Poppins';
-    font-style: normal;
-    font-weight: bold;
-    -webkit-app-region: no-drag;
-    -webkit-user-select: none;
-    font-size: 42px;
-    line-height: 36px;
-    color: #FFFFFF;
-}
-
 .failsIcon {
     position: absolute;
-    left: 300px;
-    top: 50px;
+    left: 80%;
+    top: 25%;
 }
 
 .totalSpent {
-    position: absolute;
+    position: fixed;
     background: #5DA9FF;
     border-radius: 8px;
-    width: 384px;
-    height: 204px;
-    left: 819px;
-    top: 40px;
+    width: 31%;
+    height: 27%;
+    left: 65%;
+    top: 5%;
 }
 
 .totalCheckouts2 {
-    position: absolute;
-    width: 384px;
-    height: 204px;
-    left: 819px;
-    top: 288px;
+    position: fixed;
+    width: 31%;
+    left: 65%;
+    height: 27%;
+    top: 36%;
     background: #4fcf91;
     border-radius: 8px;
 }
@@ -2874,24 +2810,24 @@ a {
 }
 
 .totalFails2 {
-    position: absolute;
-    width: 384px;
-    height: 204px;
-    left: 819px;
-    top: 533px;
+    position: fixed;
+    height: 27%;
+    width: 31%;
+    left: 65%;
+    top: 67%;
     background: #e06767;
     border-radius: 8px;
 }
 
 .checkoutsTable {
-    position: absolute;
+    position: fixed;
     border: 0;
-    width: 640px;
-    height: 288px;
-    left: 130px;
+    width: 51%;
+    height: 37%;
+    left: 10%;
     border-collapse: separate;
     border-spacing: 0 15px;
-    top: 453px;
+    top: 58%;
     border-radius: 8px;
     background: #1e202f;
     overflow-y: auto;
@@ -2911,7 +2847,7 @@ a {
 .sidebar {
     position: absolute;
     width: 85px;
-    height: 780px;
+    height: 100%;
     top: 0px;
     left: 0px;
     border-right: 3px solid #1e202f;

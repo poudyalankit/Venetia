@@ -235,7 +235,7 @@ let taskArray = []
 let win;
 
 client.updatePresence({
-    details: 'v0.4.9',
+    details: 'v0.4.14',
     startTimestamp: Date.now(),
     largeImageKey: "venetia",
     largeImageText: "Venetia",
@@ -267,6 +267,8 @@ function createWindow() {
     win = new BrowserWindow({
         width: 1255,
         height: 780,
+        minWidth: 1100,
+        minHeight: 780,
         backgroundColor: '#181a26',
         icon: path.join(__dirname, 'images/logo.png'),
         frame: false,
