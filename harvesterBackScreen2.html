@@ -116,9 +116,16 @@
                             proxyRules: null
                         })
                     }
+                    var d = await remote.getCurrentWindow().getBrowserView(0).webContents.session.cookies.get({
+                        url: "https://" + response.body.sessionCookies[0].domain
+                    })
+                    console.log(d)
                     for (var i = 0; i < d.length; i++) {
                         await remote.getCurrentWindow().getBrowserView(0).webContents.session.cookies.remove("https://" + d[i].domain, d[i].name)
                     }
+                    d = await remote.getCurrentWindow().getBrowserView(0).webContents.session.cookies.get({
+                        url: "https://" + response.body.sessionCookies[0].domain
+                    })
                     for (var i = 0; i < response.body.sessionCookies.length; i++) {
                         await remote.getCurrentWindow().getBrowserView(0).webContents.session.cookies.set({
                             "url": "https://" + response.body.sessionCookies[i].domain,
@@ -127,8 +134,11 @@
                             "expirationDate": new Date(response.body.sessionCookies[i].expires).getTime()
                         })
                     }
+                    d = await remote.getCurrentWindow().getBrowserView(0).webContents.session.cookies.get({
+                        url: "https://" + response.body.sessionCookies[0].domain
+                    })
 
-                    remote.getCurrentWindow().getBrowserView(0).webContents.loadURL(response.body.siteURL, {
+                    await remote.getCurrentWindow().getBrowserView(0).webContents.loadURL(response.body.siteURL, {
                         userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.77 Safari/537.36'
                     })
 
@@ -144,20 +154,18 @@
 
                  async function recaptcha()
                  {
-                    while(await grecaptcha.getResponse() === "")
+                  while(await grecaptcha.getResponse() === "")
                     {
                         console.log(await grecaptcha.getResponse())
                         await sleep(100)
                     }
                     var x = {
                         "authToken": document.getElementsByName("authenticity_token")[0].getAttribute("value"),
-                        "captcha": grecaptcha.getResponse()
+                        "captchaType": "recaptcha",
+                        "captchaResponse": grecaptcha.getResponse()
                     }
      
-                    var y = document.getElementsByClassName("ui-button--primary")[0];
-                    console.log(y)
-                    y.click()
-
+            
                                    return x
                  }
 
@@ -170,12 +178,11 @@
                     }
                     var x = {
                         "authToken": document.getElementsByName("authenticity_token")[0].getAttribute("value"),
-                        "captcha": hcaptcha.getResponse()
-                    }
+                        "captchaType": "hcaptcha",
+                        "captchaResponse": hcaptcha.getResponse(),
+                        "hcaptchachallengeresponsetoken": document.getElementById("hcaptcha_challenge_response_token").value,
+                        "hcaptchadata":  document.getElementsByName("hcaptcha_data")[0].value                    }
      
-                    var y = document.getElementsByClassName("ui-button--primary")[0];
-                    y.click()
-
                     return x
                  }
 
@@ -183,13 +190,6 @@
                         var y = await remote.getCurrentWindow().getBrowserView(0).webContents.session.cookies.get({
                             url: "https://" + response.body.sessionCookies[0].domain
                         })
-                        while (JSON.stringify(y).includes("_shopify_checkpoint") == false) {
-                            await sleep(100)
-                            y = await remote.getCurrentWindow().getBrowserView(0).webContents.session.cookies.get({
-                                url: "https://" + response.body.sessionCookies[0].domain
-                            })
-                        }
-                        console.log(JSON.stringify(y))
                         await got({
                             method: "post",
                             url: "http://localhost:4444/venetia/addToSolvedCaptchas",

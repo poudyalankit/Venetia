@@ -457,16 +457,6 @@
     transition: 0.4s;
 }
 
-.graph {
-    position: absolute;
-    width: 51%;
-    height: 48%;
-    left: 10%;
-    top: 5%;
-    background: #1e202f;
-    border-radius: 8px;
-}
-
 .staggerStartLabel {
     left: 40px;
     width: 150px;
@@ -1648,7 +1638,7 @@ body {
     top: 12px;
     font-family: Poppins;
     font-style: normal;
-    font-weight: bold;
+    font-weight: 500;
     font-size: 18px;
     line-height: 27px;
     color: #FFFFFF;
@@ -1671,7 +1661,7 @@ body {
     top: 22px;
     font-family: Poppins;
     font-style: normal;
-    font-weight: 600;
+    font-weight: 500;
     font-size: 16px;
     line-height: 24px;
     color: #FFFFFF;
@@ -1685,7 +1675,7 @@ body {
     top: 52px;
     font-family: Poppins;
     font-style: normal;
-    font-weight: 600;
+    font-weight: 500;
     font-size: 14px;
     cursor: pointer;
     line-height: 21px;
@@ -1716,7 +1706,7 @@ body {
 
 ::-webkit-input-placeholder {
     font-family: 'Poppins';
-    font-weight: bold;
+    font-weight: 600;
 }
 
 .createTask {
@@ -1768,7 +1758,47 @@ body {
     transition-duration: 0.4s;
 }
 
-.cloneTask {
+.createGroup {
+    position: absolute;
+    background: transparent;
+    top: 101px;
+    left: 100px;
+    height: 36px;
+    outline: none;
+    width: 120px;
+    color: white;
+    border: 1px solid #4fcf91;
+    font-family: 'Poppins';
+    transition-property: background;
+    border-radius: 8px;
+    transition-duration: 0.4s;
+    cursor: pointer;
+}
+
+.createGroup:hover {
+    background: #4fcf91;
+}
+
+.taskController {
+    position: absolute;
+    background: transparent;
+    top: 101px;
+    left: 230px;
+    outline: none;
+    color: white;
+    border: 1px solid #5DA9FF;
+    font-family: 'Poppins';
+    transition-property: background;
+    border-radius: 8px;
+    transition-duration: 0.4s;
+    cursor: pointer;
+}
+
+.taskController:hover {
+    background: #5DA9FF;
+}
+
+.editTask {
     position: absolute;
     left: 415px;
     top: 49px;
@@ -1784,32 +1814,11 @@ body {
     z-index: 1;
 }
 
-.cloneTask:hover {
+.editTask:hover {
     background: #5DA9FF;
 }
 
 .delaysButton {
-    position: absolute;
-    left: 509px;
-    top: 49px;
-    font-family: Poppins;
-    font-style: normal;
-    border-radius: 8px;
-    outline: none;
-    cursor: pointer;
-    border: 1px solid #4fcf91;
-    background: transparent;
-    color: #FFFFFF;
-    transition-property: background;
-    transition-duration: 0.4s;
-    z-index: 1;
-}
-
-.delaysButton:hover {
-    background: #4fcf91;
-}
-
-.editTask {
     position: absolute;
     left: 462px;
     top: 49px;
@@ -1825,7 +1834,7 @@ body {
     transition-duration: 0.4s;
 }
 
-.editTask:hover {
+.delaysButton:hover {
     background: #e06767;
 }
 
@@ -1870,9 +1879,9 @@ body {
 .groupTable {
     position: fixed;
     width: 150px;
-    height: 86%;
+    height: 75%;
     overflow-x: hidden;
-    top: 90px;
+    top: 140px;
     left: 99px;
     overflow-y: scroll;
     table-layout: fixed;
@@ -1967,7 +1976,7 @@ table.groups tr {
 
 table.tasks td {
     text-align: left;
-    padding-left: 10px;
+    padding-left: 1%;
 }
 
 table.tasks tr {
@@ -1985,18 +1994,8 @@ table.tasks th {
     padding-left: 10px;
 }
 
-table.checkoutsTable th {
-    text-align: left;
-    padding-left: 10px;
-}
-
-table.checkoutsTable td {
-    text-align: left;
-    padding-left: 10px;
-}
-
 .taskTable {
-    position: absolute;
+    position: fixed;
     width: 912px;
     height: 640px;
     top: 90px;
@@ -2012,9 +2011,23 @@ td,
 th {
     color: white;
     font-family: 'Poppins';
-    font-weight: lighter;
+    font-weight: 400;
     font-size: 14px;
     text-align: center;
+}
+
+table.tasks th {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    background: #181a26 !important;
+    border-bottom: 3px solid #1e202f;
+    border-radius: 0px 0px 0px 0px !important;
+}
+
+table.tasks td {
+    overflow: hidden;
+    white-space: nowrap;
 }
 
 th.id {
@@ -2026,45 +2039,43 @@ th.id {
 th.site {
     width: 80px;
     max-width: 80px;
-    background-color: #292c3f;
 }
 
 th.mode {
     width: 60px;
     max-width: 60px;
-    background-color: #292c3f;
 }
 
 th.link {
     width: 260px;
     max-width: 260px;
-    background-color: #292c3f;
 }
 
 th.size {
-    width: 10px;
-    max-width: 10px;
-    background-color: #292c3f;
+    width: 40px;
+    max-width: 40px;
 }
 
 th.profile3 {
     width: 70px;
     max-width: 70px;
     word-wrap: normal;
-    background-color: #292c3f;
 }
 
 th.proxy3 {
     width: 70px;
     max-width: 70px;
     word-wrap: normal;
-    background-color: #292c3f;
 }
 
 th.status2 {
     width: 180px;
     max-width: 180px;
-    background-color: #292c3f;
+}
+
+td.link {
+    width: 260px;
+    max-width: 260px;
 }
 
 .siteTaskTitle {
@@ -2528,28 +2539,12 @@ button {
     top: 198px;
 }
 
-table.tasks td {
-    overflow: hidden;
-    white-space: nowrap;
-    max-width: 140px;
-}
-
 table.tasks td:first-child {
     border-top-left-radius: 10px;
     border-bottom-left-radius: 10px;
 }
 
 table.tasks td:last-child {
-    border-bottom-right-radius: 10px;
-    border-top-right-radius: 10px;
-}
-
-table.tasks th:first-child {
-    border-top-left-radius: 10px;
-    border-bottom-left-radius: 10px;
-}
-
-table.tasks th:last-child {
     border-bottom-right-radius: 10px;
     border-top-right-radius: 10px;
 }
@@ -2565,30 +2560,9 @@ table.groups td:last-child {
 }
 
 td {
-    font-weight: 100;
     font-size: 13px;
     padding-top: 10px;
     padding-bottom: 10px;
-}
-
-th.size {
-    width: 6%;
-}
-
-th.product {
-    width: 45%;
-}
-
-th.site3 {
-    width: 15%;
-}
-
-th.price {
-    width: 10%;
-}
-
-th.size3 {
-    width: 10%;
 }
 
 td.checkouts {
@@ -2632,8 +2606,6 @@ th {
     top: 0;
     height: 30px;
     z-index: 1;
-    font-weight: 600 !important;
-    background-color: #292c3f;
 }
 
 ::-webkit-scrollbar {
@@ -2658,55 +2630,43 @@ tr {
 
 .checkoutsIcon {
     position: absolute;
-    left: 80%;
-    top: 25%;
+    left: 5%;
+    top: 41%;
 }
 
-.totalSpentAmount {
-    position: absolute;
-    left: 6%;
-    top: 50%;
-    font-family: 'Poppins';
-    font-style: normal;
-    font-weight: bold;
-    -webkit-app-region: no-drag;
-    -webkit-user-select: none;
-    font-size: 42px;
-    line-height: 36px;
-    color: #FFFFFF;
+.totalFails2 {
+    position: fixed;
+    height: 15%;
+    width: 28%;
+    left: 69%;
+    top: 3%;
+    background: #e06767;
+    border-radius: 8px;
 }
 
-.totalCheckoutsAmount {
-    position: absolute;
-    left: 6%;
-    top: 50%;
-    font-family: 'Poppins';
-    font-style: normal;
-    font-weight: bold;
-    -webkit-app-region: no-drag;
-    -webkit-user-select: none;
-    font-size: 42px;
-    line-height: 36px;
-    color: #FFFFFF;
+.totalCheckouts2 {
+    position: fixed;
+    width: 28%;
+    left: 39%;
+    height: 15%;
+    top: 3%;
+    background: #4fcf91;
+    border-radius: 8px;
 }
 
-.totalFailuresAmount {
-    position: absolute;
-    left: 6%;
-    top: 50%;
-    font-family: 'Poppins';
-    font-style: normal;
-    font-weight: bold;
-    -webkit-app-region: no-drag;
-    -webkit-user-select: none;
-    font-size: 42px;
-    line-height: 36px;
-    color: #FFFFFF;
+.totalSpent {
+    position: fixed;
+    background: #5DA9FF;
+    border-radius: 8px;
+    width: 28%;
+    height: 15%;
+    left: 9%;
+    top: 3%;
 }
 
 .totalSpentText {
     position: absolute;
-    left: 6%;
+    left: 26%;
     top: 18%;
     font-family: 'Poppins';
     font-weight: lighter;
@@ -2716,27 +2676,17 @@ tr {
     color: #FFFFFF;
 }
 
-.totalCheckoutsText {
+.totalSpentAmount {
     position: absolute;
-    left: 6%;
-    top: 18%;
+    left: 26%;
+    top: 47%;
     font-family: 'Poppins';
-    font-weight: lighter;
+    font-style: normal;
+    font-weight: bold;
     -webkit-app-region: no-drag;
     -webkit-user-select: none;
-    font-size: 120%;
-    color: #FFFFFF;
-}
-
-.totalFailuresText {
-    position: absolute;
-    left: 6%;
-    top: 18%;
-    font-family: 'Poppins';
-    font-weight: lighter;
-    -webkit-app-region: no-drag;
-    -webkit-user-select: none;
-    font-size: 120%;
+    font-size: 30px;
+    line-height: 36px;
     color: #FFFFFF;
 }
 
@@ -2775,32 +2725,6 @@ a {
     color: #FFFFFF;
 }
 
-.failsIcon {
-    position: absolute;
-    left: 80%;
-    top: 25%;
-}
-
-.totalSpent {
-    position: fixed;
-    background: #5DA9FF;
-    border-radius: 8px;
-    width: 31%;
-    height: 27%;
-    left: 65%;
-    top: 5%;
-}
-
-.totalCheckouts2 {
-    position: fixed;
-    width: 31%;
-    left: 65%;
-    height: 27%;
-    top: 36%;
-    background: #4fcf91;
-    border-radius: 8px;
-}
-
 *,
 *::after,
 *::before {
@@ -2809,28 +2733,161 @@ a {
     -webkit-app-region: no-drag;
 }
 
-.totalFails2 {
-    position: fixed;
-    height: 27%;
-    width: 31%;
-    left: 65%;
-    top: 67%;
-    background: #e06767;
+.graph {
+    position: absolute;
+    width: 42%;
+    height: 74%;
+    left: 55%;
+    top: 21%;
+    background: #222233;
     border-radius: 8px;
 }
 
 .checkoutsTable {
     position: fixed;
     border: 0;
-    width: 51%;
-    height: 37%;
-    left: 10%;
+    width: 43%;
+    height: 70%;
     border-collapse: separate;
     border-spacing: 0 15px;
-    top: 58%;
-    border-radius: 8px;
-    background: #1e202f;
+    top: 25%;
+    left: 9%;
+    background: #222233;
     overflow-y: auto;
+    overflow-x: hidden;
+    border-radius: 0px 0px 8px 8px;
+}
+
+.checkoutsTableTableHeaderText {
+    position: relative;
+    left: 3%;
+    top: 14%;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.checkoutsRowProduct {
+    position: absolute;
+    height: 27px;
+    top: 28%;
+    max-width: 50%;
+    left: 18%;
+    font-family: Poppins;
+    font-style: normal;
+    font-weight: normal;
+    font-size: 16px;
+    line-height: 27px;
+    color: #FFFFFF;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.checkoutsTableSiteAndPrice {
+    position: absolute;
+    max-width: 35%;
+    height: 21px;
+    left: 18%;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    top: 48%;
+    overflow: hidden;
+    font-family: Poppins;
+    font-style: normal;
+    font-weight: 500;
+    font-size: 12px;
+    line-height: 21px;
+    color: #ADA1A1;
+}
+
+.checkoutsTableHeader {
+    position: absolute;
+    width: 43%;
+    height: 40px;
+    left: 9%;
+    top: 21%;
+    font-family: Poppins;
+    font-style: normal;
+    color: white;
+    background: #292c3f;
+    border-radius: 8px 8px 0px 0px;
+}
+
+.checkoutsRow {
+    position: relative;
+    width: 100%;
+    height: 20%;
+    background-color: transparent;
+    border-bottom: 1px solid #292c3f;
+}
+
+.checkoutsRowImage {
+    position: absolute;
+    width: 70px;
+    height: 70px;
+    top: 18%;
+    left: 3%;
+}
+
+.checkoutsRowSize {
+    position: absolute;
+    height: 27px;
+    top: 25%;
+    right: 4%;
+    font-family: Poppins;
+    font-style: normal;
+    font-weight: normal;
+    font-size: 16px;
+    line-height: 27px;
+    color: #FFFFFF;
+}
+
+.checkoutsRowSuccess {
+    position: absolute;
+    width: 85px;
+    height: 31px;
+    top: 62%;
+    left: 81%;
+    background: #4FCF91;
+    border-radius: 8px;
+}
+
+.checkoutsRowSuccessText {
+    position: relative;
+    font-family: Poppins;
+    font-style: normal;
+    width: 31px;
+    height: 18px;
+    left: 22%;
+    top: 19%;
+    font-weight: normal;
+    font-size: 12px;
+    line-height: 18px;
+    color: #FFFFFF;
+}
+
+.checkoutsRowDateText {
+    position: absolute;
+    font-family: Poppins;
+    font-style: normal;
+    height: 18px;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    font-weight: normal;
+    font-size: 12px;
+    line-height: 18px;
+    color: #FFFFFF;
+}
+
+.checkoutsRowDate {
+    position: absolute;
+    width: 85px;
+    height: 31px;
+    top: 62%;
+    left: 63%;
+    background: #5DA9FF;
+    border-radius: 8px;
 }
 
 .dragBar {

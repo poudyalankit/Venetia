@@ -8,14 +8,16 @@ var isMouseDown = false;
 const configDir = (electron.app || electron.remote.app).getPath('userData');
 
 var fs = require('fs');
-const { controllers } = require('chart.js');
-const { eventNames } = require('process');
+
 
 var statusCache = {}
 var titleCache = {}
 if (!fs.existsSync(configDir + "/userdata")) {
     fs.mkdirSync(configDir + "/userdata");
 }
+
+const storage = require('electron-json-storage');
+storage.setDataPath(configDir + "/userdata")
 
 
 const sleep = (waitTimeInMs) => new Promise(resolve => setTimeout(resolve, waitTimeInMs));
@@ -36,14 +38,14 @@ function deactivateKey() {
 }
 
 function savePreferences() {
-    var fs = require('fs');
-    var settings = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/settings.json'), { encoding: 'utf8', flag: 'r' }));
+    var settings = storage.getSync('settings');
     settings[0].retryCheckouts = document.getElementById("retryCheckouts").checked
     settings[0].systemNotifs = document.getElementById("systemNotifs").checked
     settings[0].checkoutSound = document.getElementById("checkoutSound").checked
-    fs.writeFile(path.join(configDir, '/userdata/settings.json'), JSON.stringify(settings), function(err) {
-        if (err) throw err;
+    storage.set('settings', settings, function(error) {
+        if (error) throw error;
     });
+
 }
 
 
@@ -60,6 +62,7 @@ function filterTable() {
         }
 
     }
+
 }
 
 function filterGroups() {
@@ -199,8 +202,8 @@ function modeChoices() {
         document.getElementById("captchaLess").checked = false;
     }
 
-    var shopify = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/shopifyStores2.json'), { encoding: 'utf8', flag: 'r' }));
-    var customshopify = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/shopifyStores.json'), { encoding: 'utf8', flag: 'r' }));
+    var shopify = storage.getSync('shopifyStores2');
+    var customshopify = storage.getSync('shopifyStores');
     for (var i = 0; i < customshopify.length; i++) {
         shopify.push({
             site: customshopify[i].site,
@@ -334,8 +337,8 @@ function modeChoices2() {
         document.getElementById("captchaLess2").checked = false;
     }
 
-    var shopify = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/shopifyStores2.json'), { encoding: 'utf8', flag: 'r' }));
-    var customshopify = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/shopifyStores.json'), { encoding: 'utf8', flag: 'r' }));
+    var shopify = storage.getSync('shopifyStores2');
+    var customshopify = storage.getSync('shopifyStores');
     for (var i = 0; i < customshopify.length; i++) {
         shopify.push({
             site: customshopify[i].site,
@@ -398,7 +401,7 @@ function deleteSelected() {
     else {
         var groupIndex;
         var groupName;
-        var groups = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/tasks.json'), { encoding: 'utf8', flag: 'r' }));
+        var groups = storage.getSync('tasks');
         for (var i = 0; i < document.getElementById("groups").rows.length; i++) {
             if (document.getElementById('groups').rows[i].cells[0].style['border'] === "1px solid rgb(224, 103, 103)") {
                 groupIndex = i;
@@ -414,9 +417,9 @@ function deleteSelected() {
                 tasks.deleteRow(x)
             }
         }
-        fs.writeFile(path.join(configDir, '/userdata/tasks.json'), JSON.stringify(groups), function(err) {
-            if (err) throw err;
-            console.log('Tasks saved!');
+
+        storage.set('tasks', groups, function(error) {
+            if (error) throw error;
         });
 
         document.getElementById('groups').rows[groupIndex].cells[0].children[1].textContent = (document.getElementById('tasks').rows.length - 1).toString() + " tasks"
@@ -433,7 +436,6 @@ function taskEditor() {
 
 
 function cloneSelected() {
-    var fs = require('fs');
     var gname;
     var gindex;
     for (var i = 0; i < document.getElementById('groups').rows.length; i++) {
@@ -443,7 +445,7 @@ function cloneSelected() {
             break;
         }
     }
-    var groups = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/tasks.json'), { encoding: 'utf8', flag: 'r' }));
+    var groups = storage.getSync('tasks');
     for (var i = 0; i < document.getElementById('tasks').rows.length; i++) {
         if (document.getElementById('tasks').rows[i].classList.contains("rowClicked")) {
             var id = makeid(5)
@@ -476,9 +478,9 @@ function cloneSelected() {
             groups[gindex][gname].push(task)
         }
     }
-    fs.writeFile(path.join(configDir, '/userdata/tasks.json'), JSON.stringify(groups), function(err) {
-        if (err) throw err;
-        console.log('Tasks saved!');
+
+    storage.set('tasks', groups, function(error) {
+        if (error) throw error;
     });
 
     document.getElementById('groups').rows[gindex].cells[0].children[1].textContent = (document.getElementById('tasks').rows.length - 1).toString() + " tasks"
@@ -491,43 +493,31 @@ function update() {
 
 function deleteAllProfiles() {
     $("#profiles2 tr:gt(0)").remove();
-    fs.writeFile(path.join(configDir, '/userdata/profiles.json'), JSON.stringify([]), function(err) {})
+    storage.set('profiles', [], function(error) {
+        if (error) throw error;
+    });
 }
 
 function deleteProfile() {
     for (var i = 1; i < document.getElementById('profiles2').rows.length; i++) {
         if (document.getElementById('profiles2').rows[i].cells[0].style.background != '') {
             document.getElementById("profiles2").deleteRow(i);
-            var fs = require('fs')
-            fs.readFile(path.join(configDir, '/userdata/profiles.json'), 'utf-8', (err, data) => {
-                if (err) throw err;
-                x = JSON.parse(data);
-                for (var j = 0; j < x.length; j++) {
-
-                    if (x[j].name === document.getElementById("profilename").value) {
-
-                        x.splice(j, 1);
-                    }
-
+            var x = storage.getSync('profiles');
+            for (var j = 0; j < x.length; j++) {
+                if (x[j].name === document.getElementById("profilename").value) {
+                    x.splice(j, 1);
                 }
-                clearFields()
-
-                fs.writeFile(path.join(configDir, '/userdata/profiles.json'), JSON.stringify(x), function(err) {
-                    if (err) throw err;
-                    console.log('The "data to append" was appended to file!');
-                });
-
+            }
+            clearFields()
+            storage.set('profiles', x, function(error) {
+                if (error) throw error;
             });
         }
     }
-
-
-
 }
 
 
 function reverify() {
-    var fs = require('fs');
     const got = require('got');
     got({
             method: 'get',
@@ -553,14 +543,15 @@ function reverify() {
             select2.options[select2.options.length] = new Option("-- Custom Shopify -- ", "-- Custom Shopify --")
             select.options[select.options.length - 1].disabled = true;
             select2.options[select2.options.length - 1].disabled = true;
-            var customshopify = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/shopifyStores.json'), { encoding: 'utf8', flag: 'r' }));
+            var customshopify = storage.getSync('shopifyStores');
             for (var i = 0; i < customshopify.length; i++) {
                 select.options[select.options.length] = new Option(customshopify[i].site, customshopify[i].site);
                 select2.options[select2.options.length] = new Option(customshopify[i].site, customshopify[i].site);
             }
-            fs.writeFile(path.join(configDir, '/userdata/shopifyStores2.json'), JSON.stringify(storelist), function(err) {
-                if (err) throw err;
+            storage.set('shopifyStores2', storelist, function(error) {
+                if (error) throw error;
             });
+
             document.getElementById("siteTask").value = currentSelection
             document.getElementById("siteTask2").value = currentEditedSelection
         })
@@ -893,22 +884,16 @@ window.onload = function() {
 
     function placeFileContent(file) {
         readFileContent(file).then(content => {
-            fs.readFile(path.join(configDir, '/userdata/profiles.json'), 'utf-8', (err, data) => {
-                if (err) throw err;
-                x = JSON.parse(data);
-                for (var i = 0; i < JSON.parse(content).length; i++) {
-                    x.push(JSON.parse(content)[i])
-                    var tableRef = document.getElementById('profiles2').getElementsByTagName('tbody')[0];
-                    tableRef.insertRow().innerHTML =
-                        "<td onclick='showProfile(this.textContent)' style='padding-bottom: 5px'>" + JSON.parse(content)[i].name + "</td>"
+            var x = storage.getSync('profiles');
+            for (var i = 0; i < JSON.parse(content).length; i++) {
+                x.push(JSON.parse(content)[i])
+                var tableRef = document.getElementById('profiles2').getElementsByTagName('tbody')[0];
+                tableRef.insertRow().innerHTML =
+                    "<td onclick='showProfile(this.textContent)' style='padding-bottom: 5px'>" + JSON.parse(content)[i].name + "</td>"
 
-                }
-                fs.writeFile(path.join(configDir, '/userdata/profiles.json'), JSON.stringify(x), function(err) {
-                    if (err) throw err;
-                    console.log('The "data to append" was appended to file!');
-
-                });
-
+            }
+            storage.set('profiles', x, function(error) {
+                if (error) throw error;
             });
         }).catch(error => console.log(error))
     }
@@ -923,200 +908,187 @@ window.onload = function() {
     }
 
 
-    var fs = require('fs');
+
+    var x = storage.getSync('profiles');
+    if (Object.getOwnPropertyNames(x).length === 0) {
+        storage.set('profiles', [], function(error) {
+            if (error) throw error;
+        });
+    }
+    for (var i = 0; i < x.length; i++) {
+
+        var tableRef = document.getElementById('profiles2').getElementsByTagName('tbody')[0];
+        tableRef.insertRow().innerHTML =
+            "<td onclick='showProfile(this.textContent)' style='padding-bottom: 5px'>" + x[i].name + "</td>"
+    }
 
 
 
-    fs.readFile(path.join(configDir, '/userdata/profiles.json'), 'utf-8', (err, data) => {
-        if (err) {
-            fs.writeFile(path.join(configDir, '/userdata/profiles.json'), JSON.stringify([]), function(err) {})
-            throw err;
-        }
-        var x = JSON.parse(data);
-        for (var i = 0; i < x.length; i++) {
-
-            var tableRef = document.getElementById('profiles2').getElementsByTagName('tbody')[0];
-            tableRef.insertRow().innerHTML =
-                "<td onclick='showProfile(this.textContent)' style='padding-bottom: 5px'>" + x[i].name + "</td>"
-        }
-
-    });
+    var x = storage.getSync('delays');
+    if (Object.getOwnPropertyNames(x).length === 0) {
+        storage.set('delays', [], function(error) {
+            if (error) throw error;
+        });
+    }
 
 
-    fs.readFile(path.join(configDir, '/userdata/delays.json'), 'utf-8', (err, data) => {
-        if (err) {
-            fs.writeFile(path.join(configDir, '/userdata/delays.json'), JSON.stringify([]), function(err) {})
-            throw err;
-        }
-    });
+    var x = storage.getSync('proxies');
+    if (Object.getOwnPropertyNames(x).length === 0) {
+        storage.set('proxies', [], function(error) {
+            if (error) throw error;
+        });
+    }
+    for (var i = 0; i < x.length; i++) {
+        var tableRef = document.getElementById('proxies').getElementsByTagName('tbody')[0];
+        tableRef.insertRow().innerHTML =
+            "<td onclick='showProxies(this.textContent)' style='padding-bottom: 5px'>" + x[i].name + "</td>" +
+            "<td onclick='showProxiesbyCount(this)' style='padding-bottom: 5px'>" + x[i].proxies.length + "</td>"
+    }
+
+
+    var x = storage.getSync('shopifyStores');
+    if (Object.getOwnPropertyNames(x).length === 0) {
+        storage.set('shopifyStores', [], function(error) {
+            if (error) throw error;
+        });
+    }
+    var shopifysites = document.getElementById("shopifyStores")
+    shopifysites.options.length = 0;
+    shopifysites.options[shopifysites.options.length] = new Option('', '')
+
+    for (var i = 0; i < x.length; i++) {
+        shopifysites.options[shopifysites.options.length] = new Option(x[i].site, x[i].site);
+    }
+
+
+    var x = storage.getSync('shopifyStores2');
+    if (Object.getOwnPropertyNames(x).length === 0) {
+        storage.set('shopifyStores2', [], function(error) {
+            if (error) throw error;
+        });
+    }
+
+
+
+    var x = storage.getSync('accounts');
+    if (Object.getOwnPropertyNames(x).length === 0) {
+        storage.set('accounts', [], function(error) {
+            if (error) throw error;
+        });
+    }
+    for (var i = 0; i < x.length; i++) {
+        var tableRef = document.getElementById('accounts').getElementsByTagName('tbody')[0];
+        tableRef.insertRow().innerHTML =
+            "<td onclick='showAccounts(this.textContent)' style='padding-bottom: 5px'>" + x[i].name + "</td>" +
+            "<td onclick='showAccountsbyCount(this)' style='padding-bottom: 5px'>" + x[i].account.length + "</td>"
+    }
+
+
+
+    var x = storage.getSync('harvesters');
+    if (Object.getOwnPropertyNames(x).length === 0) {
+        storage.set('harvesters', [], function(error) {
+            if (error) throw error;
+        });
+    }
+    for (var i = 0; i < x.length; i++) {
+
+        var tableRef = document.getElementById('captchas2').getElementsByTagName('tbody')[0];
+        tableRef.insertRow().innerHTML =
+            "<td onclick='showHarvesters(this.textContent)' style='padding-bottom: 5px'>" + x[i].name + "</td>"
+    }
 
 
 
 
-    fs.readFile(path.join(configDir, '/userdata/proxies.json'), 'utf-8', (err, data) => {
-        if (err) {
-            fs.writeFile(path.join(configDir, '/userdata/proxies.json'), JSON.stringify([]), function(err) {})
-
-            throw err;
-        }
-        var x = JSON.parse(data);
-        for (var i = 0; i < x.length; i++) {
-            var tableRef = document.getElementById('proxies').getElementsByTagName('tbody')[0];
-            tableRef.insertRow().innerHTML =
-                "<td onclick='showProxies(this.textContent)' style='padding-bottom: 5px'>" + x[i].name + "</td>" +
-                "<td onclick='showProxiesbyCount(this)' style='padding-bottom: 5px'>" + x[i].proxies.length + "</td>"
-        }
-    });
-
-    fs.readFile(path.join(configDir, '/userdata/shopifyStores.json'), 'utf-8', (err, data) => {
-        if (err) {
-            fs.writeFile(path.join(configDir, '/userdata/shopifyStores.json'), JSON.stringify([]), function(err) {})
-
-            throw err;
-        }
-        var x = JSON.parse(data);
-        var shopifysites = document.getElementById("shopifyStores")
-        shopifysites.options.length = 0;
-        shopifysites.options[shopifysites.options.length] = new Option('', '')
-
-        for (var i = 0; i < x.length; i++) {
-            shopifysites.options[shopifysites.options.length] = new Option(x[i].site, x[i].site);
-        }
-
-    });
-
-    fs.readFile(path.join(configDir, '/userdata/shopifyStores2.json'), 'utf-8', (err, data) => {
-        if (err) {
-            fs.writeFile(path.join(configDir, '/userdata/shopifyStores2.json'), JSON.stringify([]), function(err) {})
-            throw err;
-        }
-    });
+    var tasks = storage.getSync('tasks');
+    if (Object.getOwnPropertyNames(tasks).length === 0) {
+        storage.set('tasks', [], function(error) {
+            if (error) throw error;
+        });
+    }
+    for (var i = 0; i < tasks.length; i++) {
+        var tableRef = document.getElementById('groups').getElementsByTagName('tbody')[0];
+        var row = tableRef.insertRow()
+        var edit = "this.readOnly='';"
+        var onblur = "this.readOnly='true';"
+        var edit2 = "editGroup(this);"
+        row.innerHTML =
+            "<td menu='true'>" +
+            "<input class='groupNameInput' type='text' onblur=" + onblur + edit2 + " readonly='true' ondblclick=" + edit + " menu='true' value='" + Object.keys(tasks[i])[0] + "'>" +
+            "<div class='groupTaskAmount' menu='true'>" + tasks[i][Object.keys(tasks[i])[0]].length + " tasks</div>" +
+            "</td>"
+        row.setAttribute("onclick", "viewGroup(this)")
+    }
 
 
-    fs.readFile(path.join(configDir, '/userdata/accounts.json'), 'utf-8', (err, data) => {
-        if (err) {
-            fs.writeFile(path.join(configDir, '/userdata/accounts.json'), JSON.stringify([]), function(err) {})
 
-            throw err;
-        }
-        var x = JSON.parse(data);
-        for (var i = 0; i < x.length; i++) {
-            var tableRef = document.getElementById('accounts').getElementsByTagName('tbody')[0];
-            tableRef.insertRow().innerHTML =
-                "<td onclick='showAccounts(this.textContent)' style='padding-bottom: 5px'>" + x[i].name + "</td>" +
-                "<td onclick='showAccountsbyCount(this)' style='padding-bottom: 5px'>" + x[i].account.length + "</td>"
-        }
-    });
+    var data = storage.getSync('settings');
+    if (Object.getOwnPropertyNames(data).length === 0) {
+        storage.set('settings', [{ "webhook": "", "checkoutSound": false, "retryCheckouts": false, "systemNotifs": false }, {
+            "qtProfile": "",
+            "qtProxy": "",
+            "qtSize": ""
+        }], function(error) {
+            if (error) throw error;
+        });
+    }
+    document.getElementById("webhookLink").value = data[0].webhook
+    if (data[0].checkoutSound == true) {
+        document.getElementById("checkoutSound").checked = true
+        document.getElementById("checkoutSound").style['background-color'] = '#e06767'
+    }
 
-    fs.readFile(path.join(configDir, '/userdata/harvesters.json'), 'utf-8', (err, data) => {
-        if (err) {
-            fs.writeFile(path.join(configDir, '/userdata/harvesters.json'), JSON.stringify([]), function(err) {})
-            throw err;
-        }
-        var x = JSON.parse(data);
-        for (var i = 0; i < x.length; i++) {
+    if (data[0].retryCheckouts == true) {
+        document.getElementById("retryCheckouts").checked = true
+        document.getElementById("retryCheckouts").style['background-color'] = '#e06767'
+    }
 
-            var tableRef = document.getElementById('captchas2').getElementsByTagName('tbody')[0];
-            tableRef.insertRow().innerHTML =
-                "<td onclick='showHarvesters(this.textContent)' style='padding-bottom: 5px'>" + x[i].name + "</td>"
-        }
+    if (data[0].systemNotifs == true) {
+        document.getElementById("systemNotifs").checked = true
+        document.getElementById("systemNotifs").style['background-color'] = '#e06767'
+    }
 
-    });
+    if (typeof data[1] == 'undefined') {
+        storage.set('settings', [{ "webhook": "", "checkoutSound": false, "retryCheckouts": false, "systemNotifs": false }, {
+            "qtProfile": "",
+            "qtProxy": "",
+            "qtSize": ""
+        }], function(error) {
+            if (error) throw error;
+        });
+    }
 
-    fs.readFile(path.join(configDir, '/userdata/logs.txt'), 'utf-8', (err, data) => {
-        if (err) {
-            fs.writeFile(path.join(configDir, '/userdata/logs.txt'), "", function(err) {})
-            throw err;
-        }
-    })
+    var select = document.getElementById('profileQTSelect');
+    select.options.length = 0;
+    select.options[select.options.length] = new Option('', '')
+    for (var i = 1; i < document.getElementById('profiles2').rows.length; i++) {
+        select.options[select.options.length] = new Option(document.getElementById('profiles2').rows[i].cells[0].textContent, document.getElementById('profiles2').rows[i].cells[0].textContent);
+    }
 
-    fs.readFile(path.join(configDir, '/userdata/tasks.json'), 'utf-8', (err, data) => {
-        if (err) {
-            fs.writeFile(path.join(configDir, '/userdata/tasks.json'), JSON.stringify([]), function(err) {})
-            throw err;
-        }
-        var tasks = JSON.parse(data);
-        for (var i = 0; i < tasks.length; i++) {
-            var tableRef = document.getElementById('groups').getElementsByTagName('tbody')[0];
-            var row = tableRef.insertRow()
-            var edit = "this.readOnly='';"
-            var onblur = "this.readOnly='true';"
-            var edit2 = "editGroup(this);"
-            row.innerHTML =
-                "<td menu='true'>" +
-                "<input class='groupNameInput' type='text' onblur=" + onblur + edit2 + " readonly='true' ondblclick=" + edit + " menu='true' value='" + Object.keys(tasks[i])[0] + "'>" +
-                "<div class='groupTaskAmount' menu='true'>" + tasks[i][Object.keys(tasks[i])[0]].length + " tasks</div>" +
-                "</td>"
-            row.setAttribute("onclick", "viewGroup(this)")
-        }
-    })
+    var select = document.getElementById('proxyQTSelect');
+    select.options.length = 0;
+    select.options[select.options.length] = new Option('', '')
+    select.options[select.options.length + 1] = new Option('No Proxy', '-')
+    for (var i = 1; i < document.getElementById('proxies2').rows.length; i++) {
+        select.options[select.options.length] = new Option(document.getElementById('proxies2').rows[i].cells[0].textContent, document.getElementById('proxies2').rows[i].cells[0].textContent);
+    }
+
+    $('#profileQTSelect').val(data[1].qtProfile);
+    $('#proxyQTSelect').val(data[1].qtProxy);
+    $('#sizeQTSelect').val(data[1].qtSize);
+    $('#sizeQTSelect').trigger('change')
 
 
-    fs.readFile(path.join(configDir, '/userdata/settings.json'), 'utf-8', (err, data) => {
-        if (err) {
-            fs.writeFile(path.join(configDir, '/userdata/settings.json'), JSON.stringify([{ "webhook": "", "checkoutSound": false, "retryCheckouts": false, "systemNotifs": false }, {
-                "qtProfile": "",
-                "qtProxy": "",
-                "qtSize": ""
-            }]), function(err) {})
-            throw err;
-        }
-        data = JSON.parse(data)
-        document.getElementById("webhookLink").value = data[0].webhook
-        if (data[0].checkoutSound == true) {
-            document.getElementById("checkoutSound").checked = true
-            document.getElementById("checkoutSound").style['background-color'] = '#e06767'
-        }
+    var data = storage.getSync('apiKey');
+    if (Object.getOwnPropertyNames(data).length === 0) {
+        storage.set('apiKey', [{ "service": '', "apiKey": '' }], function(error) {
+            if (error) throw error;
+        });
+    }
+    document.getElementById("capMonsterKey").value = data[0].apiKey;
+    document.getElementById("apiSelection").value = data[0].service;
 
-        if (data[0].retryCheckouts == true) {
-            document.getElementById("retryCheckouts").checked = true
-            document.getElementById("retryCheckouts").style['background-color'] = '#e06767'
-        }
-
-        if (data[0].systemNotifs == true) {
-            document.getElementById("systemNotifs").checked = true
-            document.getElementById("systemNotifs").style['background-color'] = '#e06767'
-        }
-
-        if (typeof data[1] == 'undefined') {
-            fs.writeFile(path.join(configDir, '/userdata/settings.json'), JSON.stringify([{ "webhook": "", "checkoutSound": false, "retryCheckouts": false, "systemNotifs": false }, {
-                "qtProfile": "",
-                "qtProxy": "",
-                "qtSize": ""
-            }]), function(err) {})
-        }
-
-        var select = document.getElementById('profileQTSelect');
-        select.options.length = 0;
-        select.options[select.options.length] = new Option('', '')
-        for (var i = 1; i < document.getElementById('profiles2').rows.length; i++) {
-            select.options[select.options.length] = new Option(document.getElementById('profiles2').rows[i].cells[0].textContent, document.getElementById('profiles2').rows[i].cells[0].textContent);
-        }
-
-        var select = document.getElementById('proxyQTSelect');
-        select.options.length = 0;
-        select.options[select.options.length] = new Option('', '')
-        select.options[select.options.length + 1] = new Option('No Proxy', '-')
-        for (var i = 1; i < document.getElementById('proxies2').rows.length; i++) {
-            select.options[select.options.length] = new Option(document.getElementById('proxies2').rows[i].cells[0].textContent, document.getElementById('proxies2').rows[i].cells[0].textContent);
-        }
-
-        $('#profileQTSelect').val(data[1].qtProfile);
-        $('#proxyQTSelect').val(data[1].qtProxy);
-        $('#sizeQTSelect').val(data[1].qtSize);
-        $('#sizeQTSelect').trigger('change')
-
-    });
-
-    fs.readFile(path.join(configDir, '/userdata/apiKey.json'), 'utf-8', (err, data) => {
-        if (err) {
-            fs.writeFile(path.join(configDir, '/userdata/apiKey.json'), JSON.stringify([{ "service": '', "apiKey": '' }]), function(err) {})
-            throw err;
-        }
-        data = JSON.parse(data)
-        document.getElementById("capMonsterKey").value = data[0].apiKey;
-        document.getElementById("apiSelection").value = data[0].service;
-    });
 
     analytics()
 
@@ -1138,33 +1110,47 @@ function updateAnalytics() {
             var total = 0;
             for (var i = success.length - 1; i >= 0; i--) {
                 total += success[i]['Price']
-                var tableRef = document.getElementById('checkoutsTable').getElementsByTagName('tbody')[0];
+                var tableRef = document.getElementById('checkoutsTable')
                 var d = new Date(success[i]['Date'])
                 var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-                var checkoutDate = months[d.getMonth()] + " " + d.getDay()
-                tableRef.insertRow().innerHTML =
-                    "<td class='checkouts'>" + success[i]['Product'] + "</td>" + "<td>" + success[i]['Site'] + "</td>" + "<td>" + success[i]['Price'] + "</td>" +
-                    "<td>" + success[i]['Size'] + "</td>" + "<td>" + checkoutDate + "</td>"
+                var checkoutDate = months[d.getMonth()] + " " + d.getDate()
+                tableRef.innerHTML += `<div class="checkoutsRow">
+                <div class="checkoutsRowProduct">` + success[i]['Product'] +
+                    `</div>
+                <div class="checkoutsTableSiteAndPrice">` + success[i]['Site'] + ' | $' + success[i]['Price'] + `</div>
+                <div class="checkoutsRowSize">` +
+                    success[i]['Size'] +
+                    `</div>
+                <img src="` + success[i]['Image'] + `" class="checkoutsRowImage">
+                <div class="checkoutsRowSuccess">
+                    <div class="checkoutsRowSuccessText">Success</div>
+                </div>
+                <div class="checkoutsRowDate">
+                    <div class="checkoutsRowDateText">` + checkoutDate + `</div>
+                </div>
+            </div>`
             }
-            document.getElementById("totalSpent").textContent = "$" + total.toString()
+            var totalSpent = 0;
             var checkouts = [0, 0, 0, 0, 0, 0, 0]
-            for (var i = 1; i < document.getElementById('checkoutsTable').rows.length; i++) {
-                if (document.getElementById('checkoutsTable').rows[i].cells[4].textContent.includes("Jan"))
+            for (var i = 0; i < document.getElementById('checkoutsTable').childNodes.length; i++) {
+                totalSpent += parseInt(document.getElementById("checkoutsTable").childNodes[i].children[1].innerHTML.split("| $")[1])
+                if (document.getElementById("checkoutsTable").childNodes[i].children[5].children[0].innerHTML.includes("Jan"))
                     checkouts[0]++
-                    else if (document.getElementById('checkoutsTable').rows[i].cells[4].textContent.includes("Feb"))
+                    else if (document.getElementById("checkoutsTable").childNodes[i].children[5].children[0].innerHTML.includes("Feb"))
                         checkouts[1]++
-                        else if (document.getElementById('checkoutsTable').rows[i].cells[4].textContent.includes("Mar"))
+                        else if (document.getElementById("checkoutsTable").childNodes[i].children[5].children[0].innerHTML.includes("Mar"))
                             checkouts[2]++
-                            else if (document.getElementById('checkoutsTable').rows[i].cells[4].textContent.includes("Apr"))
+                            else if (document.getElementById("checkoutsTable").childNodes[i].children[5].children[0].innerHTML.includes("Apr"))
                                 checkouts[3]++
-                                else if (document.getElementById('checkoutsTable').rows[i].cells[4].textContent.includes("May"))
+                                else if (document.getElementById("checkoutsTable").childNodes[i].children[5].children[0].innerHTML.includes("May"))
                                     checkouts[4]++
-                                    else if (document.getElementById('checkoutsTable').rows[i].cells[4].textContent.includes("Jun"))
+                                    else if (document.getElementById("checkoutsTable").childNodes[i].children[5].children[0].innerHTML.includes("Jun"))
                                         checkouts[5]++
-                                        else if (document.getElementById('checkoutsTable').rows[i].cells[4].textContent.includes("Jul"))
+                                        else if (document.getElementById("checkoutsTable").childNodes[i].children[5].children[0].innerHTML.includes("Jul"))
                                             checkouts[6]++
 
             }
+            document.getElementById("totalSpent").textContent = "$" + totalSpent
             const Chart = require('chart.js')
             var ctx = document.getElementById('myChart').getContext('2d');
             var myChart = new Chart(ctx, {
@@ -1195,6 +1181,14 @@ function updateAnalytics() {
                         yAxes: [{
                             ticks: {
                                 beginAtZero: true
+                            },
+                            gridLines: {
+                                display: false
+                            }
+                        }],
+                        xAxes: [{
+                            gridLines: {
+                                display: false
                             }
                         }]
                     }
@@ -2290,6 +2284,7 @@ ipcRenderer.on('updateStatus', (event, taskNumber, status) => {
             }
         }
     }
+    filterTable()
 });
 
 ipcRenderer.on('quicktask', (event, site, input) => {
@@ -2678,7 +2673,6 @@ function profile() {
     document.getElementById("proxyIcon").style.opacity = 0.3
     document.getElementById('taskView').style.display = "none";
     document.getElementById('settingsDiv').style.display = "none";
-    document.getElementById('taskTitle').style.display = "none";
     document.getElementById('profileTitle').style.display = "block";
     document.getElementById('settingsTitle').style.display = "none";
     document.getElementById('profiles').style.display = "block";
@@ -2790,7 +2784,6 @@ function tasks() {
     document.getElementById("proxyIcon").style.opacity = 0.3
     document.getElementById("taskIcon").style.opacity = 1.0
     document.getElementById('settingsDiv').style.display = "none";
-    document.getElementById('taskTitle').style.display = "block";
     document.getElementById('settingsTitle').style.display = "none";
     document.getElementById('taskView').style.display = "block";
     document.getElementById('analyticsTitle').style.display = "none";
@@ -2836,7 +2829,6 @@ function settings() {
     document.getElementById('analyticsView').style.display = "none";
     document.getElementById('taskView').style.display = "none";
     document.getElementById('settingsDiv').style.display = "block";
-    document.getElementById('taskTitle').style.display = "none";
     document.getElementById('profileTitle').style.display = "none";
     document.getElementById('settingsTitle').style.display = "block";
     document.getElementById('profiles').style.display = "none";
@@ -2860,7 +2852,6 @@ function proxies() {
     document.getElementById("analyticsIcon").style.opacity = 0.3
     document.getElementById('taskView').style.display = "none";
     document.getElementById('settingsDiv').style.display = "block";
-    document.getElementById('taskTitle').style.display = "none";
     document.getElementById('profileTitle').style.display = "none";
     document.getElementById('settingsTitle').style.display = "none";
     document.getElementById('settingsDiv').style.display = "none";
@@ -2885,7 +2876,6 @@ function accounts() {
     document.getElementById("analyticsIcon").style.opacity = 0.3
     document.getElementById("proxyIcon").style.opacity = 0.3
     document.getElementById('taskView').style.display = "none";
-    document.getElementById('taskTitle').style.display = "none";
     document.getElementById('profileTitle').style.display = "none";
     document.getElementById('settingsTitle').style.display = "none";
     document.getElementById('settingsDiv').style.display = "none";
@@ -2911,7 +2901,6 @@ function captchas() {
     document.getElementById("proxyIcon").style.opacity = 0.3
     document.getElementById('taskView').style.display = "none";
     document.getElementById('settingsDiv').style.display = "none";
-    document.getElementById('taskTitle').style.display = "none";
     document.getElementById('profileTitle').style.display = "none";
     document.getElementById('settingsTitle').style.display = "none";
     document.getElementById('analyticsView').style.display = "none";
@@ -2927,7 +2916,7 @@ function captchas() {
 }
 
 function analytics() {
-    $("#checkoutsTable tr:gt(0)").remove();
+    document.getElementById("checkoutsTable").innerHTML = ""
     updateAnalytics()
     setProfilePicture();
     document.getElementById('settingsDiv').style.display = "none";
@@ -2943,7 +2932,6 @@ function analytics() {
     document.getElementById("proxyIcon").style.opacity = 0.3
     document.getElementById('analyticsView').style.display = "block";
     document.getElementById('taskView').style.display = "none";
-    document.getElementById('taskTitle').style.display = "none";
     document.getElementById('settingsTitle').style.display = "none";
     document.getElementById('proxiesTitle').style.display = "none";
     document.getElementById('proxies').style.display = "none";

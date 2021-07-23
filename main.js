@@ -8,7 +8,6 @@ const configDir = (electron.app).getPath('userData');
 const express = require('express');
 const captchaSharing = express();
 captchaSharing.use(express.json())
-
 async function checkMultipleInstances() {
     const got = require('got');
     try {
@@ -235,7 +234,7 @@ let taskArray = []
 let win;
 
 client.updatePresence({
-    details: 'v0.4.14',
+    details: 'v0.4.17',
     startTimestamp: Date.now(),
     largeImageKey: "venetia",
     largeImageText: "Venetia",
@@ -267,7 +266,7 @@ function createWindow() {
     win = new BrowserWindow({
         width: 1255,
         height: 780,
-        minWidth: 1100,
+        minWidth: 1255,
         minHeight: 780,
         backgroundColor: '#181a26',
         icon: path.join(__dirname, 'images/logo.png'),
@@ -281,7 +280,7 @@ function createWindow() {
     win.openDevTools(true)
     win.loadFile('index.html');
     win.setMenuBarVisibility(false);
-    win.setResizable(false);
+    //win.setResizable(false);
     win.on('closed', () => app.quit());
 
     backendA = new BrowserWindow({
@@ -488,7 +487,7 @@ ipcMain.on('launchHarvester', function(event, harvesterName, harvesterProxy) {
             devTools: false
         }
     })
-    harvester.loadFile("harvesterBackScreen.html")
+    harvester.loadFile("harvesterBackScreen2.html")
     harvester.openDevTools(true)
     harvester.setMenuBarVisibility(false)
     harvester.setResizable(false)

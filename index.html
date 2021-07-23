@@ -12,7 +12,7 @@
 
 <body>
     <ul class='custom-menu-groups'>
-        <li data-action="first" class="menuText">Create Group</li>
+        <li data-action="first" class="menuText">New Group</li>
         <li data-action="second" class="menuText">Delete Selected</li>
     </ul>
 
@@ -27,12 +27,9 @@
 
 
     <div class="tableTitle" id="analyticsTitle">
-
     </div>
 
-    <div class="tableTitle" id="taskTitle" style="display: none; left: 99px; z-index: 1;">
-        Groups
-    </div>
+
 
     <div class="tableTitle" id="profileTitle" style="display: none">
         Profiles
@@ -141,39 +138,35 @@
         </div>
 
         <div class="totalCheckouts2"> <img draggable="false" class="checkoutsIcon" src="./images/totalcheckouts.svg">
-            <div class="totalCheckoutsText">
+            <div class="totalSpentText">
                 Total Checkouts
             </div>
-            <div id="totalCheckouts2" class="totalCheckoutsAmount">
+            <div id="totalCheckouts2" class="totalSpentAmount">
                 0
             </div>
         </div>
-        <div class="totalFails2"> <img draggable="false" class="failsIcon" src="./images/totalfails.svg">
-            <div class="totalFailuresText">
+        <div class="totalFails2"> <img draggable="false" class="checkoutsIcon" src="./images/totalfails.svg">
+            <div class="totalSpentText">
                 Total Failures
             </div>
-            <div id="totalFailures2" class="totalFailuresAmount">
+            <div id="totalFailures2" class="totalSpentAmount">
                 0
             </div>
         </div>
-
-        <div class="checkoutsTable">
-            <table id="checkoutsTable" rules=none>
-                <th class="product">Product</th>
-                <th class="site3">Site</th>
-                <th class="price">Price</th>
-                <th class="size3">Size</th>
-                <th class="date">Date</th>
-
-
-            </table>
+        <div class="checkoutsTableHeader">
+            <div class="checkoutsTableTableHeaderText">Checkout History</div>
         </div>
+        <div class="checkoutsTable" id="checkoutsTable">
+        </div>
+    </div>
     </div>
 
     <div id="taskView" style="display: none">
 
         <input type="text" id="filterGroups" onkeyup="filterGroups()" class="groupFilter" spellcheck="false" placeholder="Search groups">
+        <button class="createGroup" onclick="addGroup()">New Group</button>
 
+        <img draggable="false" class="taskController" src="./images/popout.png">
         <div class="groupTable" rules=none menu="true">
             <table id="groups" class="groups" menu="true">
                 <tbody menu="true">
@@ -181,7 +174,7 @@
             </table>
         </div>
         <div>
-            <div class="tableTitle" style="left: 320px;">
+            <div class="tableTitle">
                 Tasks
             </div>
             <img id="delaysButton" src="images/delays.png" style="display: none" class="delaysButton" onclick="delayModal()">
@@ -199,7 +192,6 @@
             <button class="deleteTask" onclick="deleteSelected()">
                Delete
             </button>
-            <img draggable="false" onclick="cloneSelected()" class="cloneTask" src="./images/duplicate.png">
             <img draggable="false" id="editButton" onclick="taskEditor()" disabled class="editTask" class="cloneTask" src="./images/edit.png">
 
 
@@ -535,7 +527,7 @@
         <div class="updateBox">
             <div class="updateBoxTitle">Software Information</div>
             <div class="currentVersionTitle">Current Version</div>
-            <div class="currentVersionText">0.4.14</div>
+            <div class="currentVersionText">0.4.17</div>
             <button class="updateButton" onclick="update()">Update</button>
         </div>
         <div class="customSites">
