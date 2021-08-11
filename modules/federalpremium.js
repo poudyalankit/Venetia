@@ -1,13 +1,9 @@
 module.exports = class FederalPremiumTask {
     constructor(taskInfo) {
-        require('log-timestamp');
-        require("../src/js/console-file.js");
         var path = require('path')
         var fs = require('fs');
-
-        const electron = require('electron');
-        const configDir = (electron.app || electron.remote.app).getPath('userData');
-        //console.file(path.join(configDir, '/userdata/logs.txt'));
+        this.configDir = taskInfo.configDir
+        this.connection = taskInfo.connection
         this.stopped = "false";
         this.taskId = taskInfo.id;
         this.site = taskInfo.site;
@@ -17,9 +13,9 @@ module.exports = class FederalPremiumTask {
         this.csrfToken;
         this.request;
         this.errorMessage;
-        this.webhookLink = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/settings.json'), 'utf8'))[0].webhook;
+        this.webhookLink = JSON.parse(fs.readFileSync(path.join(this.configDir, '/userdata/settings.json'), 'utf8'))[0].webhook;
         this.variant;
-        this.key = getKey()
+        this.key = getKey(this.configDir)
         this.accounts = getAccountInfo(taskInfo.accounts)
         this.profilename = taskInfo.profile;
         this.productTitle;
@@ -39,8 +35,8 @@ module.exports = class FederalPremiumTask {
         this.quantity = 1;
         const tough = require('tough-cookie');
         this.cookieJar = new tough.CookieJar();
-        this.profile = getProfileInfo(taskInfo.profile);
-        this.proxyArray = getProxyInfo(taskInfo.proxies);
+        this.profile = getProfileInfo(taskInfo.profile, this.configDir)
+        this.proxyArray = getProxyInfo(taskInfo.proxies, this.configDir)
         this.proxy = this.proxyArray.sample();
         this.oglink = this.link
         if (this.link.toLowerCase().startsWith('http')) {
@@ -101,10 +97,10 @@ module.exports = class FederalPremiumTask {
                 },
                 responseType: 'json'
             }).then(response => {
-                console.log("Finished")
+                this.log("Finished")
             })
             .catch(error => {
-                console.log(error)
+                this.log(error)
             })
 
         var webhooks = this.webhookLink.split(",")
@@ -165,10 +161,10 @@ module.exports = class FederalPremiumTask {
                         "avatar_url": "https://i.imgur.com/6h06tuW.png"
                     }
                 }).then(response => {
-                    console.log("Finished sending webhook")
+                    this.log("Finished sending webhook")
                 })
                 .catch(error => {
-                    console.log(error.response.body)
+                    this.log(error.response.body)
                 })
         }
 
@@ -196,10 +192,10 @@ module.exports = class FederalPremiumTask {
                     "quicktask": this.quickTaskLink
                 }
             }).then(response => {
-                console.log("Finished")
+                this.log("Finished")
             })
             .catch(error => {
-                console.log(error)
+                this.log(error)
             })
 
         var webhooks = this.webhookLink.split(",")
@@ -260,10 +256,10 @@ module.exports = class FederalPremiumTask {
                         "avatar_url": "https://i.imgur.com/6h06tuW.png"
                     }
                 }).then(response => {
-                    console.log("Finished sending webhook")
+                    this.log("Finished sending webhook")
                 })
                 .catch(error => {
-                    console.log(error)
+                    this.log(error)
                 })
         }
     }
@@ -321,12 +317,12 @@ module.exports = class FederalPremiumTask {
                     await this.monitor()
                 } else
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
-                    console.log(error.response.body)
+                    this.log(error.response.body)
                     await this.send("Error monitoring: " + error.response.statusCode)
                     await sleep(this.errorDelay)
                     await this.monitor()
                 } else if (this.stopped === "false") {
-                    console.log(error)
+                    this.log(error)
                     await this.send("Unexpected error")
                     await sleep(this.errorDelay)
                     await this.monitor()
@@ -397,12 +393,12 @@ module.exports = class FederalPremiumTask {
                     await this.addToCart()
                 } else
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
-                    console.log(error.response.body)
+                    this.log(error.response.body)
                     await this.send("Error carting: " + error.response.statusCode)
                     await sleep(this.errorDelay)
                     await this.addToCart()
                 } else if (this.stopped === "false") {
-                    console.log(error)
+                    this.log(error)
                     await this.send("Unexpected error")
                     await sleep(this.errorDelay)
                     await this.addToCart()
@@ -449,19 +445,19 @@ module.exports = class FederalPremiumTask {
                     var HTMLParser = require('node-html-parser');
                     var root = HTMLParser.parse(response.body);
                     this.csrfToken = root.querySelector('[name="csrf_token"]').getAttribute('value')
-                    console.log(this.csrfToken)
+                    this.log(this.csrfToken)
                     await this.send("Created cart")
                     return;
                 }
             } catch (error) {
                 await this.setDelays()
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
-                    console.log(error.response.body)
+                    this.log(error.response.body)
                     await this.send("Error getting cart: " + error.response.statusCode)
                     await sleep(this.errorDelay)
                     await this.getCart()
                 } else if (this.stopped === "false") {
-                    console.log(error)
+                    this.log(error)
                     await this.send("Unexpected error")
                     await sleep(this.errorDelay)
                     await this.getCart()
@@ -515,12 +511,12 @@ module.exports = class FederalPremiumTask {
             } catch (error) {
                 await this.setDelays()
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
-                    console.log(error.response.body)
+                    this.log(error.response.body)
                     await this.send("Error loading checkout: " + error.response.statusCode)
                     await sleep(this.errorDelay)
                     await this.loadCheckout()
                 } else if (this.stopped === "false") {
-                    console.log(error)
+                    this.log(error)
                     await this.send("Unexpected error")
                     await sleep(this.errorDelay)
                     await this.loadCheckout()
@@ -584,18 +580,18 @@ module.exports = class FederalPremiumTask {
                 let response = await got(this.request);
                 if (this.stopped === "false") {
                     await this.send("Submitted shipping")
-                    console.log(response.body)
+                    this.log(response.body)
                     return;
                 }
             } catch (error) {
                 await this.setDelays()
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
-                    console.log(error.response.body)
+                    this.log(error.response.body)
                     await this.send("Error submitting shipping: " + error.response.statusCode)
                     await sleep(this.errorDelay)
                     await this.submitShipping()
                 } else if (this.stopped === "false") {
-                    console.log(error)
+                    this.log(error)
                     await this.send("Unexpected error")
                     await sleep(this.errorDelay)
                     await this.submitShipping()
@@ -644,24 +640,24 @@ module.exports = class FederalPremiumTask {
                     this.jsonwebkey = root.querySelector('[name="flextokenRespose"]').getAttribute('value')
                     this.jsonwebkey = JSON.parse(this.jsonwebkey)
                     this.jsonwebkey = this.jsonwebkey.jwk
-                    console.log(this.jsonwebkey)
+                    this.log(this.jsonwebkey)
                     this.newCard = await this.encodeCard(this.profile.cardNumber, this.jsonwebkey)
-                    console.log(this.newCard)
+                    this.log(this.newCard)
                     this.jsonwebkey = JSON.parse(root.querySelector('[name="flextokenRespose"]').getAttribute('value'))
                     this.secondKey = JSON.parse(root.querySelector('[name="flextokenObj"]').getAttribute('value'))
                     this.keyid = this.jsonwebkey.keyId
-                    console.log(this.keyid)
+                    this.log(this.keyid)
                     return;
                 }
             } catch (error) {
                 await this.setDelays()
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
-                    console.log(error.response.body)
+                    this.log(error.response.body)
                     await this.send("Error loading payment: " + error.response.statusCode)
                     await sleep(this.errorDelay)
                     await this.loadPayment()
                 } else if (this.stopped === "false") {
-                    console.log(error)
+                    this.log(error)
                     await this.send("Unexpected error")
                     await sleep(this.errorDelay)
                     await this.loadPayment()
@@ -674,7 +670,7 @@ module.exports = class FederalPremiumTask {
     async encryptCard() {
         const got = require('got');
         const tunnel = require('tunnel');
-        console.log(this.encryptedCard)
+        this.log(this.encryptedCard)
         if (this.stopped === "false") {
             await this.send("Encrypting card...")
             try {
@@ -713,12 +709,12 @@ module.exports = class FederalPremiumTask {
             } catch (error) {
                 await this.setDelays()
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
-                    console.log(error.response.body.responseStatus.details)
+                    this.log(error.response.body.responseStatus.details)
                     await this.send("Error encrypting card: " + error.response.statusCode)
                     await sleep(this.errorDelay)
                     await this.encryptCard()
                 } else if (this.stopped === "false") {
-                    console.log(error)
+                    this.log(error)
                     await this.send("Unexpected error")
                     await sleep(this.errorDelay)
                     await this.encryptCard()
@@ -790,18 +786,18 @@ module.exports = class FederalPremiumTask {
                 let response = await got(this.request);
                 if (this.stopped === "false") {
                     await this.send("Submitted payment")
-                    console.log(response.body)
+                    this.log(response.body)
                     return;
                 }
             } catch (error) {
                 await this.setDelays()
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
-                    console.log(error.response.body)
+                    this.log(error.response.body)
                     await this.send("Error submitting payment: " + error.response.statusCode)
                     await sleep(this.errorDelay)
                     await this.submitPayment()
                 } else if (this.stopped === "false") {
-                    console.log(error)
+                    this.log(error)
                     await this.send("Unexpected error")
                     await sleep(this.errorDelay)
                     await this.submitPayment()
@@ -845,18 +841,18 @@ module.exports = class FederalPremiumTask {
                 let response = await got(this.request);
                 if (this.stopped === "false") {
                     await this.send("Loaded review")
-                    console.log(response.body)
+                    this.log(response.body)
                     return;
                 }
             } catch (error) {
                 await this.setDelays()
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
-                    console.log(error.response.body)
+                    this.log(error.response.body)
                     await this.send("Error loading review: " + error.response.statusCode)
                     await sleep(this.errorDelay)
                     await this.loadReview()
                 } else if (this.stopped === "false") {
-                    console.log(error)
+                    this.log(error)
                     await this.send("Unexpected error")
                     await sleep(this.errorDelay)
                     await this.loadReview()
@@ -902,7 +898,7 @@ module.exports = class FederalPremiumTask {
                 if (this.stopped === "false" && typeof response.body.errorMessage === 'undefined') {
                     await this.send("Check email")
                     await this.sendSuccess()
-                    console.log(response.body)
+                    this.log(response.body)
                     return;
                 } else throw 'Checkout failed'
             } catch (error) {
@@ -912,20 +908,17 @@ module.exports = class FederalPremiumTask {
                     await this.sendFail()
                     var path = require('path')
                     var fs = require('fs');
-
-                    const electron = require('electron');
-                    const configDir = (electron.app || electron.remote.app).getPath('userData');
-                    if (JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/settings.json'), 'utf8'))[0].retryCheckouts == true) {
+                    if (JSON.parse(fs.readFileSync(path.join(this.configDir, '/userdata/settings.json'), 'utf8'))[0].retryCheckouts == true) {
                         await sleep(this.errorDelay)
                         await this.placeOrder()
                     }
                 } else if (typeof error.response != 'undefined' && this.stopped === "false") {
-                    console.log(error.response.body)
+                    this.log(error.response.body)
                     await this.send("Error submitting order: " + error.response.statusCode)
                     await sleep(this.errorDelay)
                     await this.placeOrder()
                 } else if (this.stopped === "false") {
-                    console.log(error)
+                    this.log(error)
                     await this.send("Unexpected error")
                     await sleep(this.errorDelay)
                     await this.placeOrder()
@@ -934,20 +927,42 @@ module.exports = class FederalPremiumTask {
         }
     }
 
+    log(message) {
+        const winston = require('winston');
+        const logConfiguration = {
+            transports: [
+                new winston.transports.Console({}),
+                new winston.transports.File({
+                    filename: this.configDir + '/logs/' + this.taskId + '.log'
+                })
+            ],
+            format: winston.format.combine(
+                winston.format.timestamp({
+                    format: 'MMM-DD-YYYY HH:mm:ss'
+                }),
+                winston.format.printf(info => `[${[info.timestamp]}] [${this.taskId}]: ${info.message}`),
+            )
+        };
+        const logger = winston.createLogger(logConfiguration);
+
+        logger.info(message)
+    }
+
     async stopTask() {
         this.stopped = "true";
         await this.sendProductTitle(this.oglink)
-        console.log("Stopped")
         this.send("Stopped")
+    }
+
+    returnID() {
+        return this.taskId;
     }
 
     async setDelays() {
         var fs = require('fs');
         var path = require('path')
-        const electron = require('electron');
-        const configDir = (electron.app || electron.remote.app).getPath('userData');
-        var delays = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/delays.json'), 'utf8'));
-        var groups = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/tasks.json'), 'utf8'));
+        var delays = JSON.parse(fs.readFileSync(path.join(this.configDir, '/userdata/delays.json'), 'utf8'));
+        var groups = JSON.parse(fs.readFileSync(path.join(this.configDir, '/userdata/tasks.json'), 'utf8'));
         var index;
         for (var i = 0; i < groups.length; i++) {
             for (var j = 0; j < groups[i][Object.keys(groups[i])[0]].length; j++) {
@@ -961,24 +976,32 @@ module.exports = class FederalPremiumTask {
         this.errorDelay = delays[index].error
     }
 
-    returnID() {
-        return this.taskId;
-    }
-
     async sendProductTitle(title) {
-        const { ipcRenderer } = require('electron');
-        ipcRenderer.send('updateProductTitle1', this.taskId, title)
+        this.connection.send(JSON.stringify({
+            event: "taskProductTitle",
+            data: {
+                taskID: this.taskId,
+                newTitle: title
+            }
+        }))
     }
-
 
     async send(status) {
-        const { ipcRenderer } = require('electron');
-        ipcRenderer.send('updateStatus1', this.taskId, status)
+        if (this.stopped === "false" || status === "Stopped") {
+            this.log(status)
+            this.connection.send(JSON.stringify({
+                event: "taskStatus",
+                data: {
+                    taskID: this.taskId,
+                    newStatus: status
+                }
+            }))
+        }
     }
 
     async updateStat(stat) {
         //this.window.webContents.send("updateStats", stat);
-        console.log(stat)
+        this.log(stat)
     }
 
     async initialize() {
@@ -1018,51 +1041,6 @@ module.exports = class FederalPremiumTask {
 }
 
 
-function getAccountInfo(accounts) {
-    if (accounts === "-") {
-        return "-"
-    }
-    var fs = require('fs');
-    var path = require('path')
-    const electron = require('electron');
-
-    const configDir = (electron.app || electron.remote.app).getPath('userData');
-
-    var str = fs.readFileSync(path.join(configDir, '/userdata/accounts.json'), 'utf8');
-    var x = JSON.parse(str)
-    for (var i = 0; i < x.length; i++) {
-        if (x[i].name === accounts) {
-            return x[i].account.sample()
-        }
-    }
-}
-
-function getProxyInfo(proxies) {
-    if (proxies === "-")
-        return ["-"]
-
-    var fs = require('fs');
-    var path = require('path')
-    const electron = require('electron');
-
-    const configDir = (electron.app || electron.remote.app).getPath('userData');
-
-    var str = fs.readFileSync(path.join(configDir, '/userdata/proxies.json'), 'utf8');
-    var x = JSON.parse(str)
-    var proxyStorage = [];
-    for (var i = 0; i < x.length; i++) {
-        if (x[i].name === proxies) {
-            for (var j = 0; j < x[i].proxies.length; j++) {
-                if (x[i].proxies[j].username === null) {
-                    proxyStorage.push({ "host": x[i].proxies[j].ip, "port": x[i].proxies[j].port })
-                } else {
-                    proxyStorage.push({ "host": x[i].proxies[j].ip, "port": x[i].proxies[j].port, "proxyAuth": x[i].proxies[j].username + ":" + x[i].proxies[j].password })
-                }
-            }
-        }
-    }
-    return proxyStorage;
-}
 
 
 const importKey = async(jsonWebKey) => {
@@ -1092,23 +1070,59 @@ async function makeid(length) {
     return result;
 }
 
-function getKey() {
+
+function getKey(configDir) {
     var fs = require('fs');
     var path = require('path')
-    const electron = require('electron');
-
-    const configDir = (electron.app || electron.remote.app).getPath('userData');
     var str = fs.readFileSync(path.join(configDir, '/userdata/key.txt'), 'utf8');
     return str;
 }
 
-function getProfileInfo(profiles) {
+
+function getProxyInfo(proxies, configDir) {
+    if (proxies === "-")
+        return ["-"]
+
     var fs = require('fs');
     var path = require('path')
-    const electron = require('electron');
+    var str = fs.readFileSync(path.join(configDir, '/userdata/proxies.json'), 'utf8');
+    var x = JSON.parse(str)
+    var proxyStorage = [];
+    for (var i = 0; i < x.length; i++) {
+        if (x[i].name === proxies) {
+            for (var j = 0; j < x[i].proxies.length; j++) {
+                if (x[i].proxies[j].username === null) {
+                    proxyStorage.push({ "host": x[i].proxies[j].ip, "port": x[i].proxies[j].port })
+                } else {
+                    proxyStorage.push({ "host": x[i].proxies[j].ip, "port": x[i].proxies[j].port, "proxyAuth": x[i].proxies[j].username + ":" + x[i].proxies[j].password })
+                }
+            }
+        }
+    }
+    return proxyStorage;
+}
 
-    const configDir = (electron.app || electron.remote.app).getPath('userData');
 
+function getAccountInfo(accounts, configDir) {
+    if (accounts === "-") {
+        return "-"
+    }
+    var fs = require('fs');
+    var path = require('path')
+
+
+    var str = fs.readFileSync(path.join(configDir, '/userdata/accounts.json'), 'utf8');
+    var x = JSON.parse(str)
+    for (var i = 0; i < x.length; i++) {
+        if (x[i].name === accounts) {
+            return x[i].account.sample()
+        }
+    }
+}
+
+function getProfileInfo(profiles, configDir) {
+    var fs = require('fs');
+    var path = require('path')
     var str = fs.readFileSync(path.join(configDir, '/userdata/profiles.json'), 'utf8');
     var x = JSON.parse(str)
     for (var i = 0; i < x.length; i++) {
@@ -1117,6 +1131,7 @@ function getProfileInfo(profiles) {
         }
     }
 }
+
 const sleep = (waitTimeInMs) => new Promise(resolve => setTimeout(resolve, waitTimeInMs));
 Array.prototype.sample = function() {
     return this[Math.floor(Math.random() * this.length)];

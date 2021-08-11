@@ -1,19 +1,16 @@
 module.exports = class SSENSETask {
     constructor(taskInfo) {
-        require('log-timestamp');
-        require("../src/js/console-file.js");
         var path = require('path')
         var fs = require('fs');
-        const electron = require('electron');
-        const configDir = (electron.app || electron.remote.app).getPath('userData');
-        //console.file(path.join(configDir, '/userdata/logs.txt'));
+        this.configDir = taskInfo.configDir
+        this.connection = taskInfo.connection
         this.stopped = "false";
         this.request;
-        this.key = getKey()
+        this.key = getKey(this.configDir)
         this.taskId = taskInfo.id;
         this.site = taskInfo.site;
         this.mode = taskInfo.mode;
-        this.webhookLink = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/settings.json'), 'utf8'))[0].webhook;
+        this.webhookLink = JSON.parse(fs.readFileSync(path.join(this.configDir, '/userdata/settings.json'), 'utf8'))[0].webhook;
         this.mode = taskInfo.mode;
         this.productTitle;
         this.link = taskInfo.product;
@@ -34,9 +31,9 @@ module.exports = class SSENSETask {
         this.sku = "none";
         const tough = require('tough-cookie');
         this.cookieJar = new tough.CookieJar();
-        this.accounts = getAccountInfo(taskInfo.accounts)
-        this.profile = getProfileInfo(taskInfo.profile);
-        this.proxyArray = getProxyInfo(taskInfo.proxies);
+        this.accounts = getAccountInfo(taskInfo.accounts, this.configDir)
+        this.profile = getProfileInfo(taskInfo.profile, this.configDir)
+        this.proxyArray = getProxyInfo(taskInfo.proxies, this.configDir)
         this.proxy = this.proxyArray.sample();
         this.oglink = this.link
 
@@ -75,10 +72,10 @@ module.exports = class SSENSETask {
                 },
                 responseType: 'json'
             }).then(response => {
-                console.log("Finished")
+                this.log("Finished")
             })
             .catch(error => {
-                console.log(error)
+                this.log(error)
             })
 
         var webhooks = this.webhookLink.split(",")
@@ -139,10 +136,10 @@ module.exports = class SSENSETask {
                         "avatar_url": "https://i.imgur.com/6h06tuW.png"
                     }
                 }).then(response => {
-                    console.log("Finished sending webhook")
+                    this.log("Finished sending webhook")
                 })
                 .catch(error => {
-                    console.log(error.response.body)
+                    this.log(error.response.body)
                 })
         }
 
@@ -170,10 +167,10 @@ module.exports = class SSENSETask {
                     "quicktask": this.quickTaskLink
                 }
             }).then(response => {
-                console.log("Finished")
+                this.log("Finished")
             })
             .catch(error => {
-                console.log(error)
+                this.log(error)
             })
 
         var webhooks = this.webhookLink.split(",")
@@ -234,10 +231,10 @@ module.exports = class SSENSETask {
                         "avatar_url": "https://i.imgur.com/6h06tuW.png"
                     }
                 }).then(response => {
-                    console.log("Finished sending webhook")
+                    this.log("Finished sending webhook")
                 })
                 .catch(error => {
-                    console.log(error)
+                    this.log(error)
                 })
         }
     }
@@ -263,10 +260,10 @@ module.exports = class SSENSETask {
                     "quicktask": this.quickTaskLink
                 }
             }).then(response => {
-                console.log("Finished")
+                this.log("Finished")
             })
             .catch(error => {
-                console.log(error)
+                this.log(error)
             })
 
         var webhooks = this.webhookLink.split(",")
@@ -331,10 +328,10 @@ module.exports = class SSENSETask {
                         "avatar_url": "https://i.imgur.com/6h06tuW.png"
                     }
                 }).then(response => {
-                    console.log("Finished sending webhook")
+                    this.log("Finished sending webhook")
                 })
                 .catch(error => {
-                    console.log(error)
+                    this.log(error)
                 })
         }
     }
@@ -376,12 +373,11 @@ module.exports = class SSENSETask {
                 }
                 let response = await got(this.request);
                 if (this.stopped === "false") {
-                    console.log("Authenticated")
                     await this.send("Authenticated")
                     return;
                 }
             } catch (error) {
-                console.log(error)
+                this.log(error)
                 await this.setDelays()
                 if (this.stopped === "false") {
                     this.send("Error authenticating, retrying")
@@ -425,7 +421,6 @@ module.exports = class SSENSETask {
                 }
                 let response = await got(this.request);
                 if (this.stopped === "false") {
-                    console.log("Loaded product info")
                     await this.send("Loaded product")
 
                     this.productTitle = response.body.product.name;
@@ -460,7 +455,7 @@ module.exports = class SSENSETask {
                     await this.loadProductPage()
                 } else
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
-                    console.log(error.response)
+                    this.log(error.response)
                     if (error.response.statusCode === 403) {
                         await this.send("Error proxy banned")
                         await sleep(this.errorDelay)
@@ -471,7 +466,7 @@ module.exports = class SSENSETask {
                         await this.loadProductPage()
                     }
                 } else if (this.stopped === "false") {
-                    console.log(error)
+                    this.log(error)
                     await this.send("Unexpected error")
                     await sleep(this.errorDelay)
                     await this.loadProductPage()
@@ -518,16 +513,14 @@ module.exports = class SSENSETask {
                 }
                 let response = await got(this.request);
                 if (response.statusCode === 200 && this.stopped === "false") {
-                    console.log("Carted")
                     await this.send("Carted")
-                    await this.updateStat("carts")
                     return;
                 }
 
             } catch (error) {
                 await this.setDelays()
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
-                    console.log(error.response.body)
+                    this.log(error.response.body)
                     if (error.response.statusCode === 409) {
                         await this.send("Error preload OOS, retrying")
                         await sleep(this.errorDelay)
@@ -544,7 +537,7 @@ module.exports = class SSENSETask {
                         await this.addRandomToCart()
                     }
                 } else if (this.stopped === "false") {
-                    console.log(error)
+                    this.log(error)
                     await this.send("Unexpected error")
                     await sleep(this.errorDelay)
                     await this.addRandomToCart()
@@ -587,16 +580,14 @@ module.exports = class SSENSETask {
                 }
                 let response = await got(this.request);
                 if (response.statusCode === 200 && this.stopped === "false") {
-                    console.log("Carted")
                     await this.send("Carted")
-                    await this.updateStat("carts")
                     return;
                 }
 
             } catch (error) {
                 await this.setDelays()
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
-                    console.log(error.response.body)
+                    this.log(error.response.body)
                     if (error.response.statusCode === 403) {
                         await this.send("Error proxy banned")
                         this.proxy = this.proxyArray.sample()
@@ -608,7 +599,7 @@ module.exports = class SSENSETask {
                         await this.removeItem()
                     }
                 } else if (this.stopped === "false") {
-                    console.log(error)
+                    this.log(error)
                     await this.send("Unexpected error")
                     await sleep(this.errorDelay)
                     await this.removeItem()
@@ -620,7 +611,7 @@ module.exports = class SSENSETask {
     async addToCart() {
         const got = require('got');
         const tunnel = require('tunnel');
-        console.log(this.sku)
+        this.log(this.sku)
         if (this.stopped === "false") {
             await this.send("Adding to cart...")
             try {
@@ -656,16 +647,14 @@ module.exports = class SSENSETask {
                 }
                 let response = await got(this.request);
                 if (response.statusCode === 200 && this.stopped === "false") {
-                    console.log("Carted")
                     await this.send("Carted")
-                    await this.updateStat("carts")
                     return;
                 }
 
             } catch (error) {
                 await this.setDelays()
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
-                    console.log(error.response.body)
+                    this.log(error.response.body)
                     if (error.response.statusCode === 409) {
                         await this.send("OOS, retrying")
                         await sleep(this.errorDelay)
@@ -682,7 +671,7 @@ module.exports = class SSENSETask {
                         await this.addToCart()
                     }
                 } else if (this.stopped === "false") {
-                    console.log(error)
+                    this.log(error)
                     await this.send("Unexpected error")
                     await sleep(this.errorDelay)
                     await this.addToCart()
@@ -724,7 +713,6 @@ module.exports = class SSENSETask {
                 }
                 let response = await got(this.request);
                 if (response.statusCode === 200 && this.stopped === "false") {
-                    console.log("Got checkout session")
                     this.send("Got checkout session")
                     this.csrf_token = response.body.csrf_token
                     this.cartTotal = response.body.checkout_cart.total;
@@ -739,15 +727,15 @@ module.exports = class SSENSETask {
                             this.cartSKUS2 += this.cartSKUS[i].sku + ",";
                         }
                     }
-                    console.log(this.cartSKUS3)
-                    console.log(this.cartTotal)
-                    console.log(this.csrf_token)
+                    this.log(this.cartSKUS3)
+                    this.log(this.cartTotal)
+                    this.log(this.csrf_token)
                     return;
                 }
             } catch (error) {
                 await this.setDelays()
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
-                    console.log(error.response)
+                    this.log(error.response)
                     if (error.response.statusCode === 403) {
                         await this.send("Error proxy banned")
                         await sleep(this.errorDelay)
@@ -758,7 +746,7 @@ module.exports = class SSENSETask {
                         await this.getCheckoutSession()
                     }
                 } else if (this.stopped === "false") {
-                    console.log(error)
+                    this.log(error)
                     await this.send("Unexpected error")
                     await sleep(this.errorDelay)
                     await this.getCheckoutSession()
@@ -808,7 +796,7 @@ module.exports = class SSENSETask {
                 if (this.stopped === "false") {
                     this.shipping = response.body[0].price;
                     this.shippingMethod = response.body[0].methodKeyName;
-                    console.log(this.shipping)
+                    this.log(this.shipping)
                     this.send("Got shipping")
                     return;
                 }
@@ -816,7 +804,7 @@ module.exports = class SSENSETask {
             } catch (error) {
                 await this.setDelays()
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
-                    console.log(error.response)
+                    this.log(error.response)
                     if (error.response.statusCode === 403) {
                         await this.send("Error proxy banned")
                         await sleep(this.errorDelay)
@@ -827,7 +815,7 @@ module.exports = class SSENSETask {
                         await this.getShipping()
                     }
                 } else if (this.stopped === "false") {
-                    console.log(error)
+                    this.log(error)
                     await this.send("Unexpected error")
                     await sleep(this.errorDelay)
                     await this.getShipping()
@@ -882,9 +870,9 @@ module.exports = class SSENSETask {
                 }
                 let response = await got(this.request);
                 if (this.stopped === "false") {
-                    console.log("Got taxes")
+                    this.log("Got taxes")
                     this.orderTotal = response.body.total
-                    console.log(this.orderTotal)
+                    this.log(this.orderTotal)
                     this.send("Got taxes")
                     return;
 
@@ -892,7 +880,7 @@ module.exports = class SSENSETask {
             } catch (error) {
                 await this.setDelays()
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
-                    console.log(error.response)
+                    this.log(error.response)
                     if (error.response.statusCode === 403) {
                         await this.send("Error proxy banned")
                         await sleep(this.errorDelay)
@@ -903,7 +891,7 @@ module.exports = class SSENSETask {
                         await this.getTaxes()
                     }
                 } else if (this.stopped === "false") {
-                    console.log(error)
+                    this.log(error)
                     await this.send("Unexpected error")
                     await sleep(this.errorDelay)
                     await this.getTaxes()
@@ -987,11 +975,9 @@ module.exports = class SSENSETask {
                     }
                 }
                 let response = await got(this.request);
-                console.log(response.body)
+                this.log(response.body)
                 if (this.stopped === "false" && response.body.status != "error") {
-                    this.updateStat("checkouts")
-                    console.log("Check email")
-                    console.log(response.body.messages)
+                    this.log(response.body.messages)
                     this.send("Check email")
                     this.sendSuccess()
                     return;
@@ -999,18 +985,15 @@ module.exports = class SSENSETask {
                     throw "Error submitting order"
                 }
             } catch (error) {
-                console.log(error)
+                this.log(error)
                 await this.setDelays()
                 if (this.stopped === "false") {
-                    this.updateStat("fails")
                     this.send("Checkout failed")
                     this.sendFail()
                     var path = require('path')
                     var fs = require('fs');
-                    const electron = require('electron');
-                    const configDir = (electron.app || electron.remote.app).getPath('userData');
-                    console.log(JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/settings.json'), 'utf8'))[0].retryCheckouts)
-                    if (JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/settings.json'), 'utf8'))[0].retryCheckouts == true) {
+                    this.log(JSON.parse(fs.readFileSync(path.join(this.configDir, '/userdata/settings.json'), 'utf8'))[0].retryCheckouts)
+                    if (JSON.parse(fs.readFileSync(path.join(this.configDir, '/userdata/settings.json'), 'utf8'))[0].retryCheckouts == true) {
                         await sleep(this.errorDelay)
                         await this.submitOrder()
                     }
@@ -1073,12 +1056,10 @@ module.exports = class SSENSETask {
                     }
                 }
                 let response = await got(this.request);
-                console.log(response.body)
+                this.log(response.body)
                 if (this.stopped === "false" && response.body.status != "error") {
                     this.checkoutLink = response.body.url
-                    this.updateStat("checkouts")
-                    console.log("Check webhook")
-                    console.log(response.body.messages)
+                    this.log(response.body.messages)
                     this.send("Check webhook")
                     this.sendSuccessPayPal()
                     return;
@@ -1087,17 +1068,14 @@ module.exports = class SSENSETask {
                 }
             } catch (error) {
                 await this.setDelays()
-                console.log(error.response.body)
+                this.log(error.response.body)
                 if (this.stopped === "false") {
-                    this.updateStat("fails")
                     this.send("Checkout failed")
                     this.sendFail()
                     var path = require('path')
                     var fs = require('fs');
-                    const electron = require('electron');
-                    const configDir = (electron.app || electron.remote.app).getPath('userData');
-                    console.log(JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/settings.json'), 'utf8'))[0].retryCheckouts)
-                    if (JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/settings.json'), 'utf8'))[0].retryCheckouts == true) {
+                    this.log(JSON.parse(fs.readFileSync(path.join(this.configDir, '/userdata/settings.json'), 'utf8'))[0].retryCheckouts)
+                    if (JSON.parse(fs.readFileSync(path.join(this.configDir, '/userdata/settings.json'), 'utf8'))[0].retryCheckouts == true) {
                         await sleep(this.errorDelay)
                         await this.submitOrderPayPal()
                     }
@@ -1107,20 +1085,42 @@ module.exports = class SSENSETask {
     }
 
 
+    log(message) {
+        const winston = require('winston');
+        const logConfiguration = {
+            transports: [
+                new winston.transports.Console({}),
+                new winston.transports.File({
+                    filename: this.configDir + '/logs/' + this.taskId + '.log'
+                })
+            ],
+            format: winston.format.combine(
+                winston.format.timestamp({
+                    format: 'MMM-DD-YYYY HH:mm:ss'
+                }),
+                winston.format.printf(info => `[${[info.timestamp]}] [${this.taskId}]: ${info.message}`),
+            )
+        };
+        const logger = winston.createLogger(logConfiguration);
+
+        logger.info(message)
+    }
+
     async stopTask() {
         this.stopped = "true";
         await this.sendProductTitle(this.oglink)
-        console.log("Stopped")
         this.send("Stopped")
+    }
+
+    returnID() {
+        return this.taskId;
     }
 
     async setDelays() {
         var fs = require('fs');
         var path = require('path')
-        const electron = require('electron');
-        const configDir = (electron.app || electron.remote.app).getPath('userData');
-        var delays = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/delays.json'), 'utf8'));
-        var groups = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/tasks.json'), 'utf8'));
+        var delays = JSON.parse(fs.readFileSync(path.join(this.configDir, '/userdata/delays.json'), 'utf8'));
+        var groups = JSON.parse(fs.readFileSync(path.join(this.configDir, '/userdata/tasks.json'), 'utf8'));
         var index;
         for (var i = 0; i < groups.length; i++) {
             for (var j = 0; j < groups[i][Object.keys(groups[i])[0]].length; j++) {
@@ -1134,25 +1134,35 @@ module.exports = class SSENSETask {
         this.errorDelay = delays[index].error
     }
 
-    returnID() {
-        return this.taskId;
-    }
-
     async sendProductTitle(title) {
-        const { ipcRenderer } = require('electron');
-        ipcRenderer.send('updateProductTitle1', this.taskId, title)
+        this.connection.send(JSON.stringify({
+            event: "taskProductTitle",
+            data: {
+                taskID: this.taskId,
+                newTitle: title
+            }
+        }))
     }
 
 
     async send(status) {
-        const { ipcRenderer } = require('electron');
-        ipcRenderer.send('updateStatus1', this.taskId, status)
+        if (this.stopped === "false" || status === "Stopped") {
+            this.log(status)
+            this.connection.send(JSON.stringify({
+                event: "taskStatus",
+                data: {
+                    taskID: this.taskId,
+                    newStatus: status
+                }
+            }))
+        }
     }
 
     async updateStat(stat) {
         //this.window.webContents.send("updateStats", stat);
-        console.log(stat)
+        this.log(stat)
     }
+
 
     async initialize() {
         await this.send("Started")
@@ -1220,16 +1230,13 @@ module.exports = class SSENSETask {
 }
 
 
-function getProxyInfo(proxies) {
+
+function getProxyInfo(proxies, configDir) {
     if (proxies === "-")
         return ["-"]
 
     var fs = require('fs');
     var path = require('path')
-    const electron = require('electron');
-
-    const configDir = (electron.app || electron.remote.app).getPath('userData');
-
     var str = fs.readFileSync(path.join(configDir, '/userdata/proxies.json'), 'utf8');
     var x = JSON.parse(str)
     var proxyStorage = [];
@@ -1247,16 +1254,20 @@ function getProxyInfo(proxies) {
     return proxyStorage;
 }
 
+function getKey(configDir) {
+    var fs = require('fs');
+    var path = require('path')
+    var str = fs.readFileSync(path.join(configDir, '/userdata/key.txt'), 'utf8');
+    return str;
+}
 
-function getAccountInfo(accounts) {
+function getAccountInfo(accounts, configDir) {
     if (accounts === "-") {
         return "-"
     }
     var fs = require('fs');
     var path = require('path')
-    const electron = require('electron');
 
-    const configDir = (electron.app || electron.remote.app).getPath('userData');
 
     var str = fs.readFileSync(path.join(configDir, '/userdata/accounts.json'), 'utf8');
     var x = JSON.parse(str)
@@ -1267,13 +1278,9 @@ function getAccountInfo(accounts) {
     }
 }
 
-function getProfileInfo(profiles) {
+function getProfileInfo(profiles, configDir) {
     var fs = require('fs');
     var path = require('path')
-    const electron = require('electron');
-
-    const configDir = (electron.app || electron.remote.app).getPath('userData');
-
     var str = fs.readFileSync(path.join(configDir, '/userdata/profiles.json'), 'utf8');
     var x = JSON.parse(str)
     for (var i = 0; i < x.length; i++) {
@@ -1282,19 +1289,11 @@ function getProfileInfo(profiles) {
         }
     }
 }
+
+
 const sleep = (waitTimeInMs) => new Promise(resolve => setTimeout(resolve, waitTimeInMs));
 Array.prototype.sample = function() {
     return this[Math.floor(Math.random() * this.length)];
-}
-
-function getKey() {
-    var fs = require('fs');
-    var path = require('path')
-    const electron = require('electron');
-
-    const configDir = (electron.app || electron.remote.app).getPath('userData');
-    var str = fs.readFileSync(path.join(configDir, '/userdata/key.txt'), 'utf8');
-    return str;
 }
 
 function abbrRegion(input, to) {

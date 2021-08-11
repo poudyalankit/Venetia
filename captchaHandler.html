@@ -1,0 +1,334 @@
+<html>
+
+<head>
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+</head>
+
+<style>
+    .topBar {
+        position: absolute;
+        width: 405px;
+        background: #1e202f;
+        height: 25px;
+        left: 0px;
+        top: 0px;
+    }
+    
+    .resetButton {
+        position: absolute;
+        top: 550px;
+        width: 130px;
+        background: transparent;
+        height: 32px;
+        left: 133px;
+        -webkit-app-region: no-drag;
+        -webkit-user-select: none;
+        font-family: 'Poppins';
+        border-radius: 8px;
+        border: 1px solid #5DA9FF;
+        cursor: pointer;
+        color: white;
+        transition-property: background;
+        transition-duration: 0.4s;
+        outline: none;
+    }
+    
+    .resetButton:hover {
+        background: #5DA9FF;
+    }
+    
+    .minimize {
+        position: absolute;
+        width: 24px;
+        height: 24px;
+        left: 359px;
+        -webkit-app-region: no-drag;
+        -webkit-user-select: none;
+        top: 4px;
+        outline: none;
+    }
+    
+    .close {
+        position: absolute;
+        width: 24px;
+        height: 24px;
+        left: 380px;
+        top: 4px;
+        -webkit-app-region: no-drag;
+        -webkit-user-select: none;
+        outline: none;
+    }
+    
+    .harvesterStatusContainer {
+        background-color: transparent;
+        position: fixed;
+        width: 80%;
+        left: 10%;
+        top: 40px;
+    }
+    
+    .harvesterStatus {
+        text-align: center;
+        color: white;
+        font-family: 'Poppins';
+        -webkit-user-select: none;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 14px;
+    }
+    
+    .reloadIcon {
+        right: 15px;
+        top: 35px;
+        position: absolute;
+        cursor: pointer;
+        border: 1px solid #5DA9FF;
+        border-radius: 8px;
+        transition-property: background;
+        transition-duration: 0.4s;
+    }
+    
+    .reloadIcon:hover {
+        background-color: #5DA9FF;
+    }
+</style>
+
+<body>
+    <div class="topBar" style="-webkit-app-region: drag">
+
+        <div class="minimize">
+            <a href="#" draggable="false" onclick="minimize()">
+                <img draggable="false" src="https://i.imgur.com/xGEXoqN.png">
+            </a>
+        </div>
+
+        <div class="close">
+            <a href="#" draggable="false" onclick="closeIt()">
+                <img draggable="false" src="https://i.imgur.com/xaIldie.png">
+            </a>
+        </div>
+    </div>
+    <img draggable="false" id="reloadIcon" class="reloadIcon" style="display: none;" onclick="resetCaptcha()" src="images/reload.png">
+    <div class="harvesterStatusContainer">
+        <div class="harvesterStatus" id="harvesterStatus">
+            Waiting for captcha...
+        </div>
+    </div>
+
+
+
+    <script>
+        function updateStatus(status) {
+            document.getElementById('harvesterStatus').textContent = status;
+        }
+
+        const remote = require('electron').remote;
+        const app = remote.app
+        const ipcRenderer = require('electron').ipcRenderer
+        const electron = require('electron');
+        const sleep = (waitTimeInMs) => new Promise(resolve => setTimeout(resolve, waitTimeInMs));
+
+        var captchaInfo = "";
+        remote.getCurrentWindow().getBrowserView(0).webContents.loadFile("harvester.html")
+        ipcRenderer.on('message', async(event, message) => {
+            if (message.event === "newCaptcha") {
+                remote.getCurrentWindow().taskID = message.data.taskID
+                document.getElementById("reloadIcon").style.display = "block"
+                captchaInfo = message.data
+                if (message.data.captchaType === "Shopify Checkpoint")
+                    await shopifyCheckpoint()
+                else if (message.data.captchaType === "Finishline")
+                    await finishline()
+            }
+        });
+
+        remote.getCurrentWindow().getBrowserView(0).webContents.on('dom-ready', async() => {
+            var currentLocation = await remote.getCurrentWindow().getBrowserView(0).webContents.executeJavaScript("location.href")
+            if (currentLocation.includes("harvester.html")) {
+                updateStatus("Waiting for captcha...")
+                document.getElementById("reloadIcon").style.display = "none"
+                await remote.getCurrentWindow().getBrowserView(0).webContents.executeJavaScript("document.getElementById('harvesterName').textContent = '" + remote.getCurrentWindow().harvesterName + "'")
+                await remote.getCurrentWindow().getBrowserView(0).webContents.executeJavaScript("document.getElementById('harvesterType').textContent = '" + "Shopify Checkpoint" + "'")
+                remote.getCurrentWindow().readyToSolve = true;
+            } else {
+                if (captchaInfo.captchaType === "Shopify Checkpoint") {
+                    updateStatus("Searching for checkpoint...")
+                    var isCaptchaPresent = await remote.getCurrentWindow().getBrowserView(0).webContents.executeJavaScript("typeof hcaptcha != 'undefined' || typeof recaptcha != 'undefined'")
+                    if (isCaptchaPresent) {
+                        updateStatus("Checkpoint found")
+                        var isHCaptchaPresent = await remote.getCurrentWindow().getBrowserView(0).webContents.executeJavaScript("document.body.parentElement.innerHTML.includes('hcaptcha')")
+                        if (isHCaptchaPresent) {
+                            updateStatus("Waiting for checkpoint solve...")
+                            await remote.getCurrentWindow().getBrowserView(0).webContents.executeJavaScript(`document.querySelector('[title="widget containing checkbox for hCaptcha security challenge"]').contentWindow.document.getElementById('checkbox').click()`)
+                            var hcaptcharesponse = await remote.getCurrentWindow().getBrowserView(0).webContents.executeJavaScript("hcaptcha.getResponse()")
+                            while (hcaptcharesponse === "") {
+                                hcaptcharesponse = await remote.getCurrentWindow().getBrowserView(0).webContents.executeJavaScript("hcaptcha.getResponse()")
+                                await sleep(100)
+                            }
+                            updateStatus("Getting checkpoint info...")
+                            var authToken = await remote.getCurrentWindow().getBrowserView(0).webContents.executeJavaScript("document.getElementsByName('authenticity_token')[0].getAttribute('value')")
+                            var hcaptchachallengeresponsetoken = await remote.getCurrentWindow().getBrowserView(0).webContents.executeJavaScript("document.getElementById('hcaptcha_challenge_response_token').value")
+                            var hcaptchadata = await remote.getCurrentWindow().getBrowserView(0).webContents.executeJavaScript("document.getElementsByName('hcaptcha_data')[0].value")
+                            ipcRenderer.send('message', {
+                                event: "finishedCaptcha",
+                                data: {
+                                    taskID: captchaInfo.taskID,
+                                    captchaInfo: {
+                                        authToken: authToken,
+                                        captchaResponse: hcaptcharesponse,
+                                        hcaptchadata: hcaptchadata,
+                                        hcaptchachallengeresponsetoken: hcaptchachallengeresponsetoken,
+                                        captchaType: "hcaptcha",
+                                        cookies: await remote.getCurrentWindow().getBrowserView(0).webContents.session.cookies.get({
+                                            url: captchaInfo.siteURL
+                                        })
+                                    }
+                                }
+                            })
+                            captchaInfo = ""
+                            remote.getCurrentWindow().taskID = ""
+                            await remote.getCurrentWindow().getBrowserView(0).webContents.loadFile("harvester.html")
+                        } else {
+                            updateStatus("Waiting for checkpoint solve...")
+                            await remote.getCurrentWindow().getBrowserView(0).webContents.executeJavaScript(`document.querySelector('[title="reCAPTCHA"]').contentWindow.document.getElementById('recaptcha-token').click()`)
+                            var recaptchaResponse = await remote.getCurrentWindow().getBrowserView(0).webContents.executeJavaScript("grecaptcha.getResponse()")
+                            while (recaptchaResponse === "") {
+                                recaptchaResponse = await remote.getCurrentWindow().getBrowserView(0).webContents.executeJavaScript("grecaptcha.getResponse()")
+                                await sleep(100)
+                            }
+                            updateStatus("Getting checkpoint info...")
+                            var authToken = await remote.getCurrentWindow().getBrowserView(0).webContents.executeJavaScript("document.getElementsByName('authenticity_token')[0].getAttribute('value')")
+                            ipcRenderer.send('message', {
+                                event: "finishedCaptcha",
+                                data: {
+                                    taskID: captchaInfo.taskID,
+                                    captchaInfo: {
+                                        authToken: authToken,
+                                        captchaResponse: recaptchaResponse,
+                                        captchaType: "recaptcha",
+                                        cookies: await remote.getCurrentWindow().getBrowserView(0).webContents.session.cookies.get({
+                                            url: captchaInfo.siteURL
+                                        })
+                                    }
+                                }
+                            })
+                            captchaInfo = ""
+                            remote.getCurrentWindow().taskID = ""
+                            await remote.getCurrentWindow().getBrowserView(0).webContents.loadFile("harvester.html")
+                        }
+                    } else {
+                        updateStatus("Checkpoint not present")
+                    }
+                } else if (captchaInfo.captchaType === "Finishline") {
+                    updateStatus("Searching for captcha...")
+                    var isCaptchaPresent = await remote.getCurrentWindow().getBrowserView(0).webContents.executeJavaScript("typeof recaptcha != 'undefined'")
+                    if (isCaptchaPresent) {
+                        updateStatus("Getting captcha token...")
+                        var recaptchaResponse = await remote.getCurrentWindow().getBrowserView(0).webContents.executeJavaScript("grecaptcha.enterprise.execute('6LcPD74ZAAAAAFtuJvnpIV5VjKE16Ma7oRCcENIN')")
+                        ipcRenderer.send('message', {
+                            event: "finishedCaptcha",
+                            data: {
+                                taskID: captchaInfo.taskID,
+                                captchaInfo: {
+                                    authToken: "",
+                                    captchaResponse: recaptchaResponse,
+                                    captchaType: "recaptcha",
+                                    cookies: ""
+                                }
+                            }
+                        })
+                        captchaInfo = ""
+                        remote.getCurrentWindow().taskID = ""
+                        await remote.getCurrentWindow().getBrowserView(0).webContents.loadFile("harvester.html")
+                    }
+                }
+            }
+        });
+
+        async function finishline() {
+            remote.getCurrentWindow().focus()
+            await remote.getCurrentWindow().getBrowserView(0).webContents.loadURL(captchaInfo.captchaURL, {
+                userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.77 Safari/537.36'
+            })
+        }
+
+        async function shopifyCheckpoint() {
+            remote.getCurrentWindow().focus()
+            if (captchaInfo.taskProxy != "-") {
+                if (Object.keys(captchaInfo.taskProxy).length == 2)
+                    remote.getCurrentWindow().getBrowserView(0).webContents.session.setProxy({
+                        proxyRules: "http://" + captchaInfo.taskProxy.host + ":" + captchaInfo.taskProxy.port
+                    })
+                else if (Object.keys(captchaInfo.taskProxy).length == 3) {
+                    var newProxy = captchaInfo.taskProxy.host + ":" + captchaInfo.taskProxy.port
+                    ipcRenderer.send('authHarvesterProxy', remote.getCurrentWindow().id, newProxy, captchaInfo.taskProxy.proxyAuth)
+                }
+            } else {
+                remote.getCurrentWindow().getBrowserView(0).webContents.session.setProxy({
+                    proxyRules: null
+                })
+            }
+            var currentCookies = await remote.getCurrentWindow().getBrowserView(0).webContents.session.cookies.get({})
+            for (var i = 0; i < currentCookies.length; i++) {
+                if (currentCookies[i].domain.includes(".google.com") == false)
+                    await remote.getCurrentWindow().getBrowserView(0).webContents.session.cookies.remove(
+                        "https://" + currentCookies[i].domain,
+                        currentCookies[i].name
+                    )
+            }
+            for (var i = 0; i < captchaInfo.sessionCookies.cookies.length; i++) {
+                await remote.getCurrentWindow().getBrowserView(0).webContents.session.cookies.set({
+                    "url": "https://" + captchaInfo.sessionCookies.cookies[i].domain,
+                    "name": captchaInfo.sessionCookies.cookies[i].key,
+                    "value": captchaInfo.sessionCookies.cookies[i].value,
+                    "expirationDate": new Date(captchaInfo.sessionCookies.cookies[i].expires).getTime()
+                })
+            }
+            await remote.getCurrentWindow().getBrowserView(0).webContents.loadURL(captchaInfo.captchaURL, {
+                userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.77 Safari/537.36'
+            })
+        }
+
+
+        Array.prototype.sample = function() {
+            return this[Math.floor(Math.random() * this.length)];
+        }
+
+        function resetCaptcha() {
+            remote.getCurrentWindow().getBrowserView(0).webContents.loadURL(captchaInfo.captchaURL, {
+                userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.77 Safari/537.36'
+            })
+        }
+
+        function minimize() {
+            var window2 = remote.getCurrentWindow();
+            window2.minimize();
+        }
+
+        function closeIt() {
+            if (captchaInfo != "") {
+                ipcRenderer.send("message", {
+                    event: "transferCaptcha",
+                    data: {
+                        "captchaType": captchaInfo.captchaType,
+                        "captchaURL": captchaInfo.captchaURL,
+                        "sessionCookies": captchaInfo.sessionCookies,
+                        "taskID": captchaInfo.taskID,
+                        "taskProxy": captchaInfo.taskProxy,
+                        "siteURL": captchaInfo.siteURL
+                    }
+                })
+            }
+            var x = remote.getCurrentWindow().getBrowserView(0)
+            x.webContents.destroy()
+            remote.getCurrentWindow().destroy()
+        }
+    </script>
+
+</body>
+
+
+</html>

@@ -1,13 +1,9 @@
 module.exports = class FootsitesTask {
     constructor(taskInfo) {
-        require('log-timestamp');
-        require("../src/js/console-file.js");
         var path = require('path')
         var fs = require('fs');
-
-        const electron = require('electron');
-        const configDir = (electron.app || electron.remote.app).getPath('userData');
-        //console.file(path.join(configDir, '/userdata/logs.txt'));
+        this.configDir = taskInfo.configDir
+        this.connection = taskInfo.connection
         this.stopped = "false";
         this.taskId = taskInfo.id;
         this.site = taskInfo.site;
@@ -21,13 +17,12 @@ module.exports = class FootsitesTask {
         this.randomsize;
         this.monitorDelay;
         this.errorDelay;
-        this.webhookLink = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/settings.json'), 'utf8'))[0].webhook;
+        this.webhookLink = JSON.parse(fs.readFileSync(path.join(this.configDir, '/userdata/settings.json'), 'utf8'))[0].webhook;
         this.variant;
-        this.key = getKey()
+        this.key = getKey(this.configDir)
         this.queueitUrl
         this.queueitUUID
         this.seid
-        this.accounts = getAccountInfo(taskInfo.accounts)
         this.sizesinStock;
         this.CID;
         this.suffix = 'api'
@@ -36,9 +31,7 @@ module.exports = class FootsitesTask {
         this.targetUrl;
         this.profilename = taskInfo.profile;
         this.cartId;
-        this.capMonster = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/apiKey.json')))[0].apiKey;
         this.productTitle;
-        this.apiService = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/apiKey.json')))[0].service;
         this.proxyListName = taskInfo.proxies;
         this.cartTotal;
         const tough = require('tough-cookie');
@@ -54,9 +47,10 @@ module.exports = class FootsitesTask {
             this.sku = this.link.split("/")[this.link.split("/").length - 1].split(".html")[0];
         } else
             this.sku = this.link
-        console.log(this.link.split("/")[this.link.split("/").length - 1].split(".html")[0])
-        this.profile = getProfileInfo(taskInfo.profile);
-        this.proxyArray = getProxyInfo(taskInfo.proxies);
+        this.log(this.link.split("/")[this.link.split("/").length - 1].split(".html")[0])
+        this.accounts = getAccountInfo(taskInfo.accounts, this.configDir)
+        this.profile = getProfileInfo(taskInfo.profile, this.configDir)
+        this.proxyArray = getProxyInfo(taskInfo.proxies, this.configDir)
         this.proxy = this.proxyArray.sample();
         if (taskInfo.site === "FootLockerCA") {
             this.baseLink = "footlocker.ca"
@@ -65,6 +59,7 @@ module.exports = class FootsitesTask {
             this.baseLink = this.site + ".com"
             this.country = "US"
         }
+        this.mode += "-NC"
     }
 
     async adyenEncrypt() {
@@ -149,10 +144,10 @@ module.exports = class FootsitesTask {
                 },
                 responseType: 'json'
             }).then(response => {
-                console.log("Finished")
+                this.log("Finished")
             })
             .catch(error => {
-                console.log(error)
+                this.log(error)
             })
 
         var webhooks = this.webhookLink.split(",")
@@ -213,10 +208,10 @@ module.exports = class FootsitesTask {
                         "avatar_url": "https://i.imgur.com/6h06tuW.png"
                     }
                 }).then(response => {
-                    console.log("Finished sending webhook")
+                    this.log("Finished sending webhook")
                 })
                 .catch(error => {
-                    console.log(error.response.body)
+                    this.log(error.response.body)
                 })
         }
 
@@ -253,10 +248,10 @@ module.exports = class FootsitesTask {
                     "quicktask": this.quickTaskLink
                 }
             }).then(response => {
-                console.log("Finished")
+                this.log("Finished")
             })
             .catch(error => {
-                console.log(error)
+                this.log(error)
             })
 
         var webhooks = this.webhookLink.split(",")
@@ -317,10 +312,10 @@ module.exports = class FootsitesTask {
                         "avatar_url": "https://i.imgur.com/6h06tuW.png"
                     }
                 }).then(response => {
-                    console.log("Finished sending webhook")
+                    this.log("Finished sending webhook")
                 })
                 .catch(error => {
-                    console.log(error)
+                    this.log(error)
                 })
         }
 
@@ -362,18 +357,18 @@ module.exports = class FootsitesTask {
                 await this.setDelays()
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
                     if (error.response.statusCode == 529) {
-                        console.log("In queue")
+                        this.log("In queue")
                         await this.send("In queue")
                         await sleep(10000)
                         await this.handleQueue()
                     } else if (error.response.statusCode === 503) {
-                        console.log("In queue")
+                        this.log("In queue")
                         await this.send("In queue (perma)")
                         await sleep(10000)
                         await this.handleQueue()
                     }
                 } else {
-                    console.log(error)
+                    this.log(error)
                     await this.send("Error polling queue")
                     await sleep(this.errorDelay)
                     await this.handleQueue()
@@ -382,144 +377,6 @@ module.exports = class FootsitesTask {
         }
     }
 
-    async sendCaptcha() {
-        const got = require('got');
-        if (this.stopped === "false") {
-            let response = await got({
-                method: 'get',
-                url: 'http://localhost:4444/toastyaio/datadome',
-                responseType: 'json'
-            })
-
-            if (response.body.length > 0) {
-
-                this.cid = response.body.sample().cookie
-                await got({
-                    method: 'get',
-                    url: 'http://localhost:4444/toastyaio/addUse?cookie=' + this.cid,
-                })
-                this.reusedCookie = "1"
-                console.log("Reusing datadome cookie")
-                await this.send("Reusing cookie, delay")
-                await sleep(this.errorDelay)
-                return;
-            } else {
-                if (this.apiService === "CapMonster") {
-                    let response = await got({
-                        method: 'post',
-                        url: 'https://api.capmonster.cloud/createTask',
-                        json: {
-                            "clientKey": this.capMonster,
-                            "task": {
-                                "type": "NoCaptchaTaskProxyless",
-                                "websiteURL": this.captchaURL,
-                                "websiteKey": "6LccSjEUAAAAANCPhaM2c-WiRxCZ5CzsjR_vd8uX",
-                                'userAgent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36'
-                            }
-                        },
-                        responseType: 'json'
-                    })
-                    this.captchaTaskId = response.body.taskId
-                    await this.retrieveCaptchaResponse();
-                    return;
-                } else if (this.apiService === "2Captcha") {
-                    const Captcha = require("2captcha")
-                    const solver = new Captcha.Solver(this.capMonster)
-                    let response = await solver.recaptcha("6LccSjEUAAAAANCPhaM2c-WiRxCZ5CzsjR_vd8uX", this.captchaURL)
-                    this.captchaResponse = response.body;
-                }
-            }
-
-        }
-    }
-
-    async retrieveCaptchaResponse() {
-        const got = require('got');
-        if (this.stopped === "false") {
-            try {
-                let response = await got({
-                    method: 'post',
-                    url: 'https://api.capmonster.cloud/getTaskResult',
-                    withCredentials: true,
-                    json: {
-                        "clientKey": this.capMonster,
-                        "taskId": this.captchaTaskId
-                    },
-                    responseType: 'json'
-                })
-                if (response.body.status != 'ready') {
-                    throw "Captcha not ready"
-                } else {
-                    this.captchaResponse = response.body.solution.gRecaptchaResponse
-                    return;
-                }
-            } catch (error) {
-                console.log(error)
-                await this.setDelays()
-                await sleep(this.errorDelay)
-                await this.retrieveCaptchaResponse()
-            }
-        }
-    }
-
-
-
-    async getDataDomeCookie() {
-        const got = require('got');
-        const tunnel = require('tunnel');
-
-        if (this.stopped === "false") {
-            try {
-                this.request = {
-                    method: 'get',
-                    url: 'https://geo.captcha-delivery.com/captcha/check',
-                    headers: {
-                        'pragma': 'no-cache',
-                        'cache-control': 'no-cache',
-                        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36',
-                        'Referer': this.captchaURL + "&referer=" + this.link,
-                        "Host": "geo.captcha-delivery.com",
-                        'accept-language': 'en-US,en;q=0.9,zh-CN;q=0.8,zh;q=0.7',
-                    },
-                    searchParams: {
-                        'cid': this.cid,
-                        'icid': this.icid,
-                        'ccid': null,
-                        'g-recaptcha-response': this.captchaResponse,
-                        'hash': 'A55FBF4311ED6F1BF9911EB71931D5',
-                        'ua': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.104 Safari/537.36',
-                        'referer': 'www.' + this.baseLink + '?',
-                        'parent_url': 'www.' + this.baseLink,
-                        'x-forwarded-for': '',
-                        'captchaChallenge': await makeid(7),
-                        's': 17434,
-                    },
-                    responseType: 'json'
-                }
-                if (this.proxy != '-') {
-                    this.request['agent'] = {
-                        https: tunnel.httpsOverHttp({
-                            proxy: this.proxy
-                        })
-                    }
-                }
-                let response = await got(this.request);
-                this.cid = response.body.cookie.split("; ")[0].substring(9)
-                    //console.log(this.cid)
-                await got({
-                    method: 'get',
-                    url: 'http://localhost:4444/toastyaio/addCookie?cookie=' + this.cid,
-                })
-
-                return;
-            } catch (error) {
-                console.log(error)
-                await this.setDelays()
-                await sleep(this.errorDelay)
-                await this.getDataDomeCookie()
-            }
-        }
-    }
 
     async getSession() {
         const got = require('got');
@@ -551,17 +408,17 @@ module.exports = class FootsitesTask {
                         })
                     }
                 }
-                console.log(this.request)
+                this.log(this.request)
                 let response = await got(this.request);
                 this.csrftoken = response.body.data.csrfToken;
-                console.log("Got CSRF Token: " + this.csrftoken)
+                this.log("Got CSRF Token: " + this.csrftoken)
                 if (this.stopped === "false") {
                     this.send("Got session")
                     return;
                 }
             } catch (error) {
                 await this.setDelays()
-                console.log(error)
+                this.log(error)
                 if (typeof error.response != 'undefined') {
                     if (error.response.statusCode === 403 && this.stopped === "false") {
                         /*if (typeof error.response.body.url != 'undefined' && error.response.body.url.includes("t=bv")) {
@@ -574,7 +431,7 @@ module.exports = class FootsitesTask {
                             this.proxy = this.proxyArray.sample();
                             await this.getSession()
                         } else {
-                            console.log("datadome captcha")
+                            this.log("datadome captcha")
                             await this.send("Found Datadome Captcha")
                             this.DDCookie = JSON.parse(JSON.stringify(await this.cookieJar.getCookies('https://' + this.baseLink)))[0].value
                             this.cid = this.DDCookie;
@@ -605,78 +462,21 @@ module.exports = class FootsitesTask {
                             await this.getSession()
                         }
                     } else if (error.response.statusCode === 429 && this.stopped === "false") {
-                        console.log(error.response.body)
+                        this.log(error.response.body)
                         this.send("Error getting session: 429")
                         await sleep(this.errorDelay)
                         await this.getSession()
                     } else if (this.stopped === "false") {
-                        console.log(error.response.body)
+                        this.log(error.response.body)
                         await this.send("Unexpected error: " + error.response.statusCode)
                         await sleep(this.errorDelay)
                         await this.getSession()
                     }
                 } else if (this.stopped === "false") {
-                    console.log(error)
+                    this.log(error)
                     await this.send("Unexpected error")
                     await sleep(this.errorDelay)
                     await this.getSession()
-                }
-            }
-        }
-    }
-
-    async handleQueueit() {
-        const got = require('got');
-        const { v4: uuidv4 } = require('uuid');
-        const tunnel = require('tunnel');
-
-        this.queueitUUID = uuidv4()
-        this.seid = uuidv4()
-        if (this.stopped === "false") {
-            await this.send("Polling queue...")
-            try {
-                this.request = {
-                    method: 'post',
-                    url: 'https://footlocker.queue-it.net/spa-api/queue/footlocker/produncfl/' + this.queueitUUID + ' /status?cid=en-US&l=FL%20Layout%20v01&seid=' + this.seid + '&sets=16618932491',
-                    cookieJar: this.cookieJar,
-                    headers: {
-                        'authority': 'footlocker.queue-it.net',
-                        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36',
-                        'accept-language': 'en-US,en;q=0.9,zh-CN;q=0.8,zh;q=0.7',
-                    },
-                    json: {
-                        'customUrlParams': "",
-                        'isBeforeOrIdle': false,
-                        'isClientRedayToRedirect': true,
-                        'layoutName': "FL Layout v01",
-                        'layoutVersion': 163416912791,
-                        'targetUrl': this.targetUrl
-                    },
-                    responseType: 'json'
-                }
-                if (this.proxy != '-') {
-                    this.request['agent'] = {
-                        https: tunnel.httpsOverHttp({
-                            proxy: this.proxy
-                        })
-                    }
-                }
-                let response = await got(this.request);
-                if (this.stopped === "false") {
-                    console.log(response.body)
-                    await this.send("Users ahead: " + response.body.ticket.usersInLineAheadOfYou)
-                    await sleep(30000)
-                    await this.handleQueueit()
-                }
-            } catch (error) {
-                if (typeof error.response != 'undefined' && this.stopped === "false") {
-                    await this.send("Error polling queue: " + error.response.statusCode)
-                    await sleep(30000)
-                    await this.handleQueueit()
-                } else if (this.stopped === "false") {
-                    await this.send("Unexpected error")
-                    await sleep(5000)
-                    await this.handleQueueit()
                 }
             }
         }
@@ -716,13 +516,6 @@ module.exports = class FootsitesTask {
                     }
                 }
                 let response = await got(this.request);
-                if (response.url.includes("queue-it")) {
-                    await this.send("Queue-it")
-                    this.targetUrl = 'https://www.' + this.baseLink + '/api/products/pdp/' + this.sku
-                    this.queueitUrl = response.url
-                    await this.handleQueueit()
-                    await this.getProductID()
-                }
                 this.productTitle = response.body.name;
                 await this.sendProductTitle(this.productTitle)
                 if (typeof response.body.variantAttributes != 'undefined') {
@@ -802,13 +595,13 @@ module.exports = class FootsitesTask {
                         await sleep(this.monitorDelay)
                         await this.getProductID()
                     } else if (this.stopped === "false") {
-                        console.log(error.response.body)
+                        this.log(error.response.body)
                         await this.send("Unexpected error: " + error.response.statusCode)
                         await sleep(this.errorDelay)
                         await this.getProductID()
                     }
                 } else if (this.stopped === "false") {
-                    console.log(error)
+                    this.log(error)
                     await this.send("Unexpected error")
                     await sleep(this.errorDelay)
                     await this.getProductID()
@@ -893,7 +686,7 @@ module.exports = class FootsitesTask {
                             this.proxy = this.proxyArray.sample();
                             await this.addToCart()
                         } else {
-                            console.log("datadome captcha")
+                            this.log("datadome captcha")
                             await this.send("Found Datadome Captcha")
                             this.DDCookie = JSON.parse(JSON.stringify(await this.cookieJar.getCookies('https://' + this.baseLink)))[0].value
                             this.cid = this.DDCookie;
@@ -918,7 +711,7 @@ module.exports = class FootsitesTask {
                         await sleep(this.errorDelay)
                         await this.addToCart()
                     } else if (error.response.statusCode === 531 && this.stopped === "false") {
-                        console.log(error.response.headers['x-cache'])
+                        this.log(error.response.headers['x-cache'])
                         if (error.response.headers['x-cache'].includes("HIT")) {
                             await this.send("OOS cached, retrying")
                             await sleep(this.errorDelay)
@@ -927,19 +720,19 @@ module.exports = class FootsitesTask {
                                 //await this.getSession()
                             await this.addToCart()
                         } else {
-                            console.log("failed carting, retrying")
+                            this.log("failed carting, retrying")
                             await this.send("OOS, retrying")
                             await sleep(this.errorDelay)
                             await this.addToCart()
                         }
                     } else if (this.stopped === "false") {
-                        console.log(error.response.body)
+                        this.log(error.response.body)
                         await this.send("Unexpected error: " + error.response.statusCode)
                         await sleep(this.errorDelay)
                         await this.addToCart()
                     }
                 } else if (this.stopped === "false") {
-                    console.log(error)
+                    this.log(error)
                     await this.send("Unexpected error")
                     await sleep(this.errorDelay)
                     await this.addToCart()
@@ -983,14 +776,14 @@ module.exports = class FootsitesTask {
                        return;
                    }
                } catch (error) {
-                   console.log(error)
+                   this.log(error)
                    if (this.stopped === "false") {
                        if (typeof error.response != 'undefined' && typeof error.response.body.url != 'undefined' && this.stopped === "false") {
-                           console.log("Datadome captcha")
-                               //console.log(this.cookieJar)
+                           this.log("Datadome captcha")
+                               //this.log(this.cookieJar)
                            this.DDCookie = JSON.parse(JSON.stringify(await this.cookieJar.getCookies('https://' + this.baseLink)))[0].value
                            this.cid = this.DDCookie;
-                           // console.log(this.cid)
+                           // this.log(this.cid)
                            this.captchaURL = error.response.body.url + "&cid=" + this.DDCookie
                            this.icid = this.captchaURL.substring(42).split("&referer")[0].substring(11)
                            await this.send("Waiting for captcha")
@@ -1002,13 +795,13 @@ module.exports = class FootsitesTask {
                                await this.getDataDomeCookie()
 
                            this.DDCookie = "datadome=" + this.cid
-                               // console.log(this.DDCookie)
+                               // this.log(this.DDCookie)
                            this.cookieJar.setCookie(this.DDCookie + '; Max-Age=31536000; Domain=.' + this.baseLink + '; Path=/; Secure; SameSite=Lax;', 'https://' + this.baseLink)
-                               // console.log(this.cookieJar)
+                               // this.log(this.cookieJar)
                            if (this.stopped === "false")
                                await this.send("Setting Datadome")
                        } else {
-                           console.log("Error submitting email")
+                           this.log("Error submitting email")
                            await this.send("Error submitting email")
            await sleep(3500)
                            this.sendEmail()
@@ -1021,7 +814,7 @@ module.exports = class FootsitesTask {
     /*  async submitShipping() {
           const got = require('got');
           const { v4: uuidv4 } = require('uuid');
-          console.log(this.profile)
+          this.log(this.profile)
           if (this.stopped === "false") {
               await this.send("Submitting shipping")
               try {
@@ -1084,7 +877,7 @@ module.exports = class FootsitesTask {
                           if (error.response.body.url.includes("t=bv")) {
                               await this.send("Error Datadome blacklisted")
                           } else {
-                              console.log("datadome captcha")
+                              this.log("datadome captcha")
                               await this.send("Found Datadome Captcha")
                               this.DDCookie = JSON.parse(JSON.stringify(await this.cookieJar.getCookies('https://' + this.baseLink)))[0].value
                               this.cid = this.DDCookie;
@@ -1105,13 +898,13 @@ module.exports = class FootsitesTask {
                               await this.submitShipping()
                           }
                       } else if (this.stopped === "false") {
-                          console.log(error.response.body)
+                          this.log(error.response.body)
                           await this.send("Error submitting info: " + error.response.statusCode)
           await sleep(3500)
                           await this.submitShipping()
                       }
                   } else if (this.stopped === "false") {
-                      console.log(error)
+                      this.log(error)
                       await this.send("Unexpected error")
       await sleep(3500)
                       await this.submitShipping()
@@ -1167,7 +960,7 @@ module.exports = class FootsitesTask {
                         if (typeof error.response.body.url != 'undefined' && error.response.body.url.includes("t=bv")) {
                             await this.send("Error Datadome blacklisted")
                         } else {
-                            console.log("datadome captcha")
+                            this.log("datadome captcha")
                             await this.send("Found Datadome Captcha")
                             this.DDCookie = JSON.parse(JSON.stringify(await this.cookieJar.getCookies('https://' + this.baseLink)))[0].value
                             this.cid = this.DDCookie;
@@ -1188,13 +981,13 @@ module.exports = class FootsitesTask {
                             await this.logintoFLX()
                         }
                     } else if (this.stopped === "false") {
-                        console.log(error.response.body)
+                        this.log(error.response.body)
                         await this.send("Error logging in: " + error.response.statusCode)
                         await sleep(this.errorDelay)
                         await this.logintoFLX()
                     }
                 } else if (this.stopped === "false") {
-                    console.log(error)
+                    this.log(error)
                     await this.send("Unexpected error")
                     await sleep(this.errorDelay)
                     await this.logintoFLX()
@@ -1262,7 +1055,7 @@ module.exports = class FootsitesTask {
                            if (error.response.body.url.includes("t=bv")) {
                                await this.send("Error Datadome blacklisted")
                            } else {
-                               console.log("datadome captcha")
+                               this.log("datadome captcha")
                                await this.send("Found Datadome Captcha")
                                this.DDCookie = JSON.parse(JSON.stringify(await this.cookieJar.getCookies('https://' + this.baseLink)))[0].value
                                this.cid = this.DDCookie;
@@ -1283,13 +1076,13 @@ module.exports = class FootsitesTask {
                                await this.submitBilling()
                            }
                        } else if (this.stopped === "false") {
-                           console.log(error.response.body)
+                           this.log(error.response.body)
                            await this.send("Error submitting info: " + error.response.statusCode)
            await sleep(3500)
                            await this.submitBilling()
                        }
                    } else if (this.stopped === "false") {
-                       console.log(error)
+                       this.log(error)
                        await this.send("Unexpected error")
        await sleep(3500)
                        await this.submitBilling()
@@ -1369,7 +1162,7 @@ module.exports = class FootsitesTask {
                 let response = await got(this.request);
                 if (this.stopped === "false") {
                     await this.send("Submitted information")
-                    console.log(response.body)
+                    this.log(response.body)
                     return;
                 }
             } catch (error) {
@@ -1384,7 +1177,7 @@ module.exports = class FootsitesTask {
                             this.proxy = this.proxyArray.sample();
                             await this.submitInformation()
                         } else {
-                            console.log("datadome captcha")
+                            this.log("datadome captcha")
                             await this.send("Found Datadome Captcha")
                             this.DDCookie = JSON.parse(JSON.stringify(await this.cookieJar.getCookies('https://' + this.baseLink)))[0].value
                             this.cid = this.DDCookie;
@@ -1405,13 +1198,13 @@ module.exports = class FootsitesTask {
                             await this.submitInformation()
                         }
                     } else if (this.stopped === "false") {
-                        console.log(error.response.body)
+                        this.log(error.response.body)
                         await this.send("Error submitting info: " + error.response.statusCode)
                         await sleep(this.errorDelay)
                         await this.submitInformation()
                     }
                 } else if (this.stopped === "false") {
-                    console.log(error)
+                    this.log(error)
                     await this.send("Unexpected error")
                     await sleep(this.errorDelay)
                     await this.submitInformation()
@@ -1468,25 +1261,20 @@ module.exports = class FootsitesTask {
                 }
                 let response = await got(this.request);
                 if (this.stopped === "false") {
-                    await this.send("Submitted order")
-                    await this.updateStat("checkouts")
                     this.send("Check email")
                     this.sendSuccess()
-                    console.log(response.body)
+                    this.log(response.body)
                     return;
                 }
             } catch (error) {
                 await this.setDelays()
-                console.log(error.response.body)
+                this.log(error.response.body)
                 if (this.stopped === "false") {
                     this.sendFail()
-                    this.updateStat("fails")
                     this.send("Checkout failed")
                     var path = require('path')
                     var fs = require('fs');
-                    const electron = require('electron');
-                    const configDir = (electron.app || electron.remote.app).getPath('userData');
-                    if (JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/settings.json'), 'utf8'))[0].retryCheckouts == true) {
+                    if (JSON.parse(fs.readFileSync(path.join(this.configDir, '/userdata/settings.json'), 'utf8'))[0].retryCheckouts == true) {
                         await sleep(this.errorDelay)
                         await this.submitOrder()
                     }
@@ -1495,21 +1283,42 @@ module.exports = class FootsitesTask {
         }
     }
 
+    log(message) {
+        const winston = require('winston');
+        const logConfiguration = {
+            transports: [
+                new winston.transports.Console({}),
+                new winston.transports.File({
+                    filename: this.configDir + '/logs/' + this.taskId + '.log'
+                })
+            ],
+            format: winston.format.combine(
+                winston.format.timestamp({
+                    format: 'MMM-DD-YYYY HH:mm:ss'
+                }),
+                winston.format.printf(info => `[${[info.timestamp]}] [${this.taskId}]: ${info.message}`),
+            )
+        };
+        const logger = winston.createLogger(logConfiguration);
+
+        logger.info(message)
+    }
 
     async stopTask() {
         this.stopped = "true";
         await this.sendProductTitle(this.link)
-        console.log("Stopped")
         this.send("Stopped")
+    }
+
+    returnID() {
+        return this.taskId;
     }
 
     async setDelays() {
         var fs = require('fs');
         var path = require('path')
-        const electron = require('electron');
-        const configDir = (electron.app || electron.remote.app).getPath('userData');
-        var delays = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/delays.json'), 'utf8'));
-        var groups = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/tasks.json'), 'utf8'));
+        var delays = JSON.parse(fs.readFileSync(path.join(this.configDir, '/userdata/delays.json'), 'utf8'));
+        var groups = JSON.parse(fs.readFileSync(path.join(this.configDir, '/userdata/tasks.json'), 'utf8'));
         var index;
         for (var i = 0; i < groups.length; i++) {
             for (var j = 0; j < groups[i][Object.keys(groups[i])[0]].length; j++) {
@@ -1523,24 +1332,32 @@ module.exports = class FootsitesTask {
         this.errorDelay = delays[index].error
     }
 
-    returnID() {
-        return this.taskId;
-    }
-
     async sendProductTitle(title) {
-        const { ipcRenderer } = require('electron');
-        ipcRenderer.send('updateProductTitle1', this.taskId, title)
+        this.connection.send(JSON.stringify({
+            event: "taskProductTitle",
+            data: {
+                taskID: this.taskId,
+                newTitle: title
+            }
+        }))
     }
-
 
     async send(status) {
-        const { ipcRenderer } = require('electron');
-        ipcRenderer.send('updateStatus1', this.taskId, status)
+        if (this.stopped === "false" || status === "Stopped") {
+            this.log(status)
+            this.connection.send(JSON.stringify({
+                event: "taskStatus",
+                data: {
+                    taskID: this.taskId,
+                    newStatus: status
+                }
+            }))
+        }
     }
 
     async updateStat(stat) {
         //this.window.webContents.send("updateStats", stat);
-        console.log(stat)
+        this.log(stat)
     }
 
     async initialize() {
@@ -1566,35 +1383,12 @@ module.exports = class FootsitesTask {
     }
 }
 
-function getAccountInfo(accounts) {
-    if (accounts === "-") {
-        return "-"
-    }
-    var fs = require('fs');
-    var path = require('path')
-    const electron = require('electron');
-
-    const configDir = (electron.app || electron.remote.app).getPath('userData');
-
-    var str = fs.readFileSync(path.join(configDir, '/userdata/accounts.json'), 'utf8');
-    var x = JSON.parse(str)
-    for (var i = 0; i < x.length; i++) {
-        if (x[i].name === accounts) {
-            return x[i].account.sample()
-        }
-    }
-}
-
-function getProxyInfo(proxies) {
+function getProxyInfo(proxies, configDir) {
     if (proxies === "-")
         return ["-"]
 
     var fs = require('fs');
     var path = require('path')
-    const electron = require('electron');
-
-    const configDir = (electron.app || electron.remote.app).getPath('userData');
-
     var str = fs.readFileSync(path.join(configDir, '/userdata/proxies.json'), 'utf8');
     var x = JSON.parse(str)
     var proxyStorage = [];
@@ -1613,6 +1407,42 @@ function getProxyInfo(proxies) {
 }
 
 
+function getAccountInfo(accounts, configDir) {
+    if (accounts === "-") {
+        return "-"
+    }
+    var fs = require('fs');
+    var path = require('path')
+
+
+    var str = fs.readFileSync(path.join(configDir, '/userdata/accounts.json'), 'utf8');
+    var x = JSON.parse(str)
+    for (var i = 0; i < x.length; i++) {
+        if (x[i].name === accounts) {
+            return x[i].account.sample()
+        }
+    }
+}
+
+function getProfileInfo(profiles, configDir) {
+    var fs = require('fs');
+    var path = require('path')
+    var str = fs.readFileSync(path.join(configDir, '/userdata/profiles.json'), 'utf8');
+    var x = JSON.parse(str)
+    for (var i = 0; i < x.length; i++) {
+        if (x[i].name === profiles) {
+            return { "firstName": x[i].delivery.firstName, "lastName": x[i].delivery.lastName, "address1": x[i].delivery.address1, "zipcode": x[i].delivery.zip, "city": x[i].delivery.city, "country": x[i].delivery.country, "state": x[i].delivery.state, "email": x[i].email, "phone": x[i].phone, "cardNumber": x[i].card.number, "expiryMonth": x[i].card.expiryMonth, "expiryYear": x[i].card.expiryYear, "cvv": x[i].card.cvv }
+        }
+    }
+}
+
+function getKey(configDir) {
+    var fs = require('fs');
+    var path = require('path')
+    var str = fs.readFileSync(path.join(configDir, '/userdata/key.txt'), 'utf8');
+    return str;
+}
+
 async function makeid(length) {
     var result = '';
     var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -1623,31 +1453,6 @@ async function makeid(length) {
     return result;
 }
 
-function getKey() {
-    var fs = require('fs');
-    var path = require('path')
-    const electron = require('electron');
-
-    const configDir = (electron.app || electron.remote.app).getPath('userData');
-    var str = fs.readFileSync(path.join(configDir, '/userdata/key.txt'), 'utf8');
-    return str;
-}
-
-function getProfileInfo(profiles) {
-    var fs = require('fs');
-    var path = require('path')
-    const electron = require('electron');
-
-    const configDir = (electron.app || electron.remote.app).getPath('userData');
-
-    var str = fs.readFileSync(path.join(configDir, '/userdata/profiles.json'), 'utf8');
-    var x = JSON.parse(str)
-    for (var i = 0; i < x.length; i++) {
-        if (x[i].name === profiles) {
-            return { "firstName": x[i].delivery.firstName, "lastName": x[i].delivery.lastName, "address1": x[i].delivery.address1, "zipcode": x[i].delivery.zip, "city": x[i].delivery.city, "country": x[i].delivery.country, "state": x[i].delivery.state, "email": x[i].email, "phone": x[i].phone, "cardNumber": x[i].card.number, "expiryMonth": x[i].card.expiryMonth, "expiryYear": x[i].card.expiryYear, "cvv": x[i].card.cvv }
-        }
-    }
-}
 const sleep = (waitTimeInMs) => new Promise(resolve => setTimeout(resolve, waitTimeInMs));
 Array.prototype.sample = function() {
     return this[Math.floor(Math.random() * this.length)];

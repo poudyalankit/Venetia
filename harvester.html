@@ -6,62 +6,59 @@
 </head>
 
 <style>
-    .topBar {
-        position: absolute;
-        width: 400px;
-        background: #1e202f;
-        height: 25px;
-        left: 0px;
-        top: 0px;
-    }
-    
-    .minimize {
-        position: absolute;
-        width: 24px;
-        height: 24px;
-        left: 355px;
-        -webkit-app-region: no-drag;
-        -webkit-user-select: none;
-        top: 4px;
-        outline: none;
-    }
-    
-    .close {
-        position: absolute;
-        width: 24px;
-        height: 24px;
-        left: 376px;
-        top: 4px;
-        -webkit-app-region: no-drag;
-        -webkit-user-select: none;
-        outline: none;
+    body {
+        overflow-x: hidden;
     }
     
     .logo {
         position: absolute;
-        top: 90px;
-        left: 45px;
-        width: 220px;
+        top: 60px;
+        left: 47px;
+        width: 210px;
     }
     
-    .text {
-        position: absolute;
-        top: 390px;
-        left: 119px;
+    .harvesterName {
+        text-align: center;
         color: white;
         font-family: 'Poppins';
         -webkit-user-select: none;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 16px;
+    }
+    
+    .harvesterType {
+        text-align: center;
+        color: #ADA1A1;
+        font-family: 'Poppins';
+        -webkit-user-select: none;
+        overflow: hidden;
+        padding-top: 10px;
+        text-overflow: ellipsis;
+        font-size: 13px;
+        white-space: nowrap;
+    }
+    
+    .textContainer {
+        position: fixed;
+        top: 390px;
+        width: 80%;
+        left: 10%;
+        background-color: transparent;
     }
 </style>
 
 <body>
-    <div class="harvester">
-        <div class="text">
-            Waiting for captcha...
+    <div class="textContainer">
+        <div class="harvesterName" id="harvesterName">
         </div>
-        <div class="logo">
-            <img class="logo" src="./images/captcha.gif" draggable="false">
+        <div class="harvesterType" id="harvesterType">
         </div>
+    </div>
+
+    <div class="logo">
+        <img class="logo" src="./images/captcha.gif" draggable="false">
     </div>
 </body>
 

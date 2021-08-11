@@ -1,19 +1,16 @@
 module.exports = class ShiekhTask {
     constructor(taskInfo) {
-        require('log-timestamp');
-        require("../src/js/console-file.js");
         var path = require('path')
         var fs = require('fs');
-        const electron = require('electron');
-        const configDir = (electron.app || electron.remote.app).getPath('userData');
-        //console.file(path.join(configDir, '/userdata/logs.txt'));
+        this.configDir = taskInfo.configDir
+        this.connection = taskInfo.connection
         this.stopped = "false";
         this.request;
-        this.key = getKey()
+        this.key = getKey(this.configDir)
         this.taskId = taskInfo.id;
         this.site = taskInfo.site;
         this.mode = taskInfo.mode;
-        this.webhookLink = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/settings.json'), 'utf8'))[0].webhook;
+        this.webhookLink = JSON.parse(fs.readFileSync(path.join(this.configDir, '/userdata/settings.json'), 'utf8'))[0].webhook;
         this.mode = taskInfo.mode;
         this.productTitle;
         this.link = taskInfo.product;
@@ -33,9 +30,9 @@ module.exports = class ShiekhTask {
         this.cartToken;
         const tough = require('tough-cookie');
         this.cookieJar = new tough.CookieJar();
-        this.accounts = getAccountInfo(taskInfo.accounts)
-        this.profile = getProfileInfo(taskInfo.profile);
-        this.proxyArray = getProxyInfo(taskInfo.proxies);
+        this.accounts = getAccountInfo(taskInfo.accounts, this.configDir)
+        this.profile = getProfileInfo(taskInfo.profile, this.configDir)
+        this.proxyArray = getProxyInfo(taskInfo.proxies, this.configDir)
         this.proxy = this.proxyArray.sample();
         this.schedule = {}
         this.schedule.hour = taskInfo.schedule.hour;
@@ -66,10 +63,10 @@ module.exports = class ShiekhTask {
                 },
                 responseType: 'json'
             }).then(response => {
-                console.log("Finished")
+                this.log("Finished")
             })
             .catch(error => {
-                console.log(error)
+                this.log(error)
             })
 
         var webhooks = this.webhookLink.split(",")
@@ -134,10 +131,10 @@ module.exports = class ShiekhTask {
                         "avatar_url": "https://i.imgur.com/6h06tuW.png"
                     }
                 }).then(response => {
-                    console.log("Finished sending webhook")
+                    this.log("Finished sending webhook")
                 })
                 .catch(error => {
-                    console.log(error.response.body)
+                    this.log(error.response.body)
                 })
         }
 
@@ -166,10 +163,10 @@ module.exports = class ShiekhTask {
                     "quicktask": this.quickTaskLink
                 }
             }).then(response => {
-                console.log("Finished")
+                this.log("Finished")
             })
             .catch(error => {
-                console.log(error)
+                this.log(error)
             })
 
         var webhooks = this.webhookLink.split(",")
@@ -230,10 +227,10 @@ module.exports = class ShiekhTask {
                         "avatar_url": "https://i.imgur.com/6h06tuW.png"
                     }
                 }).then(response => {
-                    console.log("Finished sending webhook")
+                    this.log("Finished sending webhook")
                 })
                 .catch(error => {
-                    console.log(error)
+                    this.log(error)
                 })
         }
     }
@@ -273,12 +270,12 @@ module.exports = class ShiekhTask {
             } catch (error) {
                 await this.setDelays()
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
-                    console.log(error.response.body)
+                    this.log(error.response.body)
                     await this.send("Error logging in: " + error.response.statusCode)
                     await sleep(this.errorDelay)
                     await this.login()
                 } else if (this.stopped === "false") {
-                    console.log(error)
+                    this.log(error)
                     await this.send("Unexpected error")
                     await sleep(this.errorDelay)
                     await this.login()
@@ -319,12 +316,12 @@ module.exports = class ShiekhTask {
             } catch (error) {
                 await this.setDelays()
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
-                    console.log(error.response.body)
+                    this.log(error.response.body)
                     await this.send("Error creating cart: " + error.response.statusCode)
                     await sleep(this.errorDelay)
                     await this.generateCart()
                 } else if (this.stopped === "false") {
-                    console.log(error)
+                    this.log(error)
                     await this.send("Unexpected error")
                     await sleep(this.errorDelay)
                     await this.generateCart()
@@ -398,12 +395,12 @@ module.exports = class ShiekhTask {
                     await this.getProduct()
                 } else
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
-                    console.log(error)
+                    this.log(error)
                     await this.send("Error getting product: " + error.response.statusCode)
                     await sleep(this.errorDelay)
                     await this.getProduct()
                 } else if (this.stopped === "false") {
-                    console.log(error)
+                    this.log(error)
                     await this.send("Unexpected error")
                     await sleep(this.errorDelay)
                     await this.getProduct()
@@ -458,7 +455,7 @@ module.exports = class ShiekhTask {
             } catch (error) {
                 await this.setDelays()
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
-                    console.log(error.response.body)
+                    this.log(error.response.body)
                     if (typeof error.response.body.message != 'undefined' && error.response.body.message === "This product(s) can't be purchase. Please try it later.") {
                         await this.send("Error product inactive")
                         await sleep(this.monitorDelay)
@@ -469,7 +466,7 @@ module.exports = class ShiekhTask {
                         await this.addToCart()
                     }
                 } else if (this.stopped === "false") {
-                    console.log(error)
+                    this.log(error)
                     await this.send("Unexpected error")
                     await sleep(this.errorDelay)
                     await this.addToCart()
@@ -540,12 +537,12 @@ module.exports = class ShiekhTask {
             } catch (error) {
                 await this.setDelays()
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
-                    console.log(error.response.body)
+                    this.log(error.response.body)
                     await this.send("Error submitting shipping: " + error.response.statusCode)
                     await sleep(this.errorDelay)
                     await this.submitShipping()
                 } else if (this.stopped === "false") {
-                    console.log(error)
+                    this.log(error)
                     await this.send("Unexpected error")
                     await sleep(this.errorDelay)
                     await this.submitShipping()
@@ -580,17 +577,17 @@ module.exports = class ShiekhTask {
                     this.token = response.body['client_token']
                     this.token = JSON.parse(atob(this.token))
                     this.token = this.token.authorizationFingerprint
-                    console.log(this.token)
+                    this.log(this.token)
                 }
             } catch (error) {
                 await this.setDelays()
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
-                    console.log(error)
+                    this.log(error)
                     await this.send("Error getting token: " + error.response.statusCode)
                     await sleep(this.errorDelay)
                     await this.getToken()
                 } else if (this.stopped === "false") {
-                    console.log(error)
+                    this.log(error)
                     await this.send("Unexpected error")
                     await sleep(this.errorDelay)
                     await this.getToken()
@@ -648,19 +645,19 @@ module.exports = class ShiekhTask {
                 let response = await got(this.request)
                 if (this.stopped === "false") {
                     this.encryptedCard = response.body.data.tokenizeCreditCard.token
-                    console.log(this.encryptedCard)
+                    this.log(this.encryptedCard)
                     await this.send("Encrypted card")
                     return;
                 }
             } catch (error) {
                 await this.setDelays()
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
-                    console.log(error.response.body)
+                    this.log(error.response.body)
                     await this.send("Error encrypting: " + error.response.statusCode)
                     await sleep(this.errorDelay)
                     await this.encryptCard()
                 } else if (this.stopped === "false") {
-                    console.log(error)
+                    this.log(error)
                     await this.send("Unexpected error")
                     await sleep(this.errorDelay)
                     await this.encryptCard()
@@ -706,7 +703,7 @@ module.exports = class ShiekhTask {
                     }
                 }
                 let response = await got(this.request)
-                console.log(response.body)
+                this.log(response.body)
                 if (this.stopped === "false") {
                     await this.send("Check email")
                     await this.sendSuccess()
@@ -714,7 +711,7 @@ module.exports = class ShiekhTask {
             } catch (error) {
                 await this.setDelays()
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
-                    console.log(error.response.body)
+                    this.log(error.response.body)
                     await this.send("Checkout failed")
                     if (typeof error.response.body.message != 'undefined') {
                         this.errorMessage = error.response.body.message
@@ -722,14 +719,12 @@ module.exports = class ShiekhTask {
                     await this.sendFail()
                     var path = require('path')
                     var fs = require('fs');
-                    const electron = require('electron');
-                    const configDir = (electron.app || electron.remote.app).getPath('userData');
-                    if (JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/settings.json'), 'utf8'))[0].retryCheckouts == true) {
+                    if (JSON.parse(fs.readFileSync(path.join(this.configDir, '/userdata/settings.json'), 'utf8'))[0].retryCheckouts == true) {
                         await sleep(this.errorDelay)
                         await this.submitOrder()
                     }
                 } else if (this.stopped === "false") {
-                    console.log(error)
+                    this.log(error)
                     await this.send("Unexpected error")
                     await sleep(this.errorDelay)
                     await this.submitOrder()
@@ -738,13 +733,42 @@ module.exports = class ShiekhTask {
         }
     }
 
+    log(message) {
+        const winston = require('winston');
+        const logConfiguration = {
+            transports: [
+                new winston.transports.Console({}),
+                new winston.transports.File({
+                    filename: this.configDir + '/logs/' + this.taskId + '.log'
+                })
+            ],
+            format: winston.format.combine(
+                winston.format.timestamp({
+                    format: 'MMM-DD-YYYY HH:mm:ss'
+                }),
+                winston.format.printf(info => `[${[info.timestamp]}] [${this.taskId}]: ${info.message}`),
+            )
+        };
+        const logger = winston.createLogger(logConfiguration);
+
+        logger.info(message)
+    }
+
+    async stopTask() {
+        this.stopped = "true";
+        await this.sendProductTitle(this.link)
+        this.send("Stopped")
+    }
+
+    returnID() {
+        return this.taskId;
+    }
+
     async setDelays() {
         var fs = require('fs');
         var path = require('path')
-        const electron = require('electron');
-        const configDir = (electron.app || electron.remote.app).getPath('userData');
-        var delays = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/delays.json'), 'utf8'));
-        var groups = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/tasks.json'), 'utf8'));
+        var delays = JSON.parse(fs.readFileSync(path.join(this.configDir, '/userdata/delays.json'), 'utf8'));
+        var groups = JSON.parse(fs.readFileSync(path.join(this.configDir, '/userdata/tasks.json'), 'utf8'));
         var index;
         for (var i = 0; i < groups.length; i++) {
             for (var j = 0; j < groups[i][Object.keys(groups[i])[0]].length; j++) {
@@ -758,31 +782,33 @@ module.exports = class ShiekhTask {
         this.errorDelay = delays[index].error
     }
 
-    async stopTask() {
-        this.stopped = "true";
-        await this.sendProductTitle(this.link)
-        console.log("Stopped")
-        this.send("Stopped")
-    }
-
-    returnID() {
-        return this.taskId;
-    }
-
     async sendProductTitle(title) {
-        const { ipcRenderer } = require('electron');
-        ipcRenderer.send('updateProductTitle1', this.taskId, title)
+        this.connection.send(JSON.stringify({
+            event: "taskProductTitle",
+            data: {
+                taskID: this.taskId,
+                newTitle: title
+            }
+        }))
     }
 
 
     async send(status) {
-        const { ipcRenderer } = require('electron');
-        ipcRenderer.send('updateStatus1', this.taskId, status)
+        if (this.stopped === "false" || status === "Stopped") {
+            this.log(status)
+            this.connection.send(JSON.stringify({
+                event: "taskStatus",
+                data: {
+                    taskID: this.taskId,
+                    newStatus: status
+                }
+            }))
+        }
     }
 
     async updateStat(stat) {
         //this.window.webContents.send("updateStats", stat);
-        console.log(stat)
+        this.log(stat)
     }
 
     async initialize() {
@@ -825,16 +851,12 @@ module.exports = class ShiekhTask {
 }
 
 
-function getProxyInfo(proxies) {
+function getProxyInfo(proxies, configDir) {
     if (proxies === "-")
         return ["-"]
 
     var fs = require('fs');
     var path = require('path')
-    const electron = require('electron');
-
-    const configDir = (electron.app || electron.remote.app).getPath('userData');
-
     var str = fs.readFileSync(path.join(configDir, '/userdata/proxies.json'), 'utf8');
     var x = JSON.parse(str)
     var proxyStorage = [];
@@ -853,15 +875,13 @@ function getProxyInfo(proxies) {
 }
 
 
-function getAccountInfo(accounts) {
+function getAccountInfo(accounts, configDir) {
     if (accounts === "-") {
         return "-"
     }
     var fs = require('fs');
     var path = require('path')
-    const electron = require('electron');
 
-    const configDir = (electron.app || electron.remote.app).getPath('userData');
 
     var str = fs.readFileSync(path.join(configDir, '/userdata/accounts.json'), 'utf8');
     var x = JSON.parse(str)
@@ -872,17 +892,9 @@ function getAccountInfo(accounts) {
     }
 }
 
-function getTimestamp() {
-    return Math.floor(Date.now() / 1000);
-}
-
-function getProfileInfo(profiles) {
+function getProfileInfo(profiles, configDir) {
     var fs = require('fs');
     var path = require('path')
-    const electron = require('electron');
-
-    const configDir = (electron.app || electron.remote.app).getPath('userData');
-
     var str = fs.readFileSync(path.join(configDir, '/userdata/profiles.json'), 'utf8');
     var x = JSON.parse(str)
     for (var i = 0; i < x.length; i++) {
@@ -891,17 +903,20 @@ function getProfileInfo(profiles) {
         }
     }
 }
+
+function getTimestamp() {
+    return Math.floor(Date.now() / 1000);
+}
+
+
 const sleep = (waitTimeInMs) => new Promise(resolve => setTimeout(resolve, waitTimeInMs));
 Array.prototype.sample = function() {
     return this[Math.floor(Math.random() * this.length)];
 }
 
-function getKey() {
+function getKey(configDir) {
     var fs = require('fs');
     var path = require('path')
-    const electron = require('electron');
-
-    const configDir = (electron.app || electron.remote.app).getPath('userData');
     var str = fs.readFileSync(path.join(configDir, '/userdata/key.txt'), 'utf8');
     return str;
 }

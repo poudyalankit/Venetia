@@ -1,18 +1,16 @@
-const { timeStamp } = require('console');
-
 module.exports = class ShopifyTask {
     constructor(taskInfo) {
         var path = require('path')
         var fs = require('fs');
-        const electron = require('electron');
-        const configDir = (electron.app || electron.remote.app).getPath('userData');
+        this.configDir = taskInfo.configDir
+        this.connection = taskInfo.connection
         this.stopped = "false";
         this.request;
-        this.key = getKey()
+        this.key = getKey(this.configDir)
         this.taskId = taskInfo.id;
         this.site = taskInfo.site;
         this.mode = taskInfo.mode;
-        this.webhookLink = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/settings.json'), 'utf8'))[0].webhook;
+        this.webhookLink = JSON.parse(fs.readFileSync(path.join(this.configDir, '/userdata/settings.json'), 'utf8'))[0].webhook;
         this.mode = taskInfo.mode;
         this.productTitle;
         this.link = taskInfo.product;
@@ -25,23 +23,42 @@ module.exports = class ShopifyTask {
         this.monitorDelay;
         this.errorDelay;
         this.encryptedcard;
+        this.checkpointPayload = ""
         const tough = require('tough-cookie')
+        this.finishedSubmittingCheckpoint = false;
         this.cookieJar = new tough.CookieJar()
-        this.accounts = getAccountInfo(taskInfo.accounts)
-        this.profile = getProfileInfo(taskInfo.profile)
-        this.proxyArray = getProxyInfo(taskInfo.proxies)
+        this.accounts = getAccountInfo(taskInfo.accounts, this.configDir)
+        this.profile = getProfileInfo(taskInfo.profile, this.configDir)
+        this.proxyArray = getProxyInfo(taskInfo.proxies, this.configDir)
         this.proxy = this.proxyArray.sample()
         this.baseLink = taskInfo.baseLink
         this.shippingPayload = {}
         this.shippingRatePayload = {}
         this.paymentPayload = {}
-        if (this.profile.country === "United States")
-            this.country = "US"
-        else if (this.profile.country === "Canada")
-            this.country = "CA"
+        let Country = require('country-state-city').Country;
+        let State = require('country-state-city').State;
+        for (var i = 0; i < Country.getAllCountries().length; i++) {
+            if (Country.getAllCountries()[i].name === this.profile.country) {
+                this.countryCode = Country.getAllCountries()[i].isoCode
+                break;
+            }
+        }
+        for (var i = 0; i < State.getStatesOfCountry(this.countryCode).length; i++) {
+            if (State.getStatesOfCountry(this.countryCode)[i].name === this.profile.state) {
+                this.stateCode = State.getStatesOfCountry(this.countryCode)[i].isoCode
+                break;
+            }
+        }
         this.captchaResponse = "none"
         this.cartLink = this.baseLink + "/cart"
         this.plainLink = this.baseLink.split("https://")[1]
+        this.oglink = this.link
+        if (this.link.includes("*")) {
+            this.quantity = this.link.split("*")[1].trim()
+            this.link = this.link.split("*")[0].trim()
+        } else {
+            this.quantity = 1
+        }
         this.insecurelink = "http://" + this.plainLink
         if (this.link.startsWith("http") && this.link.includes(this.cartLink) == false) {
             if (this.link.includes("?"))
@@ -79,7 +96,7 @@ module.exports = class ShopifyTask {
                 json: {
                     "site": this.site,
                     "mode": this.mode,
-                    "product": this.link,
+                    "product": this.oglink,
                     "size": this.size,
                     "price": Math.trunc(this.cartTotal),
                     "timestamp": new Date(Date.now()).toISOString(),
@@ -120,7 +137,7 @@ module.exports = class ShopifyTask {
                                 },
                                 {
                                     "name": "Query",
-                                    "value": this.link,
+                                    "value": this.oglink,
                                     "inline": true
                                 },
                                 {
@@ -173,7 +190,7 @@ module.exports = class ShopifyTask {
                 json: {
                     "site": this.site,
                     "mode": this.mode,
-                    "product": this.link,
+                    "product": this.oglink,
                     "size": this.size,
                     "price": Math.trunc(this.cartTotal),
                     "timestamp": new Date(Date.now()).toISOString(),
@@ -214,7 +231,7 @@ module.exports = class ShopifyTask {
                                 },
                                 {
                                     "name": "Query",
-                                    "value": this.link,
+                                    "value": this.oglink,
                                     "inline": true
                                 },
                                 {
@@ -267,7 +284,7 @@ module.exports = class ShopifyTask {
                 json: {
                     "site": this.site,
                     "mode": this.mode,
-                    "product": this.link,
+                    "product": this.oglink,
                     "size": this.size,
                     "productTitle": this.productTitle,
                     "price": Math.trunc(this.cartTotal),
@@ -307,7 +324,7 @@ module.exports = class ShopifyTask {
                                 },
                                 {
                                     "name": "Query",
-                                    "value": this.link,
+                                    "value": this.oglink,
                                     "inline": true
                                 },
                                 {
@@ -417,7 +434,8 @@ module.exports = class ShopifyTask {
                 }
                 let response = await got(this.request);
                 this.encryptedPayment = response.body.id
-                await this.send("Submitted card")
+                if (this.stopped === "false")
+                    await this.send("Submitted card")
                 return;
             } catch (error) {
                 await this.setDelays()
@@ -457,7 +475,7 @@ module.exports = class ShopifyTask {
                         'sec-fetch-site': 'same-origin',
                         'sec-fetch-mode': 'cors',
                         'sec-fetch-dest': 'empty',
-                        'accept-language': 'en-US,en;q=0.9',
+                        'accept-language': 'en-US,en;q=0.9'
                     },
                     body: querystring.encode({
                         'form_type': 'customer_login',
@@ -924,7 +942,7 @@ module.exports = class ShopifyTask {
                     body: querystring.encode({
                         'utf8': '\u2713',
                         'id': this.productVariant,
-                        'quantity': '1'
+                        'quantity': this.quantity
                     }),
                     responseType: 'json'
                 }
@@ -1098,110 +1116,87 @@ module.exports = class ShopifyTask {
                     throw "Waiting for restock"
                 } else if (this.stopped === "false") {
                     this.checkoutURL = response.url
+                    if (this.stopped === "false")
+                        await this.sendCaptchaCheckpoint()
+
+                    if (this.stopped === "false")
+                        await this.retrieveCaptchaResponse()
                     var HTMLParser = require('node-html-parser');
                     var root = HTMLParser.parse(response.body);
                     this.authToken = root.querySelector('[name="authenticity_token"]').getAttribute('value')
                     if (this.stopped === "false")
                         await this.send("Loaded checkout")
-                    if (root.querySelector('[value="fs_count"]') != null) {
-                        this.test = "_method=patch" //patch
-                        this.test += "&authenticity_token=" + this.authToken //auth token
-                        this.test += "&previous_step=contact_information" //previous step
-                        this.test += "&step=shipping_method" //shipping method
-                        if (root.querySelector('[id="checkout_email_or_phone"]') != null) {
-                            this.test += "&checkout%5Bemail_or_phone%5D=" + encodeURIComponent(this.profile.email)
-                        } else {
-                            this.test += "&checkout%5Bemail%5D=" + encodeURIComponent(this.profile.email) //email
-                        }
-                        this.test += "&checkout%5Bbuyer_accepts_marketing%5D=0"
-                        this.test += "&checkout%5Bbuyer_accepts_marketing%5D=1"
-                        if (root.querySelector('[id="checkout_pick_up_in_store_selected"]') != null) {
-                            this.test += "&checkout%5Bpick_up_in_store%5D%5Bselected%5D=false" //delivery
-                            this.test += "&checkout%5Bid%5D=delivery-shipping" //delivery
-                        }
-                        this.test += "&checkout%5Bshipping_address%5D%5Bfirst_name%5D="
-                        this.test += "&checkout%5Bshipping_address%5D%5Blast_name%5D="
-                        if (root.querySelector('[id="checkout_shipping_address_company"]') != null) {
-                            this.test += "&checkout%5Bshipping_address%5D%5Bcompany%5D=" //company field
-                        }
-                        this.test += "&checkout%5Bshipping_address%5D%5Baddress1%5D="
-                        this.test += "&checkout%5Bshipping_address%5D%5Baddress2%5D="
-                        this.test += "&checkout%5Bshipping_address%5D%5Bcity%5D="
-                        this.test += "&checkout%5Bshipping_address%5D%5Bcountry%5D="
-                        this.test += "&checkout%5Bshipping_address%5D%5Bprovince%5D="
-                        this.test += "&checkout%5Bshipping_address%5D%5Bzip%5D="
-                        this.test += "&checkout%5Bshipping_address%5D%5Bphone%5D="
-                        this.test += "&checkout%5Bshipping_address%5D%5Bfirst_name%5D=" + this.profile.firstName //first name
-                        this.test += "&checkout%5Bshipping_address%5D%5Blast_name%5D=" + this.profile.lastName //last name
-                        if (root.querySelector('[id="checkout_shipping_address_company"]') != null) {
-                            this.test += "&checkout%5Bshipping_address%5D%5Bcompany%5D=" //company field
-                        }
-                        this.test += "&checkout%5Bshipping_address%5D%5Baddress1%5D=" + this.profile.address1.replaceAll(" ", "+") //address 1
-                        this.test += "&checkout%5Bshipping_address%5D%5Baddress2%5D="
-                        this.test += "&checkout%5Bshipping_address%5D%5Bcity%5D=" + this.profile.city.replaceAll(" ", "+") //city
-                        this.test += "&checkout%5Bshipping_address%5D%5Bcountry%5D=" + this.profile.country.replaceAll(" ", "+") //country
-                        this.test += "&checkout%5Bshipping_address%5D%5Bprovince%5D=" + abbrRegion(this.profile.state, 'abbr') //state
-                        this.test += "&checkout%5Bshipping_address%5D%5Bzip%5D=" + this.profile.zipcode //zipcode
-                        this.test += "&checkout%5Bshipping_address%5D%5Bphone%5D=" + "%28" + this.profile.phone.substring(0, 3) + "%29" + "+" + this.profile.phone.substring(3, 6) + "-" + this.profile.phone.substring(6) //phone number
-                        if (root.querySelector('[id="checkout_remember_me"]') != null) {
-                            this.test += "&checkout%5Bremember_me%5D=" //remember me
-                            this.test += "&checkout%5Bremember_me%5D=0"
-                        }
-                        if (root.querySelector('[id="i-agree__checkbox"]') != null) {
-                            this.test += "&checkout%5Battributes%5D%5BI-agree-to-the-Terms-and-Conditions%5D=Yes" //agree
-                        }
-                        if (root.querySelector('[value="fs_count"]') != null) {
-                            this.test += "&"
-                            this.fscount = root.querySelector('[value="fs_count"]').getAttribute('name')
-                            this.searchBy = this.fscount.split("-count")[0]
-                            this.searchBy = "#fs_" + this.searchBy
-                            var count = 0;
-                            this.values = root.querySelector(this.searchBy)
-                            for (var i = 0; i < this.values.childNodes.length; i++) {
-                                if (this.values.childNodes[i].tagName === "TEXTAREA") {
-                                    count++;
-                                    var id = this.values.childNodes[i].getAttribute('id')
-                                    this.shippingPayload[id] = "";
-                                }
-                            }
-
-                            this.test2 = querystring.encode(this.shippingPayload)
-                            var totalfscount = "&" + this.fscount + "=" + count
-                            totalfscount = totalfscount + "&" + this.fscount + "=fs_count"
-                            this.test2 = this.test2 + totalfscount
-                            this.shippingPayload = this.test + this.test2
-                        } else {
-                            this.shippingPayload = this.test
-                        }
-                        this.shippingPayload = this.shippingPayload + "&checkout%5Bclient_details%5D%5Bbrowser_width%5D=1583&checkout%5Bclient_details%5D%5Bbrowser_height%5D=789&checkout%5Bclient_details%5D%5Bjavascript_enabled%5D=1&checkout%5Bclient_details%5D%5Bcolor_depth%5D=24&checkout%5Bclient_details%5D%5Bjava_enabled%5D=false&checkout%5Bclient_details%5D%5Bbrowser_tz%5D=240"
-                        this.log(this.shippingPayload)
+                    this.test = "_method=patch" //patch
+                    this.test += "&authenticity_token=" + this.authToken //auth token
+                    this.test += "&previous_step=contact_information" //previous step
+                    this.test += "&step=shipping_method" //shipping method
+                    if (root.querySelector('[id="checkout_email_or_phone"]') != null) {
+                        this.test += "&checkout%5Bemail_or_phone%5D=" + encodeURIComponent(this.profile.email)
                     } else {
-                        this.shippingPayload = querystring.encode({
-                            "_method": "patch",
-                            "previous_step": "contact_information",
-                            "step": "shipping_method",
-                            "authenticity_token": this.authToken,
-                            "checkout[email]": this.profile.email,
-                            "checkout[buyer_accepts_marketing]": "0",
-                            "checkout[shipping_address][first_name]": this.profile.firstName,
-                            "checkout[shipping_address][last_name]": this.profile.lastName,
-                            "checkout[shipping_address][address1]": this.profile.address1,
-                            "checkout[shipping_address][address2]": "",
-                            "checkout[shipping_address][city]": this.profile.city,
-                            "checkout[shipping_address][country]": this.profile.country,
-                            "checkout[shipping_address][province]": abbrRegion(this.profile.state, 'abbr'),
-                            "checkout[shipping_address][zip]": this.profile.zipcode,
-                            "checkout[client_details][browser_width]": "1087",
-                            "checkout[client_details][browser_height]": "814",
-                            "checkout[client_details][javascript_enabled]": "1",
-                            "checkout[client_details][color_depth]": "24",
-                            "checkout[client_details][java_enabled]": "false",
-                            "checkout[client_details][browser_tz]": "300",
-                            "checkout[attributes][I-agree-to-the-Terms-and-Conditions]": "Yes",
-                            "checkout[shipping_address][phone]": this.profile.phone
-                        })
-                        this.log(this.shippingPayload)
+                        this.test += "&checkout%5Bemail%5D=" + encodeURIComponent(this.profile.email) //email
                     }
+                    this.test += "&checkout%5Bbuyer_accepts_marketing%5D=0"
+                    this.test += "&checkout%5Bbuyer_accepts_marketing%5D=1"
+                    if (root.querySelector('[id="checkout_pick_up_in_store_selected"]') != null) {
+                        this.test += "&checkout%5Bpick_up_in_store%5D%5Bselected%5D=false" //delivery
+                        this.test += "&checkout%5Bid%5D=delivery-shipping" //delivery
+                    }
+                    this.test += "&checkout%5Bshipping_address%5D%5Bfirst_name%5D="
+                    this.test += "&checkout%5Bshipping_address%5D%5Blast_name%5D="
+                    if (root.querySelector('[id="checkout_shipping_address_company"]') != null) {
+                        this.test += "&checkout%5Bshipping_address%5D%5Bcompany%5D=" //company field
+                    }
+                    this.test += "&checkout%5Bshipping_address%5D%5Baddress1%5D="
+                    this.test += "&checkout%5Bshipping_address%5D%5Baddress2%5D="
+                    this.test += "&checkout%5Bshipping_address%5D%5Bcity%5D="
+                    this.test += "&checkout%5Bshipping_address%5D%5Bcountry%5D="
+                    this.test += "&checkout%5Bshipping_address%5D%5Bprovince%5D="
+                    this.test += "&checkout%5Bshipping_address%5D%5Bzip%5D="
+                    this.test += "&checkout%5Bshipping_address%5D%5Bphone%5D="
+                    this.test += "&checkout%5Bshipping_address%5D%5Bfirst_name%5D=" + this.profile.firstName //first name
+                    this.test += "&checkout%5Bshipping_address%5D%5Blast_name%5D=" + this.profile.lastName //last name
+                    if (root.querySelector('[id="checkout_shipping_address_company"]') != null) {
+                        this.test += "&checkout%5Bshipping_address%5D%5Bcompany%5D=" //company field
+                    }
+                    this.test += "&checkout%5Bshipping_address%5D%5Baddress1%5D=" + this.profile.address1.replaceAll(" ", "+") //address 1
+                    this.test += "&checkout%5Bshipping_address%5D%5Baddress2%5D="
+                    this.test += "&checkout%5Bshipping_address%5D%5Bcity%5D=" + this.profile.city.replaceAll(" ", "+") //city
+                    this.test += "&checkout%5Bshipping_address%5D%5Bcountry%5D=" + this.profile.country.replaceAll(" ", "+") //country
+                    this.test += "&checkout%5Bshipping_address%5D%5Bprovince%5D=" + this.stateCode //state
+                    this.test += "&checkout%5Bshipping_address%5D%5Bzip%5D=" + this.profile.zipcode //zipcode
+                    this.test += "&checkout%5Bshipping_address%5D%5Bphone%5D=" + "%28" + this.profile.phone.substring(0, 3) + "%29" + "+" + this.profile.phone.substring(3, 6) + "-" + this.profile.phone.substring(6) //phone number
+                    if (root.querySelector('[id="checkout_remember_me"]') != null) {
+                        this.test += "&checkout%5Bremember_me%5D=" //remember me
+                        this.test += "&checkout%5Bremember_me%5D=0"
+                    }
+                    if (root.querySelector('[id="i-agree__checkbox"]') != null) {
+                        this.test += "&checkout%5Battributes%5D%5BI-agree-to-the-Terms-and-Conditions%5D=Yes" //agree
+                    }
+                    if (root.querySelector('[value="fs_count"]') != null) {
+                        this.test += "&"
+                        this.fscount = root.querySelector('[value="fs_count"]').getAttribute('name')
+                        this.searchBy = this.fscount.split("-count")[0]
+                        this.searchBy = "#fs_" + this.searchBy
+                        var count = 0;
+                        this.values = root.querySelector(this.searchBy)
+                        for (var i = 0; i < this.values.childNodes.length; i++) {
+                            if (this.values.childNodes[i].tagName === "TEXTAREA") {
+                                count++;
+                                var id = this.values.childNodes[i].getAttribute('id')
+                                this.shippingPayload[id] = "";
+                            }
+                        }
+
+                        this.test2 = querystring.encode(this.shippingPayload)
+                        var totalfscount = "&" + this.fscount + "=" + count
+                        totalfscount = totalfscount + "&" + this.fscount + "=fs_count"
+                        this.test2 = this.test2 + totalfscount
+                        this.shippingPayload = this.test + this.test2
+                    } else {
+                        this.shippingPayload = this.test
+                    }
+                    this.shippingPayload = this.shippingPayload + "&checkout%5Bclient_details%5D%5Bbrowser_width%5D=1583&checkout%5Bclient_details%5D%5Bbrowser_height%5D=789&checkout%5Bclient_details%5D%5Bjavascript_enabled%5D=1&checkout%5Bclient_details%5D%5Bcolor_depth%5D=24&checkout%5Bclient_details%5D%5Bjava_enabled%5D=false&checkout%5Bclient_details%5D%5Bbrowser_tz%5D=240"
+                    this.log(this.shippingPayload)
                 }
             } catch (error) {
                 await this.setDelays()
@@ -1231,22 +1226,19 @@ module.exports = class ShopifyTask {
     }
 
     async sendCaptchaCheckpoint() {
-        const got = require('got');
         if (this.stopped === "false") {
-            let response = await got({
-                method: 'post',
-                url: 'http://localhost:4444/venetia/addtoQueue',
-                json: {
-                    "siteURL": this.baseLink + "/checkpoint",
-                    "captchaType": "shopifyCheckpoint",
+            this.connection.send(JSON.stringify({
+                event: "sendCaptcha",
+                data: {
+                    "captchaURL": this.baseLink + "/checkpoint",
+                    "captchaType": "Shopify Checkpoint",
                     "sessionCookies": this.cookieJar,
-                    "taskProxy": this.proxy
-                },
-                responseType: 'json'
-            })
-            await this.send("Waiting for captcha")
-            this.captchaTaskId = response.body.id
-            return;
+                    "taskID": this.taskId,
+                    "taskProxy": this.proxy,
+                    "siteURL": this.baseLink
+                }
+            }))
+            await this.send("Waiting for captcha...")
         }
     }
 
@@ -1386,53 +1378,10 @@ module.exports = class ShopifyTask {
     }
 
     async retrieveCaptchaResponse() {
-        const got = require('got');
-        if (this.stopped === "false") {
-            try {
-                let response = await got({
-                    method: 'get',
-                    url: 'http://localhost:4444/venetia/solvedCaptchas?id=' + this.captchaTaskId,
-                    responseType: 'json'
-                })
-                if (response.body.completed == true) {
-                    this.captchaResponse = response.body.captchaResponse.captcha
-                    const tough = require('tough-cookie')
-                    this.cookieJar = new tough.CookieJar()
-                    for (var i = 0; i < response.body.cookies.length; i++) {
-                        this.cookieJar.setCookie(new tough.Cookie({
-                            "key": response.body.cookies[i].name,
-                            "value": response.body.cookies[i].value,
-                        }), this.baseLink)
-                    }
-                    console.log(response.body.captchaResponse)
-                    if (response.body.captchaResponse.captchaType === "recaptcha") {
-                        this.checkpointPayload = "authenticity_token="
-                        this.checkpointPayload += response.body.captchaResponse.authToken
-                        this.checkpointPayload += "&g-recaptcha-response="
-                        this.checkpointPayload += response.body.captchaResponse.captchaResponse
-                        this.checkpointPayload += "&data_via=cookie"
-                        this.checkpointPayload += "&commit="
-                    } else {
-                        this.checkpointPayload = "authenticity_token="
-                        this.checkpointPayload += response.body.captchaResponse.authToken
-                        this.checkpointPayload += "&h-captcha-response="
-                        this.checkpointPayload += response.body.captchaResponse.captchaResponse
-                        this.checkpointPayload += "&data_via=cookie"
-                        this.checkpointPayload += "&hcaptcha_challenge_response_token="
-                        this.checkpointPayload += response.body.captchaResponse.hcaptchachallengeresponsetoken
-                        this.checkpointPayload += "&hcaptcha_data="
-                        this.checkpointPayload += encodeURIComponent(response.body.captchaResponse.hcaptchadata)
-                        this.checkpointPayload += "&commit="
-                    }
-                    console.log(this.checkpointPayload)
-                    await this.submitCheckpoint()
-                } else
-                    throw "Captcha not ready"
-            } catch (error) {
-                await sleep(100)
-                await this.retrieveCaptchaResponse()
-            }
+        while (this.finishedSubmittingCheckpoint == false) {
+            await sleep(100)
         }
+        return;
     }
 
 
@@ -1568,57 +1517,38 @@ module.exports = class ShopifyTask {
                 } else
                 if (typeof root.querySelectorAll(".input-radio")[0] !== 'undefined') {
                     this.shippingRate = root.querySelectorAll(".input-radio")[0].getAttribute("value")
-                    if (root.querySelector('[value="fs_count"]') != null) {
-                        this.test2 = "_method=patch" //patch
-                        this.test2 += "&authenticity_token=" + this.authToken //auth token 
-                        this.test2 += "&previous_step=shipping_method" //previous step
-                        this.test2 += "&step=payment_method" //current step
-                        this.test2 += "&checkout%5Bshipping_rate%5D%5Bid%5D=" + encodeURIComponent(this.shippingRate)
-                        if (root.querySelector('[id="i-agree__checkbox"]') != null) {
-                            this.test2 += "&checkout%5Battributes%5D%5BI-agree-to-the-Terms-and-Conditions%5D=Yes" // agree
-                        }
-                        if (root.querySelector('[value="fs_count"]') != null) {
-                            this.fscount = root.querySelector('[value="fs_count"]').getAttribute('name')
-                            this.searchBy = this.fscount.split("-count")[0]
-                            this.searchBy = "#fs_" + this.searchBy
-                            var count = 0;
-                            this.fscountvalues = ""
-                            this.values = root.querySelector(this.searchBy)
-                            for (var i = 0; i < this.values.childNodes.length; i++) {
-                                if (this.values.childNodes[i].tagName === "TEXTAREA") {
-                                    count++;
-                                    this.fscountvalues += "&" + this.values.childNodes[i].getAttribute('id') + "="
-                                }
-                            }
-                            this.test2 += this.fscountvalues
-                            this.test2 += "&" + this.fscount + "=" + count + "&" + this.fscount + "=" + "fs_count"
-                        }
-                        this.test2 += "&checkout%5Bclient_details%5D%5Bbrowser_width%5D=1263"
-                        this.test2 += "&checkout%5Bclient_details%5D%5Bbrowser_height%5D=913"
-                        this.test2 += "&checkout%5Bclient_details%5D%5Bjavascript_enabled%5D=1"
-                        this.test2 += "&checkout%5Bclient_details%5D%5Bcolor_depth%5D=24"
-                        this.test2 += "&checkout%5Bclient_details%5D%5Bjava_enabled%5D=false"
-                        this.test2 += "&checkout%5Bclient_details%5D%5Bbrowser_tz%5D=240"
-
-                        this.shippingRatePayload = this.test2
-                        this.log(this.shippingRatePayload)
-                    } else {
-                        this.shippingRatePayload = querystring.encode({
-                            '_method': 'patch',
-                            'authenticity_token': this.authToken,
-                            'previous_step': 'shipping_method',
-                            'step': 'payment_method',
-                            'checkout[shipping_rate][id]': this.shippingRate,
-                            'checkout[attributes][I-agree-to-the-Terms-and-Conditions]': 'Yes',
-                            'checkout[client_details][browser_width]': '1583',
-                            'checkout[client_details][browser_height]': '757',
-                            'checkout[client_details][javascript_enabled]': '1',
-                            'checkout[client_details][color_depth]': '24',
-                            'checkout[client_details][java_enabled]': 'false',
-                            'checkout[client_details][browser_tz]': '240'
-                        })
-                        this.log(this.shippingRatePayload)
+                    this.test2 = "_method=patch" //patch
+                    this.test2 += "&authenticity_token=" + this.authToken //auth token 
+                    this.test2 += "&previous_step=shipping_method" //previous step
+                    this.test2 += "&step=payment_method" //current step
+                    this.test2 += "&checkout%5Bshipping_rate%5D%5Bid%5D=" + encodeURIComponent(this.shippingRate)
+                    if (root.querySelector('[id="i-agree__checkbox"]') != null) {
+                        this.test2 += "&checkout%5Battributes%5D%5BI-agree-to-the-Terms-and-Conditions%5D=Yes" // agree
                     }
+                    if (root.querySelector('[value="fs_count"]') != null) {
+                        this.fscount = root.querySelector('[value="fs_count"]').getAttribute('name')
+                        this.searchBy = this.fscount.split("-count")[0]
+                        this.searchBy = "#fs_" + this.searchBy
+                        var count = 0;
+                        this.fscountvalues = ""
+                        this.values = root.querySelector(this.searchBy)
+                        for (var i = 0; i < this.values.childNodes.length; i++) {
+                            if (this.values.childNodes[i].tagName === "TEXTAREA") {
+                                count++;
+                                this.fscountvalues += "&" + this.values.childNodes[i].getAttribute('id') + "="
+                            }
+                        }
+                        this.test2 += this.fscountvalues
+                        this.test2 += "&" + this.fscount + "=" + count + "&" + this.fscount + "=" + "fs_count"
+                    }
+                    this.test2 += "&checkout%5Bclient_details%5D%5Bbrowser_width%5D=1263"
+                    this.test2 += "&checkout%5Bclient_details%5D%5Bbrowser_height%5D=913"
+                    this.test2 += "&checkout%5Bclient_details%5D%5Bjavascript_enabled%5D=1"
+                    this.test2 += "&checkout%5Bclient_details%5D%5Bcolor_depth%5D=24"
+                    this.test2 += "&checkout%5Bclient_details%5D%5Bjava_enabled%5D=false"
+                    this.test2 += "&checkout%5Bclient_details%5D%5Bbrowser_tz%5D=240"
+                    this.shippingRatePayload = this.test2
+                    this.log(this.shippingRatePayload)
                 } else {
                     await sleep(300)
                     await this.loadShippingRate()
@@ -1924,9 +1854,13 @@ module.exports = class ShopifyTask {
                         })
                     }
                 }
-                let response = await got(this.request);
+                var request = got(this.request)
+                var timeout = setTimeout(() => request.cancel(), 15000);
+                let response = await request;
+                clearTimeout(timeout);
                 var HTMLParser = require('node-html-parser');
                 var root = HTMLParser.parse(response.body);
+                this.log(response.body)
                 if (response.headers['content-location'] != null && response.headers['content-location'].includes("/process") && this.stopped === "false") {
                     await this.send("Submitted order")
                     this.log(this.checkoutURL)
@@ -1935,11 +1869,17 @@ module.exports = class ShopifyTask {
                 } else throw "OOS, retrying"
             } catch (error) {
                 await this.setDelays()
+                if (error === "Promise was canceled") {
+                    await this.send("Error: timed out")
+                    await sleep(this.errorDelay)
+                    await this.submitOrder()
+                } else
                 if (error === "OOS, retrying") {
                     await this.send("OOS, retrying")
                     await sleep(this.errorDelay)
                     await this.submitOrder()
                 } else if (error === "Error submitting order") {
+                    this.log(error.response.body)
                     await this.send("Error submitting order")
                     await sleep(this.errorDelay)
                     await this.submitOrder()
@@ -2195,8 +2135,8 @@ module.exports = class ShopifyTask {
                                 "last_name": this.profile.lastName,
                                 "address1": this.profile.address1,
                                 "city": this.profile.city,
-                                "province_code": abbrRegion(this.profile.state, 'abbr'),
-                                "country_code": this.country,
+                                "province_code": this.stateCode,
+                                "country_code": this.countryCode,
                                 "phone": this.profile.phone,
                                 "zip": this.profile.zipcode
                             }
@@ -2229,10 +2169,10 @@ module.exports = class ShopifyTask {
                     }
                 } else
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
-                    this.log(error.response.body)
+                    this.log(JSON.stringify(error.response.body))
                     await this.send("Error updating checkout: " + error.response.statusCode)
                     await sleep(this.errorDelay)
-                    await this.createCheckout()
+                    await this.updateCheckout()
                 } else if (this.updateCheckout === "false") {
                     this.log(error)
                     await this.send("Unexpected error updating checkout")
@@ -2459,7 +2399,9 @@ module.exports = class ShopifyTask {
                     }
                 }
                 let response = await got(this.request);
-                console.log(response.body)
+                this.log(response.body)
+                this.checkpointPayload = ""
+                this.finishedSubmittingCheckpoint = true;
             } catch (error) {
                 await this.setDelays()
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
@@ -2477,15 +2419,24 @@ module.exports = class ShopifyTask {
         }
     }
 
+
+
+    async findProduct() {
+        if (this.searchMethod === "link")
+            await this.findProductByLink()
+        else if (this.searchMethod === "variant")
+            await this.findProductByVariant()
+        else if (this.searchMethod === "keywords")
+            await this.findProductByKeywords()
+    }
+
     log(message) {
-        const electron = require('electron');
-        const configDir = (electron.app || electron.remote.app).getPath('userData');
         const winston = require('winston');
         const logConfiguration = {
             transports: [
                 new winston.transports.Console({}),
                 new winston.transports.File({
-                    filename: configDir + '/logs/' + this.taskId + '.log'
+                    filename: this.configDir + '/logs/' + this.taskId + '.log'
                 })
             ],
             format: winston.format.combine(
@@ -2500,19 +2451,43 @@ module.exports = class ShopifyTask {
         logger.info(message)
     }
 
-    async findProduct() {
-        if (this.searchMethod === "link")
-            await this.findProductByLink()
-        else if (this.searchMethod === "variant")
-            await this.findProductByVariant()
-        else if (this.searchMethod === "keywords")
-            await this.findProductByKeywords()
-    }
-
     async stopTask() {
         this.stopped = "true";
-        await this.sendProductTitle(this.link)
+        await this.sendProductTitle(this.oglink)
         this.send("Stopped")
+    }
+
+    async sendCaptchaInfo(captchaInfo) {
+        const tough = require('tough-cookie')
+        this.cookieJar = new tough.CookieJar()
+        this.finishedSubmittingCheckpoint = false;
+        for (var i = 0; i < captchaInfo.cookies.length; i++) {
+            this.cookieJar.setCookie(new tough.Cookie({
+                "key": captchaInfo.cookies[i].name,
+                "value": captchaInfo.cookies[i].value,
+            }), this.baseLink)
+        }
+        if (captchaInfo.captchaType === "recaptcha") {
+            this.checkpointPayload = "authenticity_token="
+            this.checkpointPayload += captchaInfo.authToken
+            this.checkpointPayload += "&g-recaptcha-response="
+            this.checkpointPayload += captchaInfo.captchaResponse
+            this.checkpointPayload += "&data_via=cookie"
+            this.checkpointPayload += "&commit="
+        } else {
+            this.checkpointPayload = "authenticity_token="
+            this.checkpointPayload += captchaInfo.authToken
+            this.checkpointPayload += "&h-captcha-response="
+            this.checkpointPayload += captchaInfo.captchaResponse
+            this.checkpointPayload += "&data_via=cookie"
+            this.checkpointPayload += "&hcaptcha_challenge_response_token="
+            this.checkpointPayload += captchaInfo.hcaptchachallengeresponsetoken
+            this.checkpointPayload += "&hcaptcha_data="
+            this.checkpointPayload += encodeURIComponent(captchaInfo.hcaptchadata)
+            this.checkpointPayload += "&commit="
+        }
+        this.log(this.checkpointPayload)
+        await this.submitCheckpoint()
     }
 
     returnID() {
@@ -2522,10 +2497,8 @@ module.exports = class ShopifyTask {
     async setDelays() {
         var fs = require('fs');
         var path = require('path')
-        const electron = require('electron');
-        const configDir = (electron.app || electron.remote.app).getPath('userData');
-        var delays = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/delays.json'), 'utf8'));
-        var groups = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/tasks.json'), 'utf8'));
+        var delays = JSON.parse(fs.readFileSync(path.join(this.configDir, '/userdata/delays.json'), 'utf8'));
+        var groups = JSON.parse(fs.readFileSync(path.join(this.configDir, '/userdata/tasks.json'), 'utf8'));
         var index;
         for (var i = 0; i < groups.length; i++) {
             for (var j = 0; j < groups[i][Object.keys(groups[i])[0]].length; j++) {
@@ -2540,15 +2513,26 @@ module.exports = class ShopifyTask {
     }
 
     async sendProductTitle(title) {
-        const { ipcRenderer } = require('electron');
-        ipcRenderer.send('updateProductTitle1', this.taskId, title)
+        this.connection.send(JSON.stringify({
+            event: "taskProductTitle",
+            data: {
+                taskID: this.taskId,
+                newTitle: title
+            }
+        }))
     }
 
-
     async send(status) {
-        const { ipcRenderer } = require('electron');
-        this.log(status)
-        ipcRenderer.send('updateStatus1', this.taskId, status)
+        if (this.stopped === "false" || status === "Stopped") {
+            this.log(status)
+            this.connection.send(JSON.stringify({
+                event: "taskStatus",
+                data: {
+                    taskID: this.taskId,
+                    newStatus: status
+                }
+            }))
+        }
     }
 
     async updateStat(stat) {
@@ -2561,7 +2545,6 @@ module.exports = class ShopifyTask {
 
         await this.formatCard()
         await this.submitCard()
-
 
         if (this.accounts != "-") {
             if (this.stopped === "false")
@@ -2735,16 +2718,12 @@ module.exports = class ShopifyTask {
 
 
 
-function getProxyInfo(proxies) {
+function getProxyInfo(proxies, configDir) {
     if (proxies === "-")
         return ["-"]
 
     var fs = require('fs');
     var path = require('path')
-    const electron = require('electron');
-
-    const configDir = (electron.app || electron.remote.app).getPath('userData');
-
     var str = fs.readFileSync(path.join(configDir, '/userdata/proxies.json'), 'utf8');
     var x = JSON.parse(str)
     var proxyStorage = [];
@@ -2763,15 +2742,13 @@ function getProxyInfo(proxies) {
 }
 
 
-function getAccountInfo(accounts) {
+function getAccountInfo(accounts, configDir) {
     if (accounts === "-") {
         return "-"
     }
     var fs = require('fs');
     var path = require('path')
-    const electron = require('electron');
 
-    const configDir = (electron.app || electron.remote.app).getPath('userData');
 
     var str = fs.readFileSync(path.join(configDir, '/userdata/accounts.json'), 'utf8');
     var x = JSON.parse(str)
@@ -2782,13 +2759,9 @@ function getAccountInfo(accounts) {
     }
 }
 
-function getProfileInfo(profiles) {
+function getProfileInfo(profiles, configDir) {
     var fs = require('fs');
     var path = require('path')
-    const electron = require('electron');
-
-    const configDir = (electron.app || electron.remote.app).getPath('userData');
-
     var str = fs.readFileSync(path.join(configDir, '/userdata/profiles.json'), 'utf8');
     var x = JSON.parse(str)
     for (var i = 0; i < x.length; i++) {
@@ -2797,6 +2770,7 @@ function getProfileInfo(profiles) {
         }
     }
 }
+
 const sleep = (waitTimeInMs) => new Promise(resolve => setTimeout(resolve, waitTimeInMs));
 Array.prototype.sample = function() {
     return this[Math.floor(Math.random() * this.length)];
@@ -2813,112 +2787,9 @@ async function makeid(length) {
     return result;
 }
 
-function getKey() {
+function getKey(configDir) {
     var fs = require('fs');
     var path = require('path')
-    const electron = require('electron');
-
-    const configDir = (electron.app || electron.remote.app).getPath('userData');
     var str = fs.readFileSync(path.join(configDir, '/userdata/key.txt'), 'utf8');
     return str;
-}
-
-function abbrRegion(input, to) {
-    var states = [
-        ['Alabama', 'AL'],
-        ['Alaska', 'AK'],
-        ['American Samoa', 'AS'],
-        ['Arizona', 'AZ'],
-        ['Arkansas', 'AR'],
-        ['Armed Forces Americas', 'AA'],
-        ['Armed Forces Europe', 'AE'],
-        ['Armed Forces Pacific', 'AP'],
-        ['California', 'CA'],
-        ['Colorado', 'CO'],
-        ['Connecticut', 'CT'],
-        ['Delaware', 'DE'],
-        ['District Of Columbia', 'DC'],
-        ['Florida', 'FL'],
-        ['Georgia', 'GA'],
-        ['Guam', 'GU'],
-        ['Hawaii', 'HI'],
-        ['Idaho', 'ID'],
-        ['Illinois', 'IL'],
-        ['Indiana', 'IN'],
-        ['Iowa', 'IA'],
-        ['Kansas', 'KS'],
-        ['Kentucky', 'KY'],
-        ['Louisiana', 'LA'],
-        ['Maine', 'ME'],
-        ['Marshall Islands', 'MH'],
-        ['Maryland', 'MD'],
-        ['Massachusetts', 'MA'],
-        ['Michigan', 'MI'],
-        ['Minnesota', 'MN'],
-        ['Mississippi', 'MS'],
-        ['Missouri', 'MO'],
-        ['Montana', 'MT'],
-        ['Nebraska', 'NE'],
-        ['Nevada', 'NV'],
-        ['New Hampshire', 'NH'],
-        ['New Jersey', 'NJ'],
-        ['New Mexico', 'NM'],
-        ['New York', 'NY'],
-        ['North Carolina', 'NC'],
-        ['North Dakota', 'ND'],
-        ['Northern Mariana Islands', 'NP'],
-        ['Ohio', 'OH'],
-        ['Oklahoma', 'OK'],
-        ['Oregon', 'OR'],
-        ['Pennsylvania', 'PA'],
-        ['Puerto Rico', 'PR'],
-        ['Rhode Island', 'RI'],
-        ['South Carolina', 'SC'],
-        ['South Dakota', 'SD'],
-        ['Tennessee', 'TN'],
-        ['Texas', 'TX'],
-        ['US Virgin Islands', 'VI'],
-        ['Utah', 'UT'],
-        ['Vermont', 'VT'],
-        ['Virginia', 'VA'],
-        ['Washington', 'WA'],
-        ['West Virginia', 'WV'],
-        ['Wisconsin', 'WI'],
-        ['Wyoming', 'WY'],
-    ];
-
-    var provinces = [
-        ['Alberta', 'AB'],
-        ['British Columbia', 'BC'],
-        ['Manitoba', 'MB'],
-        ['New Brunswick', 'NB'],
-        ['Newfoundland', 'NF'],
-        ['Northwest Territory', 'NT'],
-        ['Nova Scotia', 'NS'],
-        ['Nunavut', 'NU'],
-        ['Ontario', 'ON'],
-        ['Prince Edward Island', 'PE'],
-        ['Quebec', 'QC'],
-        ['Saskatchewan', 'SK'],
-        ['Yukon', 'YT'],
-    ];
-
-    var regions = states.concat(provinces);
-
-    var i;
-    if (to == 'abbr') {
-        input = input.replace(/\w\S*/g, function(txt) { return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase(); });
-        for (i = 0; i < regions.length; i++) {
-            if (regions[i][0] == input) {
-                return (regions[i][1]);
-            }
-        }
-    } else if (to == 'name') {
-        input = input.toUpperCase();
-        for (i = 0; i < regions.length; i++) {
-            if (regions[i][1] == input) {
-                return (regions[i][0]);
-            }
-        }
-    }
 }

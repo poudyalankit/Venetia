@@ -4,6 +4,7 @@ const electron = require('electron');
 const { ipcRenderer } = electron;
 var path = require('path')
 var isMouseDown = false;
+const { v4: uuidv4 } = require('uuid');
 
 const configDir = (electron.app || electron.remote.app).getPath('userData');
 
@@ -80,126 +81,82 @@ function filterGroups() {
     }
 }
 
-
-function launchHarvester() {
-    for (var i = 1; i < document.getElementById('captchas2').rows.length; i++) {
-        if (document.getElementById('captchas2').rows[i].cells[0].style.background != '') {
-            var harvesterProxy = document.getElementById('harvesterProxy').value;
-            var harvesterName = document.getElementById('harvesterName').value;
-            ipcRenderer.send('launchHarvester', harvesterName, harvesterProxy)
+function deleteHarvester(uuid) {
+    var harvester = document.querySelector('[uuid="' + uuid + '"]')
+    ipcRenderer.send("message", {
+        event: "deleteHarvester",
+        data: {
+            uuid: harvester.getAttribute("uuid")
         }
+    })
+    var x = storage.getSync('captchas');
+    for (var i = 0; i < x.length; i++) {
+        if (Object.keys(x[i])[0] === harvester.getAttribute("uuid")) {
+            x.splice(i, 1)
+        }
+    }
+    storage.set('captchas', x, function(error) {
+        if (error) throw error;
+    });
+    harvester.remove()
+}
+
+function launchHarvester(uuid) {
+    var harvester = document.querySelector('[uuid="' + uuid + '"]')
+    if (harvester.children[2].children[0].value != "") {
+        ipcRenderer.send("message", {
+            event: "launchHarvester",
+            data: {
+                harvesterName: harvester.children[0].value,
+                harvesterProxy: harvester.children[4].value,
+                harvesterType: harvester.children[2].children[0].value,
+                uuid: harvester.getAttribute("uuid")
+            }
+        })
     }
 }
 
-function googleSignIn() {
-    for (var i = 1; i < document.getElementById('captchas2').rows.length; i++) {
-        if (document.getElementById('captchas2').rows[i].cells[0].style.background != '') {
-            var harvesterProxy = document.getElementById('harvesterProxy').value;
-            var harvesterName = document.getElementById('harvesterName').value;
-            ipcRenderer.send('googleSignIn', harvesterName, harvesterProxy)
+function signInHarvester(uuid) {
+    var harvester = document.querySelector('[uuid="' + uuid + '"]')
+    ipcRenderer.send("message", {
+        event: "signInHarvester",
+        data: {
+            harvesterProxy: harvester.children[4].value,
+            uuid: harvester.getAttribute("uuid")
         }
-    }
+    })
 }
 
 
 function modeChoices() {
-
     if (document.getElementById("siteTask").value === "FootLockerCA" || document.getElementById("siteTask").value === "FootLocker" || document.getElementById("siteTask").value === "EastBay" || document.getElementById("siteTask").value === "ChampsSports" || document.getElementById("siteTask").value === "FootAction" || document.getElementById("siteTask").value === "KidsFootLocker") {
         var select = document.getElementById("modeTask")
-        document.getElementById("captchaLess").checked = false;
         document.getElementById("accountTask").disabled = false;
-        document.getElementById("modeTask").disabled = false;
-        document.getElementById("sizeTask").disabled = false;
-        document.getElementById("proxyTask").disabled = false;
-        document.getElementById("scheduleFeature").style = "display: none";
-
-        document.getElementById("profileTask").disabled = false;
-        document.getElementById("quantityTask").disabled = false;
-        document.getElementById("linkTask").disabled = false;
-        document.getElementById("hourTaskEntry").disabled = false;
         select.options.length = 0;
         select.options[select.options.length] = new Option("Release", "Release");
-        if (document.getElementById("proxyTask").value != "-") {
-            document.getElementById("captchaLessLabel").textContent = "Captchaless"
-            document.getElementById("captchaLess").style = "position: absolute; top: 510px; left:440px; display: block"
-            document.getElementById("captchaLessLabel").style = "position: absolute; top: 513px; font-size: 12px; width: 200px; left: 476px; display: block; color: white;font-family: Poppins;"
-        }
     }
 
     if (document.getElementById("siteTask").value === "SSENSE") {
         var select = document.getElementById("modeTask")
         document.getElementById("accountTask").disabled = false;
-        document.getElementById("modeTask").disabled = false;
-        document.getElementById("sizeTask").disabled = false;
-        document.getElementById("proxyTask").disabled = false;
-        document.getElementById("profileTask").disabled = false;
-        document.getElementById("quantityTask").disabled = false;
-        document.getElementById("linkTask").disabled = false;
         select.options.length = 0;
         select.options[select.options.length] = new Option("Safe", "Safe");
         select.options[select.options.length] = new Option("Preload", "Preload");
-        select.options[select.options.length] = new Option("Fast", "Fast");
-        document.getElementById("captchaLess").style = "position: absolute; top: 510px; left:440px; display: block"
-        document.getElementById("captchaLessLabel").style = "position: absolute; top: 513px; font-size: 12px; width: 200px; left: 476px; display: block; color: white;font-family: Poppins;"
-        document.getElementById("captchaLess").checked = false;
-        document.getElementById("captchaLessLabel").textContent = "Card checkout"
-        document.getElementById("scheduleFeature").style = "display: none";
     }
 
 
     if (document.getElementById("siteTask").value === "Shiekh") {
         var select = document.getElementById("modeTask")
         document.getElementById("accountTask").disabled = false;
-        document.getElementById("modeTask").disabled = false;
-        document.getElementById("sizeTask").disabled = false;
-        document.getElementById("proxyTask").disabled = false;
-        document.getElementById("profileTask").disabled = false;
-        document.getElementById("quantityTask").disabled = false;
-        document.getElementById("linkTask").disabled = false;
         select.options.length = 0;
-        document.getElementById("scheduleFeature").style = "display: block";
         select.options[select.options.length] = new Option("Fast", "Fast");
-        document.getElementById("captchaLess").style = "display: none;"
-        document.getElementById("captchaLessLabel").style = "display: none;"
-        document.getElementById("captchaLess").checked = false;
     }
 
     if (document.getElementById("siteTask").value === "Federal Premium") {
         var select = document.getElementById("modeTask")
         document.getElementById("accountTask").disabled = true;
-        document.getElementById("modeTask").disabled = false;
-        document.getElementById("scheduleFeature").style = "display: none";
-        document.getElementById("sizeTask").disabled = false;
-        document.getElementById("proxyTask").disabled = false;
-        document.getElementById("profileTask").disabled = false;
-        document.getElementById("quantityTask").disabled = false;
-        document.getElementById("linkTask").disabled = false;
         select.options.length = 0;
         select.options[select.options.length] = new Option("Fast", "Fast");
-        document.getElementById("captchaLess").style = "display: none;"
-        document.getElementById("captchaLessLabel").style = "display: none;"
-        document.getElementById("captchaLess").checked = false;
-    }
-
-    if (document.getElementById("siteTask").value === "Supreme") {
-        var select = document.getElementById("modeTask")
-        document.getElementById("modeTask").disabled = false;
-        document.getElementById("proxyTask").disabled = false;
-        document.getElementById("profileTask").disabled = false;
-        document.getElementById("quantityTask").disabled = false;
-        document.getElementById("linkTask").disabled = false;
-        document.getElementById("sizeTask").disabled = false;
-        var accounts = document.getElementById("accountTask")
-        accounts.options.length = 0;
-        document.getElementById("scheduleFeature").style = "display: none";
-
-        accounts.options[accounts.options.length] = new Option("No Account", "-")
-        select.options.length = 0;
-        select.options[select.options.length] = new Option("Hybrid", "Hybrid");
-        select.options[select.options.length] = new Option("Restock", "Restock");
-        document.getElementById("captchaLess").style = "display: none;"
-        document.getElementById("captchaLessLabel").style = "display: none;"
-        document.getElementById("captchaLess").checked = false;
     }
 
     var shopify = storage.getSync('shopifyStores2');
@@ -215,127 +172,42 @@ function modeChoices() {
         if (document.getElementById("siteTask").value === shopify[i].site) {
             var select = document.getElementById("modeTask")
             document.getElementById("accountTask").disabled = false;
-            document.getElementById("modeTask").disabled = false;
-            document.getElementById("sizeTask").disabled = false;
-            document.getElementById("proxyTask").disabled = false;
-            document.getElementById("profileTask").disabled = false;
-            document.getElementById("quantityTask").disabled = false;
-            document.getElementById("linkTask").disabled = false;
-            document.getElementById("scheduleFeature").style = "display: none";
-
             select.options.length = 0;
             select.options[select.options.length] = new Option("Safe", "Safe");
             select.options[select.options.length] = new Option("Preload", "Preload");
             select.options[select.options.length] = new Option("Fast", "Fast");
-            select.options[select.options.length] = new Option("Prestock", "Prestock");
-            document.getElementById("captchaLess").style = "display: none;"
-            document.getElementById("captchaLessLabel").style = "display: none;"
-            document.getElementById("captchaLess").checked = false;
             break;
         }
     }
 }
 
 function modeChoices2() {
+    var select = document.getElementById("modeTask2")
     if (document.getElementById("siteTask2").value === "FootLockerCA" || document.getElementById("siteTask2").value === "FootLocker" || document.getElementById("siteTask2").value === "EastBay" || document.getElementById("siteTask2").value === "ChampsSports" || document.getElementById("siteTask2").value === "FootAction" || document.getElementById("siteTask2").value === "KidsFootLocker") {
-        var select = document.getElementById("modeTask2")
-        document.getElementById("captchaLess2").checked = false;
-        document.getElementById("accountTask2").disabled = false;
-        document.getElementById("modeTask2").disabled = false;
-        document.getElementById("sizeTask2").disabled = false;
-        document.getElementById("proxyTask2").disabled = false;
-        document.getElementById("scheduleFeature2").style = "display: none";
-
-        document.getElementById("profileTask2").disabled = false;
-        document.getElementById("quantityTask2").disabled = false;
-        document.getElementById("linkTask2").disabled = false;
-        document.getElementById("hourTaskEntry2").disabled = false;
+        modeTask2.enable()
         select.options.length = 0;
         select.options[select.options.length] = new Option("Release", "Release");
-        if (document.getElementById("proxyTask2").value != "-") {
-            document.getElementById("captchaLessLabel2").textContent = "Captchaless"
-            document.getElementById("captchaLess2").style = "position: absolute; top: 510px; left:440px; display: block"
-            document.getElementById("captchaLessLabel2").style = "position: absolute; top: 513px; font-size: 12px; width: 200px; left: 476px; display: block; color: white;font-family: Poppins;"
-        }
     }
 
     if (document.getElementById("siteTask2").value === "SSENSE") {
-        var select = document.getElementById("modeTask2")
-        document.getElementById("accountTask2").disabled = false;
-        document.getElementById("modeTask2").disabled = false;
-        document.getElementById("sizeTask2").disabled = false;
-        document.getElementById("proxyTask2").disabled = false;
-        document.getElementById("profileTask2").disabled = false;
-        document.getElementById("quantityTask2").disabled = false;
-        document.getElementById("linkTask2").disabled = false;
+        modeTask2.enable()
         select.options.length = 0;
         select.options[select.options.length] = new Option("Safe", "Safe");
         select.options[select.options.length] = new Option("Preload", "Preload");
-
-        //select.options[select.options.length] = new Option("Fast", "Fast");
-        document.getElementById("captchaLess2").style = "position: absolute; top: 510px; left:440px; display: block"
-        document.getElementById("captchaLessLabel2").style = "position: absolute; top: 513px; font-size: 12px; width: 200px; left: 476px; display: block; color: white;font-family: Poppins;"
-        document.getElementById("captchaLess2").checked = false;
-        document.getElementById("captchaLessLabel2").textContent = "Card checkout"
-        document.getElementById("scheduleFeature2").style = "display: none";
     }
 
-
     if (document.getElementById("siteTask2").value === "Shiekh") {
-        var select = document.getElementById("modeTask2")
-        document.getElementById("accountTask2").disabled = false;
-        document.getElementById("modeTask2").disabled = false;
-        document.getElementById("sizeTask2").disabled = false;
-        document.getElementById("proxyTask2").disabled = false;
-        document.getElementById("profileTask2").disabled = false;
-        document.getElementById("quantityTask2").disabled = false;
-        document.getElementById("linkTask2").disabled = false;
+        modeTask2.enable()
         select.options.length = 0;
-        document.getElementById("scheduleFeature2").style = "display: block";
         select.options[select.options.length] = new Option("Fast", "Fast");
-        document.getElementById("captchaLess2").style = "display: none;"
-        document.getElementById("captchaLessLabel2").style = "display: none;"
-        document.getElementById("captchaLess2").checked = false;
     }
 
     if (document.getElementById("siteTask2").value === "Federal Premium") {
-        var select = document.getElementById("modeTask2")
-        document.getElementById("accountTask2").disabled = true;
-        document.getElementById("modeTask2").disabled = false;
-        document.getElementById("scheduleFeature2").style = "display: none";
-        document.getElementById("sizeTask2").disabled = false;
-        document.getElementById("proxyTask2").disabled = false;
-        document.getElementById("profileTask2").disabled = false;
-        document.getElementById("quantityTask2").disabled = false;
-        document.getElementById("linkTask2").disabled = false;
+        modeTask2.enable()
         select.options.length = 0;
         select.options[select.options.length] = new Option("Fast", "Fast");
-        document.getElementById("captchaLess2").style = "display: none;"
-        document.getElementById("captchaLessLabel2").style = "display: none;"
-        document.getElementById("captchaLess2").checked = false;
     }
 
-
-    if (document.getElementById("siteTask2").value === "Supreme") {
-        var select = document.getElementById("modeTask2")
-        document.getElementById("modeTask2").disabled = false;
-        document.getElementById("proxyTask2").disabled = false;
-        document.getElementById("profileTask2").disabled = false;
-        document.getElementById("quantityTask2").disabled = false;
-        document.getElementById("linkTask2").disabled = false;
-        document.getElementById("sizeTask2").disabled = false;
-        var accounts = document.getElementById("accountTask2")
-        accounts.options.length = 0;
-        document.getElementById("scheduleFeature2").style = "display: none";
-
-        accounts.options[accounts.options.length] = new Option("No Account", "-")
-        select.options.length = 0;
-        select.options[select.options.length] = new Option("Hybrid", "Hybrid");
-        select.options[select.options.length] = new Option("Restock", "Restock");
-        document.getElementById("captchaLess2").style = "display: none;"
-        document.getElementById("captchaLessLabel2").style = "display: none;"
-        document.getElementById("captchaLess2").checked = false;
-    }
 
     var shopify = storage.getSync('shopifyStores2');
     var customshopify = storage.getSync('shopifyStores');
@@ -348,25 +220,11 @@ function modeChoices2() {
 
     for (var i = 0; i < shopify.length; i++) {
         if (document.getElementById("siteTask2").value === shopify[i].site) {
-            var select = document.getElementById("modeTask2")
-            document.getElementById("accountTask2").disabled = false;
-            document.getElementById("modeTask2").disabled = false;
-            document.getElementById("sizeTask2").disabled = false;
-            document.getElementById("proxyTask2").disabled = false;
-            document.getElementById("profileTask2").disabled = false;
-            document.getElementById("quantityTask2").disabled = false;
-            document.getElementById("linkTask2").disabled = false;
-            document.getElementById("scheduleFeature2").style = "display: none";
-
+            modeTask2.enable()
             select.options.length = 0;
             select.options[select.options.length] = new Option("Safe", "Safe");
             select.options[select.options.length] = new Option("Preload", "Preload");
             select.options[select.options.length] = new Option("Fast", "Fast");
-            select.options[select.options.length] = new Option("Prestock", "Prestock");
-
-            document.getElementById("captchaLess2").style = "display: none;"
-            document.getElementById("captchaLessLabel2").style = "display: none;"
-            document.getElementById("captchaLess2").checked = false;
             break;
         }
     }
@@ -471,7 +329,7 @@ function cloneSelected() {
                 "<td>" + id + "</td>" +
                 "<td>" + task[id].site + "</td>" +
                 "<td>" + task[id].mode + "</td>" + "<td class='link'>" + task[id].product + "</td>" +
-                "<td >" + task[id].size + "</td>" +
+                "<td class='size'>" + task[id].size + "</td>" +
                 "<td>" + task[id].profile + "</td>" +
                 "<td>" + task[id].proxies + "</td>" +
                 "<td>" + 'Stopped' + "</td>"
@@ -519,41 +377,59 @@ function deleteProfile() {
 
 function reverify() {
     const got = require('got');
+    var SlimSelect = require('slim-select')
     got({
             method: 'get',
             url: 'https://venetiabots.com/api/shopifyStores',
             responseType: 'json'
         }).then(response => {
             var storelist = []
-            var select = document.getElementById("siteTask")
-            var select2 = document.getElementById("siteTask2")
+            var currentList = []
+            var currentListFile = []
+            var shopify = document.getElementById("shopify")
+            var shopify2 = document.getElementById("shopify2")
             var currentSelection = document.getElementById("siteTask").value
-            var currentEditedSelection = document.getElementById("siteTask2").value
-            select.options.length = 12;
-            select2.options.length = 12;
+            var currentSelection2 = document.getElementById("siteTask2").value
+            for (var i = 0; i < shopify.childNodes.length; i++) {
+                currentList.push(shopify.childNodes[i].value)
+            }
+            for (var i = 0; i < storage.getSync('shopifyStores2').length; i++) {
+                currentListFile.push(storage.getSync('shopifyStores2')[i].site)
+            }
             for (var i = 0; i < response.body.length; i++) {
-                select.options[select.options.length] = new Option(response.body[i].site, response.body[i].site);
-                select2.options[select2.options.length] = new Option(response.body[i].site, response.body[i].site);
-                storelist.push({
-                    site: response.body[i].site,
-                    baseLink: response.body[i].baseLink
-                })
+                delete response.body[i]['_id']
             }
-            select.options[select.options.length] = new Option("-- Custom Shopify -- ", "-- Custom Shopify --")
-            select2.options[select2.options.length] = new Option("-- Custom Shopify -- ", "-- Custom Shopify --")
-            select.options[select.options.length - 1].disabled = true;
-            select2.options[select2.options.length - 1].disabled = true;
-            var customshopify = storage.getSync('shopifyStores');
-            for (var i = 0; i < customshopify.length; i++) {
-                select.options[select.options.length] = new Option(customshopify[i].site, customshopify[i].site);
-                select2.options[select2.options.length] = new Option(customshopify[i].site, customshopify[i].site);
+            if (JSON.stringify(response.body) != JSON.stringify(storage.getSync('shopifyStores2')) || JSON.stringify(currentList) != JSON.stringify(currentListFile)) {
+                shopify.innerHTML = ""
+                shopify2.innerHTML = ""
+                for (var i = 0; i < response.body.length; i++) {
+                    shopify.innerHTML += "<option value='" + response.body[i].site + "'>" + response.body[i].site + "</option>"
+                    shopify2.innerHTML += "<option value='" + response.body[i].site + "'>" + response.body[i].site + "</option>"
+                    storelist.push({
+                        site: response.body[i].site,
+                        baseLink: response.body[i].baseLink
+                    })
+                }
+                siteTask.destroy()
+                siteTask =
+                    new SlimSelect({
+                        select: '#siteTask',
+                        placeholder: 'Select site',
+                        closeOnSelect: true,
+                    })
+                siteTask2.destroy()
+                siteTask2 =
+                    new SlimSelect({
+                        select: '#siteTask2',
+                        placeholder: 'Select site',
+                        closeOnSelect: true,
+                    })
+                storage.set('shopifyStores2', storelist, function(error) {
+                    if (error) throw error;
+                });
+                siteTask.set(currentSelection)
+                siteTask2.set(currentSelection2)
             }
-            storage.set('shopifyStores2', storelist, function(error) {
-                if (error) throw error;
-            });
-
-            document.getElementById("siteTask").value = currentSelection
-            document.getElementById("siteTask2").value = currentEditedSelection
         })
         .catch(error => {
             console.log(error)
@@ -579,8 +455,45 @@ function stopOpen(e) {
     }
 }
 
+function restartBackend() {
+    disconnected()
+    document.getElementById("backendStatusIcon").setAttribute("onclick", "")
+    document.getElementById("backendStatusIcon").style.cursor = "default"
+    statusCache = {}
+    titleCache = {}
+    for (var i = 1; i < document.getElementById("tasks").rows.length; i++) {
+        document.getElementById("tasks").rows[i].cells[7].textContent = "Stopped"
+        document.getElementById("tasks").rows[i].cells[7].style.color = "#FFFFFF";
+    }
+    ipcRenderer.send("message", {
+        event: "restartBackend"
+    })
+    setTimeout(function() {
+        document.getElementById("backendStatusIcon").setAttribute("onclick", "restartBackend()")
+        document.getElementById("backendStatusIcon").style.cursor = "pointer"
+    }, 5000);
+}
+
+function connected() {
+    document.getElementById("backendStatusText").innerHTML = "Connected"
+    document.getElementById("backendStatusIcon").setAttribute("src", "./images/online.png")
+}
+
+function disconnected() {
+    document.getElementById("backendStatusText").innerHTML = "Disconnected"
+    document.getElementById("backendStatusIcon").setAttribute("src", "./images/x.png")
+}
 
 
+var siteTask;
+var siteTask2;
+var sizeTask;
+var sizeTask2;
+var profileTask;
+var modeTask2;
+var proxyQTSelect;
+var sizeQTSelect;
+var profileQTSelect;
 window.onload = function() {
     reverify()
     setInterval(reverify, 20000)
@@ -589,9 +502,9 @@ window.onload = function() {
     document.addEventListener("click", stopOpen);
 
     document.addEventListener('keydown', function(event) {
-        if (event.ctrlKey && event.key === 'r') {
-            event.preventDefault()
-        }
+        // if (event.ctrlKey && event.key === 'r') {
+        //   event.preventDefault()
+        //}
 
         if (document.getElementById('taskView').style.display === "block") {
             if (event.ctrlKey && event.key === 'f') {
@@ -795,80 +708,163 @@ window.onload = function() {
         shell.openExternal(this.href);
     });
 
-    require('select2')($);
 
-    $('#shopifyStores').select2({
-        placeholder: "Select store"
-    });
-
-    $('#profileQTSelect').select2({
-        placeholder: "Select profile"
-    });
-
-    $('#proxyQTSelect').select2({
-        placeholder: "Select proxies"
-    });
-
-    $('#sizeQTSelect').select2({
-        placeholder: "Select size",
-        tags: true
-    });
-
-    $('#siteTask').select2({
-        placeholder: "Select site"
-    });
-
-    $('#accountTask').select2({
-        placeholder: "Select accounts"
-    });
-
-    $('#modeTask').select2({
-        placeholder: "Select mode",
-        minimumResultsForSearch: Infinity
-    });
-
-    $('#sizeTask').select2({
-        placeholder: "Select size",
-        tags: true,
-    });
-
-    //$('#sizeTask').attr('multiple', 'multiple');
+    var SlimSelect = require('slim-select')
 
 
-    $('#profileTask').select2({
-        placeholder: "Select profile"
-    });
 
-    $('#proxyTask').select2({
-        placeholder: "Select proxies"
-    });
+    new SlimSelect({
+        select: '#shopifyStores',
+        placeholder: 'Select store',
+        closeOnSelect: true,
+        showSearch: false,
+    })
+
+    new SlimSelect({
+        select: '#modeTask',
+        placeholder: 'Select mode',
+        closeOnSelect: true,
+        showSearch: false,
+    })
+
+    profileQTSelect = new SlimSelect({
+        select: '#profileQTSelect',
+        placeholder: 'Select profile',
+    })
+
+    new SlimSelect({
+        select: '#accountTask',
+        placeholder: 'Select account',
+        closeOnSelect: true,
+        showSearch: false,
+    })
 
 
-    $('#siteTask2').select2({
-        placeholder: "Select site"
-    });
+    proxyQTSelect = new SlimSelect({
+        select: '#proxyQTSelect',
+        placeholder: 'Select proxies',
+        closeOnSelect: true,
+        showSearch: false,
+    })
 
-    $('#accountTask2').select2({
-        placeholder: "Select accounts"
-    });
 
-    $('#modeTask2').select2({
-        placeholder: "Select mode",
-        minimumResultsForSearch: Infinity
-    });
+    siteTask = new SlimSelect({
+        select: '#siteTask',
+        placeholder: 'Select site',
+        closeOnSelect: true,
+    })
 
-    $('#sizeTask2').select2({
-        placeholder: "Select size",
-        tags: true
-    });
+    new SlimSelect({
+        select: '#proxyTask',
+        placeholder: 'Select proxies',
+        closeOnSelect: true,
+        showSearch: false,
+    })
 
-    $('#profileTask2').select2({
-        placeholder: "Select profile"
-    });
 
-    $('#proxyTask2').select2({
-        placeholder: "Select proxies"
-    });
+    sizeQTSelect = new SlimSelect({
+        select: '#sizeQTSelect',
+        placeholder: 'Select size',
+        addable: function(value) {
+            for (var i = 0; i < document.getElementById("sizeQTSelect").childNodes.length; i++) {
+                if (document.getElementById("sizeQTSelect").childNodes[i].tagName === "OPTGROUP") {
+                    for (var j = 0; j < document.getElementById("sizeQTSelect").childNodes[i].childNodes.length; j++) {
+                        if (document.getElementById("sizeQTSelect").childNodes[i].childNodes[j].tagName === "OPTION")
+                            if (document.getElementById("sizeQTSelect").childNodes[i].childNodes[j].value === value)
+                                return false;
+                    }
+                }
+            }
+            if (value.includes(","))
+                return false;
+            return value;
+        }
+    })
+
+    sizeTask = new SlimSelect({
+        select: '#sizeTask',
+        placeholder: 'Select size',
+        closeOnSelect: false,
+        allowDeselectOption: true,
+        showContent: 'down',
+        addable: function(value) {
+            for (var i = 0; i < document.getElementById("sizeTask").childNodes.length; i++) {
+                if (document.getElementById("sizeTask").childNodes[i].tagName === "OPTGROUP") {
+                    for (var j = 0; j < document.getElementById("sizeTask").childNodes[i].childNodes.length; j++) {
+                        if (document.getElementById("sizeTask").childNodes[i].childNodes[j].tagName === "OPTION")
+                            if (document.getElementById("sizeTask").childNodes[i].childNodes[j].value === value)
+                                return false;
+                    }
+                }
+            }
+            if (value.includes(","))
+                return false;
+            return value;
+        }
+    })
+
+    profileTask = new SlimSelect({
+        select: '#profileTask',
+        placeholder: 'Select profile',
+        closeOnSelect: false,
+        allowDeselectOption: true
+    })
+
+
+    siteTask2 = new SlimSelect({
+        select: '#siteTask2',
+        placeholder: 'Select site',
+        closeOnSelect: true,
+    })
+
+    modeTask2 = new SlimSelect({
+        select: '#modeTask2',
+        placeholder: 'Select mode',
+        closeOnSelect: true,
+        showSearch: false,
+    })
+
+    new SlimSelect({
+        select: '#accountTask2',
+        placeholder: 'Select accounts',
+        closeOnSelect: true,
+        showSearch: false,
+    })
+
+    sizeTask2 = new SlimSelect({
+        select: '#sizeTask2',
+        placeholder: 'Select size',
+        closeOnSelect: false,
+        allowDeselectOption: true,
+        showContent: 'down',
+        addable: function(value) {
+            for (var i = 0; i < document.getElementById("sizeTask2").childNodes.length; i++) {
+                if (document.getElementById("sizeTask2").childNodes[i].tagName === "OPTGROUP") {
+                    for (var j = 0; j < document.getElementById("sizeTask2").childNodes[i].childNodes.length; j++) {
+                        if (document.getElementById("sizeTask2").childNodes[i].childNodes[j].tagName === "OPTION")
+                            if (document.getElementById("sizeTask2").childNodes[i].childNodes[j].value === value)
+                                return false;
+                    }
+                }
+            }
+            if (value.includes(","))
+                return false;
+            return value;
+        }
+    })
+
+    new SlimSelect({
+        select: '#profileTask2',
+        placeholder: 'Select profile',
+        closeOnSelect: true
+    })
+
+    new SlimSelect({
+        select: '#proxyTask2',
+        placeholder: 'Select proxies',
+        closeOnSelect: true
+    })
+
 
 
 
@@ -953,13 +949,30 @@ window.onload = function() {
         });
     }
     var shopifysites = document.getElementById("shopifyStores")
-    shopifysites.options.length = 0;
-    shopifysites.options[shopifysites.options.length] = new Option('', '')
-
+    document.getElementById("customShopify").innerHTML = ""
+    document.getElementById("customShopify2").innerHTML = ""
     for (var i = 0; i < x.length; i++) {
         shopifysites.options[shopifysites.options.length] = new Option(x[i].site, x[i].site);
+        document.getElementById("customShopify").innerHTML += "<option value='" + x[i].site + "'>" + x[i].site + "</option>"
+        document.getElementById("customShopify2").innerHTML += "<option value='" + x[i].site + "'>" + x[i].site + "</option>"
     }
 
+    siteTask.destroy()
+    siteTask =
+        new SlimSelect({
+            select: '#siteTask',
+            placeholder: 'Select site',
+            closeOnSelect: true,
+        })
+
+
+    siteTask2.destroy()
+    siteTask2 =
+        new SlimSelect({
+            select: '#siteTask2',
+            placeholder: 'Select site',
+            closeOnSelect: true,
+        })
 
     var x = storage.getSync('shopifyStores2');
     if (Object.getOwnPropertyNames(x).length === 0) {
@@ -985,17 +998,80 @@ window.onload = function() {
 
 
 
-    var x = storage.getSync('harvesters');
+
+    var x = storage.getSync('captchas');
     if (Object.getOwnPropertyNames(x).length === 0) {
-        storage.set('harvesters', [], function(error) {
+        storage.set('captchas', [], function(error) {
             if (error) throw error;
         });
     }
     for (var i = 0; i < x.length; i++) {
+        var harvester = document.createElement("div")
+        harvester.classList.add("harvester")
+        harvester.setAttribute("uuid", Object.keys(x[i])[0])
+        document.getElementById("harvesterContainer").appendChild(harvester)
 
-        var tableRef = document.getElementById('captchas2').getElementsByTagName('tbody')[0];
-        tableRef.insertRow().innerHTML =
-            "<td onclick='showHarvesters(this.textContent)' style='padding-bottom: 5px'>" + x[i].name + "</td>"
+
+        var harvesterName = document.createElement("input")
+        harvesterName.classList.add("harvesterName")
+        harvesterName.setAttribute("onblur", "saveHarvester('" + Object.keys(x[i])[0] + "')")
+        harvester.appendChild(harvesterName)
+
+        var harvesterTypeTitle = document.createElement("div")
+        harvesterTypeTitle.classList.add("harvesterTypeTitle")
+        harvesterTypeTitle.textContent = "Solver Type"
+        harvester.appendChild(harvesterTypeTitle)
+
+        var harvesterTypeSelection = document.createElement("div")
+        harvesterTypeSelection.classList.add("harvesterTypeSelection")
+        harvester.appendChild(harvesterTypeSelection)
+
+        var select = document.createElement("select")
+        select.options[select.options.length] = new Option();
+        select.options[0].setAttribute("data-placeholder", "true")
+        select.setAttribute("onchange", "saveHarvester('" + Object.keys(x[i])[0] + "')")
+        select.options[select.options.length] = new Option("Shopify Checkpoint", "Shopify Checkpoint");
+        harvesterTypeSelection.appendChild(select)
+        var SlimSelect = require('slim-select')
+        var selectmaker = new SlimSelect({
+            select: select,
+            placeholder: 'Select type',
+            closeOnSelect: true,
+            showSearch: false,
+        })
+
+        var harvesterProxyTitle = document.createElement("div")
+        harvesterProxyTitle.classList.add("harvesterProxyTitle")
+        harvesterProxyTitle.textContent = "Proxy"
+        harvester.appendChild(harvesterProxyTitle)
+
+        var harvesterProxyEntry = document.createElement("input")
+        harvesterProxyEntry.classList.add("harvesterProxyEntry")
+        harvesterProxyEntry.setAttribute("onblur", "saveHarvester('" + Object.keys(x[i])[0] + "')")
+        harvesterProxyEntry.setAttribute("placeholder", "Input proxy")
+        harvester.appendChild(harvesterProxyEntry)
+
+        var launchHarvester = document.createElement("img")
+        launchHarvester.classList.add("launchHarvester")
+        launchHarvester.setAttribute("onclick", "launchHarvester('" + Object.keys(x[i])[0] + "')")
+        launchHarvester.setAttribute("src", "./images/launchHarvester.png")
+        harvester.appendChild(launchHarvester)
+
+        var signInHarvester = document.createElement("img")
+        signInHarvester.classList.add("signInHarvester")
+        signInHarvester.setAttribute("onclick", "signInHarvester('" + Object.keys(x[i])[0] + "')")
+        signInHarvester.setAttribute("src", "./images/signInHarvester.png")
+        harvester.appendChild(signInHarvester)
+
+        var deleteHarvester = document.createElement("img")
+        deleteHarvester.classList.add("deleteHarvester")
+        deleteHarvester.setAttribute("onclick", "deleteHarvester('" + Object.keys(x[i])[0] + "')")
+        deleteHarvester.setAttribute("src", "./images/deleteHarvester.png")
+        harvester.appendChild(deleteHarvester)
+
+        harvesterName.value = x[i][Object.keys(x[i])[0]].harvesterName
+        harvesterProxyEntry.value = x[i][Object.keys(x[i])[0]].harvesterProxy
+        selectmaker.set(x[i][Object.keys(x[i])[0]].harvesterType)
     }
 
 
@@ -1061,33 +1137,21 @@ window.onload = function() {
 
     var select = document.getElementById('profileQTSelect');
     select.options.length = 0;
-    select.options[select.options.length] = new Option('', '')
     for (var i = 1; i < document.getElementById('profiles2').rows.length; i++) {
         select.options[select.options.length] = new Option(document.getElementById('profiles2').rows[i].cells[0].textContent, document.getElementById('profiles2').rows[i].cells[0].textContent);
     }
 
     var select = document.getElementById('proxyQTSelect');
     select.options.length = 0;
-    select.options[select.options.length] = new Option('', '')
-    select.options[select.options.length + 1] = new Option('No Proxy', '-')
+    select.options[select.options.length] = new Option('None', '-')
     for (var i = 1; i < document.getElementById('proxies2').rows.length; i++) {
         select.options[select.options.length] = new Option(document.getElementById('proxies2').rows[i].cells[0].textContent, document.getElementById('proxies2').rows[i].cells[0].textContent);
     }
 
-    $('#profileQTSelect').val(data[1].qtProfile);
-    $('#proxyQTSelect').val(data[1].qtProxy);
-    $('#sizeQTSelect').val(data[1].qtSize);
-    $('#sizeQTSelect').trigger('change')
+    profileQTSelect.set(data[1].qtProfile)
+    proxyQTSelect.set(data[1].qtProxy)
+    sizeQTSelect.set(data[1].qtSize)
 
-
-    var data = storage.getSync('apiKey');
-    if (Object.getOwnPropertyNames(data).length === 0) {
-        storage.set('apiKey', [{ "service": '', "apiKey": '' }], function(error) {
-            if (error) throw error;
-        });
-    }
-    document.getElementById("capMonsterKey").value = data[0].apiKey;
-    document.getElementById("apiSelection").value = data[0].service;
 
 
     analytics()
@@ -1246,29 +1310,109 @@ function showProfile(profileName) {
     });
 }
 
-
-
-function showHarvesters(harvesterName) {
-    clearHarvesterFields()
-    var fs = require('fs');
-    fs.readFile(path.join(configDir, '/userdata/harvesters.json'), 'utf-8', (err, data) => {
-        if (err) throw err;
-        x = JSON.parse(data);
-
-        for (var i = 0; i < x.length; i++) {
-            document.getElementById('captchas2').rows[i + 1].cells[0].style.background = '';
+function saveHarvester(uuid) {
+    var harvester = document.querySelector('[uuid="' + uuid + '"]')
+    var harvesterName = harvester.children[0].value
+    var harvesterProxy = harvester.children[4].value
+    var harvesterType = harvester.children[2].children[0].value
+    var x = storage.getSync('captchas');
+    for (var i = 0; i < x.length; i++) {
+        if (Object.keys(x[i])[0] === uuid) {
+            x[i][uuid].harvesterName = harvesterName
+            x[i][uuid].harvesterProxy = harvesterProxy
+            x[i][uuid].harvesterType = harvesterType
         }
-
-        for (var i = 0; i < x.length; i++) {
-            if (x[i].name === harvesterName) {
-                document.getElementById('captchas2').rows[i + 1].cells[0].style.background = '#181a26';
-                document.getElementById('harvesterName').value = x[i].name;
-                document.getElementById('harvesterProxy').value = x[i].proxy;
-                break;
-            }
-        }
+    }
+    storage.set('captchas', x, function(error) {
+        if (error) throw error;
     });
+
 }
+
+function createHarvester() {
+    var SlimSelect = require('slim-select')
+    var uuid = uuidv4()
+
+    var harvester = document.createElement("div")
+    harvester.classList.add("harvester")
+    harvester.setAttribute("uuid", uuid)
+    document.getElementById("harvesterContainer").appendChild(harvester)
+
+    var harvesterName = document.createElement("input")
+    harvesterName.classList.add("harvesterName")
+    harvesterName.setAttribute("onblur", "saveHarvester('" + uuid + "')")
+    harvester.appendChild(harvesterName)
+
+    var harvesterTypeTitle = document.createElement("div")
+    harvesterTypeTitle.classList.add("harvesterTypeTitle")
+    harvesterTypeTitle.textContent = "Solver Type"
+    harvester.appendChild(harvesterTypeTitle)
+
+    var harvesterTypeSelection = document.createElement("div")
+    harvesterTypeSelection.classList.add("harvesterTypeSelection")
+    harvester.appendChild(harvesterTypeSelection)
+
+    var select = document.createElement("select")
+    select.options[select.options.length] = new Option();
+    select.options[0].setAttribute("data-placeholder", "true")
+    select.options[select.options.length] = new Option("Shopify Checkpoint", "Shopify Checkpoint");
+    select.setAttribute("onchange", "saveHarvester('" + uuid + "')")
+    harvesterTypeSelection.appendChild(select)
+    var SlimSelect = require('slim-select')
+    new SlimSelect({
+        select: select,
+        placeholder: 'Select type',
+        closeOnSelect: true,
+        showSearch: false,
+    })
+
+    var harvesterProxyTitle = document.createElement("div")
+    harvesterProxyTitle.classList.add("harvesterProxyTitle")
+    harvesterProxyTitle.textContent = "Proxy"
+    harvester.appendChild(harvesterProxyTitle)
+
+    var harvesterProxyEntry = document.createElement("input")
+    harvesterProxyEntry.classList.add("harvesterProxyEntry")
+    harvesterProxyEntry.setAttribute("placeholder", "Input proxy")
+    harvesterProxyEntry.setAttribute("onblur", "saveHarvester('" + uuid + "')")
+    harvester.appendChild(harvesterProxyEntry)
+
+    var launchHarvester = document.createElement("img")
+    launchHarvester.classList.add("launchHarvester")
+    launchHarvester.setAttribute("onclick", "launchHarvester('" + uuid + "')")
+    launchHarvester.setAttribute("src", "./images/launchHarvester.png")
+    harvester.appendChild(launchHarvester)
+
+    var signInHarvester = document.createElement("img")
+    signInHarvester.classList.add("signInHarvester")
+    signInHarvester.setAttribute("onclick", "signInHarvester('" + uuid + "')")
+    signInHarvester.setAttribute("src", "./images/signInHarvester.png")
+    harvester.appendChild(signInHarvester)
+
+    var deleteHarvester = document.createElement("img")
+    deleteHarvester.classList.add("deleteHarvester")
+    deleteHarvester.setAttribute("onclick", "deleteHarvester('" + uuid + "')")
+    deleteHarvester.setAttribute("src", "./images/deleteHarvester.png")
+    harvester.appendChild(deleteHarvester)
+
+    harvesterName.value = "Harvester " + document.getElementById("harvesterContainer").children.length;
+
+    var x = storage.getSync('captchas');
+    x.push({
+        [uuid]: {
+            uuid: uuid,
+            harvesterName: harvesterName.value,
+            harvesterProxy: harvesterProxyEntry.value,
+            harvesterType: select.value
+        }
+    })
+    storage.set('captchas', x, function(error) {
+        if (error) throw error;
+    });
+
+}
+
+
 
 function showAccounts(accountName) {
     clearAccountFields();
@@ -1345,46 +1489,12 @@ function showAccountsbyCount(accountCount) {
 }
 
 function changeColor(row, event) {
-
-    /*  if (event.shiftKey) {
-          var startRowIndex;
-          for (var i = 0; i < document.getElementById("tasks").rows.length; i++) {
-              if (document.getElementById("tasks").rows[i].cells[0].children[0].checked == true) {
-                  startRowIndex = i;
-                  break;
-              }
-          }
-          console.log(row.closest("tr").rowIndex)
-          if (startRowIndex < row.closest("tr").rowIndex)
-              for (var j = startRowIndex; j <= row.closest("tr").rowIndex; j++) {
-                  if (document.getElementById('tasks').rows[j].style.display != "none") {
-                      document.getElementById("tasks").rows[j].cells[0].children[0].checked = true;
-                      document.getElementById("tasks").rows[j].cells[0].children[0].style.background = "#e06767";
-                  }
-              }
-          else {
-              for (var i = 0; i < document.getElementById("tasks").rows.length; i++) {
-                  if (document.getElementById("tasks").rows[i].cells[0].children[0].checked == true && i != row.closest("tr").rowIndex) {
-                      startRowIndex = i;
-                      break;
-                  }
-              }
-              for (var j = row.closest("tr").rowIndex; j <= startRowIndex; j++) {
-                  if (document.getElementById('tasks').rows[j].style.display != "none") {
-                      document.getElementById("tasks").rows[j].cells[0].children[0].checked = true;
-                      document.getElementById("tasks").rows[j].cells[0].children[0].style.background = "#e06767";
-                  }
-              }
-          }
-      }*/
     if (row.checked == true) {
         row.style.background = "#e06767"
     }
-
     if (row.checked == false) {
         row.style.background = "#292c3f"
     }
-
 }
 
 
@@ -1429,15 +1539,6 @@ function testWebhook() {
                 console.log(error)
             })
     }
-}
-
-function saveToken() {
-    var fs = require('fs');
-    var x = JSON.stringify([{ "service": document.getElementById("apiSelection").value, "apiKey": document.getElementById("capMonsterKey").value }])
-    fs.writeFile(path.join(configDir, '/userdata/apiKey.json'), x, function(err) {
-        if (err) throw err;
-        console.log('Saved!');
-    });
 }
 
 
@@ -1597,55 +1698,6 @@ function saveAccounts() {
     });
 }
 
-function saveHarvester() {
-    var fs = require('fs');
-    var checker;
-    var harvester;
-    var x;
-    fs.readFile(path.join(configDir, '/userdata/harvesters.json'), 'utf-8', (err, data) => {
-        if (err) throw err;
-        x = JSON.parse(data);
-        harvester = x;
-
-        for (var i = 0; i < x.length; i++) {
-            if (x[i].name === document.getElementById('harvesterName').value) {
-                harvester[i].name = document.getElementById('harvesterName').value;
-                harvester[i].proxy = document.getElementById('harvesterProxy').value;
-
-                checker = true;
-
-                fs.writeFile(path.join(configDir, '/userdata/harvesters.json'), JSON.stringify(harvester), function(err) {
-                    if (err) throw err;
-                });
-            }
-        }
-        if (!checker) {
-            var harvesterName = document.getElementById('harvesterName').value;
-            var harvesterProxy = document.getElementById('harvesterProxy').value;
-            var jsonStr = { "name": harvesterName, "proxy": harvesterProxy }
-
-            fs.readFile(path.join(configDir, '/userdata/harvesters.json'), 'utf-8', (err, data) => {
-                if (err) throw err;
-                x = JSON.parse(data);
-                x.push(jsonStr)
-
-                fs.writeFile(path.join(configDir, '/userdata/harvesters.json'), JSON.stringify(x), function(err) {
-                    if (err) throw err;
-                    console.log('The "data to append" was appended to file!');
-                    var tableRef = document.getElementById('captchas2').getElementsByTagName('tbody')[0];
-                    tableRef.insertRow().innerHTML =
-                        "<td onclick='showHarvesters(this.textContent)' style='padding-bottom: 5px'>" + harvesterName + "</td>"
-                });
-
-            });
-
-
-
-        }
-    });
-}
-
-
 
 
 function editGroup(group) {
@@ -1695,7 +1747,7 @@ function viewGroup(group) {
             "<td>" + id + "</td>" +
             "<td>" + groups[groupindex][groupName][i][id].site + "</td>" +
             "<td>" + groups[groupindex][groupName][i][id].mode + "</td>" + "<td class='link'>" + product + "</td>" +
-            "<td >" + groups[groupindex][groupName][i][id].size + "</td>" +
+            "<td class='size'>" + groups[groupindex][groupName][i][id].size + "</td>" +
             "<td>" + groups[groupindex][groupName][i][id].profile + "</td>" +
             "<td>" + groups[groupindex][groupName][i][id].proxies + "</td>" +
             "<td>" + status + "</td>"
@@ -1787,8 +1839,8 @@ function deleteGroup() {
 
 
 function editSelected() {
-    var fs = require('fs');
-    var groups = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/tasks.json'), { encoding: 'utf8', flag: 'r' }));
+    stopSelected()
+    var groups = storage.getSync("tasks")
     var gname;
     var gindex;
     for (var i = 0; i < document.getElementById('groups').rows.length; i++) {
@@ -1804,17 +1856,7 @@ function editSelected() {
     var profile = document.getElementById("profileTask2").value;
     var proxies = document.getElementById("proxyTask2").value;
     var accounts = document.getElementById("accountTask2").value;
-    var size = document.getElementById("sizeTask2").value;
-    var hour = document.getElementById("hourTaskEntry2").value
-    var minute = document.getElementById("minuteTaskEntry2").value
-    var second = document.getElementById("secondTaskEntry2").value
-    console.log(hour)
-    if (document.getElementById("captchaLess").checked == true && document.getElementById("captchaLessLabel").innerHTML === "Card checkout")
-        mode += "-C"
-    else
-    if (document.getElementById("captchaLess").checked == true)
-        mode += "-NC"
-
+    var size = sizeTask2.selected().toString().replaceAll(",", ", ");
     for (var i = 0; i < document.getElementById('tasks').rows.length; i++) {
         if (document.getElementById('tasks').rows[i].classList.contains("rowClicked")) {
             if (site != "") {
@@ -1847,31 +1889,18 @@ function editSelected() {
                 groups[gindex][gname][i - 1][document.getElementById('tasks').rows[i].cells[0].textContent]['proxies'] = proxies
             }
 
-            if (hour != "") {
-                groups[gindex][gname][i - 1][document.getElementById('tasks').rows[i].cells[0].textContent]['schedule']['hour'] = hour
-            }
-
-            if (minute != "") {
-                groups[gindex][gname][i - 1][document.getElementById('tasks').rows[i].cells[0].textContent]['schedule']['minute'] = minute
-            }
-
-            if (second != "") {
-                groups[gindex][gname][i - 1][document.getElementById('tasks').rows[i].cells[0].textContent]['schedule']['second'] = second
-            }
         }
     }
 
-    fs.writeFile(path.join(configDir, '/userdata/tasks.json'), JSON.stringify(groups), function(err) {
-        if (err) throw err;
-        console.log('Tasks saved!');
+    storage.set('tasks', groups, function(error) {
+        if (error) throw error;
     });
+
     closeEditor(event)
-    stopSelected()
 }
 
 
 function addTask() {
-    var fs = require('fs');
     var gname;
     var gindex;
     for (var i = 0; i < document.getElementById('groups').rows.length; i++) {
@@ -1884,61 +1913,21 @@ function addTask() {
     var site = document.getElementById("siteTask").value;
     var mode = document.getElementById("modeTask").value;
     var link = document.getElementById("linkTask").value;
-    var profile = document.getElementById("profileTask").value;
+    var profile = profileTask.selected()
     var proxies = document.getElementById("proxyTask").value;
     var accounts = document.getElementById("accountTask").value;
-    var size = document.getElementById("sizeTask").value;
+    var size = sizeTask.selected().toString().replaceAll(",", ", ");
     var quantity = document.getElementById("quantityTask").value;
-    var hour = document.getElementById("hourTaskEntry").value
-    var minute = document.getElementById("minuteTaskEntry").value
-    var second = document.getElementById("secondTaskEntry").value
 
-    if (document.getElementById("captchaLess").checked == true && site === "SSENSE")
-        mode += "-C"
-    else
-    if (document.getElementById("captchaLess").checked == true)
-        mode += "-NC"
 
     if (accounts === "")
         accounts = "-"
+    if (proxies === "")
+        proxies = "-"
+
     var tasks = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/tasks.json'), { encoding: 'utf8', flag: 'r' }));
     if (size != "" && link != "" && mode != "" && site != "" && proxies != "" && profile != "") {
-        if (profile === "Use All Profiles") {
-            for (var i = 1; i < document.getElementById('profiles2').rows.length; i++) {
-                console.log(document.getElementById('profiles2').rows.length)
-                for (var j = 0; j < quantity; j++) {
-                    profile = document.getElementById("profiles2").rows[i].cells[0].textContent
-                    var id = makeid(5)
-                    var tableRef = document.getElementById('tasks').getElementsByTagName('tbody')[0];
-                    var row = tableRef.insertRow()
-                    row.innerHTML =
-                        "<td>" + id + "</td>" +
-                        "<td>" + site + "</td>" +
-                        "<td>" + mode + "</td>" + "<td class='link'>" + link + "</td>" +
-                        "<td >" + size + "</td>" +
-                        "<td>" + profile + "</td>" +
-                        "<td>" + proxies + "</td>" +
-                        "<td>" + 'Stopped' + "</td>"
-                    var task = {
-                        [id]: {
-                            "site": site,
-                            "mode": mode,
-                            "product": link,
-                            "size": size,
-                            "profile": profile,
-                            "proxies": proxies,
-                            "accounts": accounts,
-                            "schedule": {
-                                "hour": hour,
-                                "minute": minute,
-                                "second": second
-                            }
-                        }
-                    }
-                    tasks[gindex][gname].push(task)
-                }
-            }
-        } else {
+        for (var j = 0; j < profile.length; j++) {
             for (var i = 0; i < quantity; i++) {
                 var id = makeid(5)
                 var tableRef = document.getElementById('tasks').getElementsByTagName('tbody')[0];
@@ -1947,8 +1936,8 @@ function addTask() {
                     "<td>" + id + "</td>" +
                     "<td>" + site + "</td>" +
                     "<td>" + mode + "</td>" + "<td class='link'>" + link + "</td>" +
-                    "<td >" + size + "</td>" +
-                    "<td>" + profile + "</td>" +
+                    "<td class='size'>" + size + "</td>" +
+                    "<td>" + profile[j] + "</td>" +
                     "<td>" + proxies + "</td>" +
                     "<td>" + 'Stopped' + "</td>"
                 var task = {
@@ -1957,13 +1946,13 @@ function addTask() {
                         "mode": mode,
                         "product": link,
                         "size": size,
-                        "profile": profile,
+                        "profile": profile[j],
                         "proxies": proxies,
                         "accounts": accounts,
                         "schedule": {
-                            "hour": hour,
-                            "minute": minute,
-                            "second": second
+                            "hour": "",
+                            "minute": "",
+                            "second": ""
                         }
                     }
                 }
@@ -1971,14 +1960,11 @@ function addTask() {
             }
         }
     }
-    fs.writeFile(path.join(configDir, '/userdata/tasks.json'), JSON.stringify(tasks), function(err) {
-        if (err) throw err;
-        console.log('Tasks saved!');
+    storage.set('tasks', tasks, function(error) {
+        if (error) throw error;
     });
 
     document.getElementById('groups').rows[gindex].cells[0].children[1].textContent = (document.getElementById('tasks').rows.length - 1).toString() + " tasks"
-
-
 }
 
 
@@ -1992,6 +1978,8 @@ function taskCreator() {
 }
 
 function removeStore() {
+    var SlimSelect = require('slim-select')
+
     var currentStores = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/shopifyStores.json'), 'utf-8'))
     for (var i = 0; i < currentStores.length; i++) {
         if (currentStores[i].site === document.getElementById("shopifyStores").value)
@@ -1999,28 +1987,38 @@ function removeStore() {
     }
     var shopifysites = document.getElementById("shopifyStores")
     shopifysites.options.length = 0;
-    shopifysites.options[shopifysites.options.length] = new Option('', '')
-
     for (var i = 0; i < currentStores.length; i++) {
         shopifysites.options[shopifysites.options.length] = new Option(currentStores[i].site, currentStores[i].site);
     }
     fs.writeFile(path.join(configDir, '/userdata/shopifyStores.json'), JSON.stringify(currentStores), function(err) {
         if (err) throw err;
     });
-    var separatorOption;
-    for (var i = 0; i < document.getElementById("siteTask").options.length; i++) {
-        if (document.getElementById("siteTask").options[i].value === "-- Custom Shopify --") {
-            separatorOption = i;
-            break;
-        }
-    }
-    document.getElementById("siteTask").options.length = i + 1;
+    document.getElementById("customShopify").innerHTML = ""
+    document.getElementById("customShopify2").innerHTML = ""
+
     for (var i = 0; i < currentStores.length; i++) {
-        document.getElementById("siteTask").options[document.getElementById("siteTask").options.length] = new Option(currentStores[i].site, currentStores[i].site)
+        document.getElementById("customShopify").innerHTML += "<option value='" + currentStores[i].site + "'>" + currentStores[i].site + "</option>"
+        document.getElementById("customShopify2").innerHTML += "<option value='" + currentStores[i].site + "'>" + currentStores[i].site + "</option>"
     }
+    siteTask.destroy()
+    siteTask =
+        new SlimSelect({
+            select: '#siteTask',
+            placeholder: 'Select site',
+            closeOnSelect: true,
+        })
+    siteTask2.destroy()
+    siteTask2 =
+        new SlimSelect({
+            select: '#siteTask2',
+            placeholder: 'Select site',
+            closeOnSelect: true,
+        })
 }
 
 function addStoreConfirm() {
+    var SlimSelect = require('slim-select')
+
     var currentStores = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/shopifyStores.json'), 'utf-8'))
 
     var baseLink = document.getElementById("baseLinkEntry").value.toLowerCase()
@@ -2035,7 +2033,6 @@ function addStoreConfirm() {
     })
     var shopifysites = document.getElementById("shopifyStores")
     shopifysites.options.length = 0;
-    shopifysites.options[shopifysites.options.length] = new Option('', '')
     for (var i = 0; i < currentStores.length; i++) {
         shopifysites.options[shopifysites.options.length] = new Option(currentStores[i].site, currentStores[i].site);
     }
@@ -2045,17 +2042,26 @@ function addStoreConfirm() {
 
     document.getElementById("baseLinkEntry").value = ""
     document.getElementById("storeNameEntry").value = ""
-    var separatorOption;
-    for (var i = 0; i < document.getElementById("siteTask").options.length; i++) {
-        if (document.getElementById("siteTask").options[i].value === "-- Custom Shopify --") {
-            separatorOption = i;
-            break;
-        }
-    }
-    document.getElementById("siteTask").options.length = i + 1;
+    document.getElementById("customShopify").innerHTML = ""
+    document.getElementById("customShopify2").innerHTML = ""
     for (var i = 0; i < currentStores.length; i++) {
-        document.getElementById("siteTask").options[document.getElementById("siteTask").options.length] = new Option(currentStores[i].site, currentStores[i].site)
+        document.getElementById("customShopify").innerHTML += "<option value='" + currentStores[i].site + "'>" + currentStores[i].site + "</option>"
+        document.getElementById("customShopify2").innerHTML += "<option value='" + currentStores[i].site + "'>" + currentStores[i].site + "</option>"
     }
+    siteTask.destroy()
+    siteTask =
+        new SlimSelect({
+            select: '#siteTask',
+            placeholder: 'Select site',
+            closeOnSelect: true,
+        })
+    siteTask2.destroy()
+    siteTask2 =
+        new SlimSelect({
+            select: '#siteTask2',
+            placeholder: 'Select site',
+            closeOnSelect: true,
+        })
 }
 
 function addStore() {
@@ -2211,8 +2217,7 @@ function resetAccounts() {
 }
 
 function resetCaptchas() {
-    fs.unlinkSync(path.join(configDir, '/userdata/harvesters.json'));
-    fs.unlinkSync(path.join(configDir, '/userdata/apiKey.json'));
+    fs.unlinkSync(path.join(configDir, '/userdata/captchas.json'));
     location.reload();
 
 }
@@ -2326,7 +2331,7 @@ ipcRenderer.on('quicktask', (event, site, input) => {
         "<td>" + id + "</td>" +
         "<td>" + site + "</td>" +
         "<td>" + mode + "</td>" + "<td class='link'>" + input + "</td>" +
-        "<td >" + document.getElementById("sizeQTSelect").value + "</td>" +
+        "<td class='size'>" + document.getElementById("sizeQTSelect").value + "</td>" +
         "<td>" + document.getElementById("profileQTSelect").value + "</td>" +
         "<td>" + document.getElementById("proxyQTSelect").value + "</td>" +
         "<td>" + 'Stopped' + "</td>"
@@ -2372,6 +2377,13 @@ ipcRenderer.on('quicktask', (event, site, input) => {
     ipcRenderer.send('startQT', task3)
 
 
+});
+
+ipcRenderer.on('backendConnection', (event, status) => {
+    if (status === "Connected") {
+        connected()
+    } else
+        disconnected()
 });
 
 ipcRenderer.on('updateStats', (event, stat) => {
@@ -2521,15 +2533,14 @@ function saveProxies() {
 
 function saveQT() {
     if (document.getElementById("settingsDiv").style.display === "block") {
-        var settings = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/settings.json'), { encoding: 'utf8', flag: 'r' }));
-        console.log(document.getElementById("proxyQTSelect").value)
+        var settings = storage.getSync("settings")
         settings[1] = {
             "qtProfile": document.getElementById("profileQTSelect").value,
             "qtProxy": document.getElementById("proxyQTSelect").value,
             "qtSize": document.getElementById("sizeQTSelect").value
         }
-        fs.writeFile(path.join(configDir, '/userdata/settings.json'), JSON.stringify(settings), function(err) {
-            if (err) throw err;
+        storage.set('settings', settings, function(error) {
+            if (error) throw error;
         });
     }
 }
@@ -2566,13 +2577,6 @@ function clearProxyFields() {
 }
 
 
-function clearHarvesterFields() {
-    document.getElementById('harvesterName').value = ''
-    document.getElementById('harvesterProxy').value = '';
-    for (var i = 1; i < document.getElementById('captchas2').rows.length; i++) {
-        document.getElementById('captchas2').rows[i].cells[0].style.background = '';
-    }
-}
 
 function clearAccountFields() {
     document.getElementById('accountListEntry').value = ''
@@ -2609,31 +2613,7 @@ function deleteProxyList() {
     }
 }
 
-function deleteHarvester() {
-    for (var i = 1; i < document.getElementById('captchas2').rows.length; i++) {
-        if (document.getElementById('captchas2').rows[i].cells[0].style.background != '') {
-            document.getElementById("captchas2").deleteRow(i);
-            var fs = require('fs')
-            fs.readFile(path.join(configDir, '/userdata/harvesters.json'), 'utf-8', (err, data) => {
-                if (err) throw err;
-                x = JSON.parse(data);
-                for (var j = 0; j < x.length; j++) {
-                    if (x[j].name === document.getElementById("harvesterName").value) {
-                        x.splice(j, 1);
 
-                    }
-                }
-
-                clearHarvesterFields()
-
-                fs.writeFile(path.join(configDir, '/userdata/harvesters.json'), JSON.stringify(x), function(err) {
-                    if (err) throw err;
-                    console.log('The "data to append" was appended to file!');
-                });
-            });
-        }
-    }
-}
 
 function deleteAccountList() {
     for (var i = 1; i < document.getElementById('accounts2').rows.length; i++) {
@@ -2646,7 +2626,6 @@ function deleteAccountList() {
                 for (var j = 0; j < x.length; j++) {
                     if (x[j].name === document.getElementById("accountListName").value) {
                         x.splice(j, 1);
-                        //console.log(x);
                     }
                 }
 
@@ -2724,48 +2703,40 @@ function setProfilePicture() {
 function tasks() {
     var select = document.getElementById('profileTask');
     select.options.length = 0;
-    select.options[select.options.length] = new Option('', '')
-    select.options[select.options.length + 1] = new Option('Use All Profiles', 'Use All Profiles')
     for (var i = 1; i < document.getElementById('profiles2').rows.length; i++) {
         select.options[select.options.length] = new Option(document.getElementById('profiles2').rows[i].cells[0].textContent, document.getElementById('profiles2').rows[i].cells[0].textContent);
     }
 
     var select = document.getElementById('proxyTask');
-    select.options.length = 0;
-    select.options[select.options.length] = new Option('', '')
-    select.options[select.options.length + 1] = new Option('No Proxy', '-')
+    select.options.length = 1;
+    select.options[select.options.length] = new Option('None', '-')
     for (var i = 1; i < document.getElementById('proxies2').rows.length; i++) {
         select.options[select.options.length] = new Option(document.getElementById('proxies2').rows[i].cells[0].textContent, document.getElementById('proxies2').rows[i].cells[0].textContent);
     }
 
     var select = document.getElementById('accountTask');
-    select.options.length = 0;
-    select.options[select.options.length] = new Option('', '')
-    select.options[select.options.length + 1] = new Option('No Account', '-')
+    select.options.length = 1;
+    select.options[select.options.length] = new Option('None', '-')
     for (var i = 1; i < document.getElementById('accounts2').rows.length; i++) {
         select.options[select.options.length] = new Option(document.getElementById('accounts2').rows[i].cells[0].textContent, document.getElementById('accounts2').rows[i].cells[0].textContent);
     }
 
     var select = document.getElementById('profileTask2');
-    select.options.length = 0;
-    select.options[select.options.length] = new Option('', '')
-    select.options[select.options.length + 1] = new Option('Use All Profiles', 'Use All Profiles')
+    select.options.length = 1;
     for (var i = 1; i < document.getElementById('profiles2').rows.length; i++) {
         select.options[select.options.length] = new Option(document.getElementById('profiles2').rows[i].cells[0].textContent, document.getElementById('profiles2').rows[i].cells[0].textContent);
     }
 
     var select = document.getElementById('proxyTask2');
-    select.options.length = 0;
-    select.options[select.options.length] = new Option('', '')
-    select.options[select.options.length + 1] = new Option('No Proxy', '-')
+    select.options.length = 1;
+    select.options[select.options.length] = new Option('None', '-')
     for (var i = 1; i < document.getElementById('proxies2').rows.length; i++) {
         select.options[select.options.length] = new Option(document.getElementById('proxies2').rows[i].cells[0].textContent, document.getElementById('proxies2').rows[i].cells[0].textContent);
     }
 
     var select = document.getElementById('accountTask2');
-    select.options.length = 0;
-    select.options[select.options.length] = new Option('', '')
-    select.options[select.options.length + 1] = new Option('No Account', '-')
+    select.options.length = 1;
+    select.options[select.options.length] = new Option('None', '-')
     for (var i = 1; i < document.getElementById('accounts2').rows.length; i++) {
         select.options[select.options.length] = new Option(document.getElementById('accounts2').rows[i].cells[0].textContent, document.getElementById('accounts2').rows[i].cells[0].textContent);
     }
@@ -2800,24 +2771,21 @@ function tasks() {
 function settings() {
     var select = document.getElementById('profileQTSelect');
     select.options.length = 0;
-    select.options[select.options.length] = new Option('', '')
     for (var i = 1; i < document.getElementById('profiles2').rows.length; i++) {
         select.options[select.options.length] = new Option(document.getElementById('profiles2').rows[i].cells[0].textContent, document.getElementById('profiles2').rows[i].cells[0].textContent);
     }
 
     var select = document.getElementById('proxyQTSelect');
     select.options.length = 0;
-    select.options[select.options.length] = new Option('', '')
-    select.options[select.options.length + 1] = new Option('No Proxy', '-')
+    select.options[select.options.length] = new Option('None', '-')
     for (var i = 1; i < document.getElementById('proxies2').rows.length; i++) {
         select.options[select.options.length] = new Option(document.getElementById('proxies2').rows[i].cells[0].textContent, document.getElementById('proxies2').rows[i].cells[0].textContent);
     }
 
-    var settings = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/settings.json'), { encoding: 'utf8', flag: 'r' }));
-
-    $('#profileQTSelect').val(settings[1].qtProfile);
-    $('#proxyQTSelect').val(settings[1].qtProxy);
-    $('#sizeQTSelect').val(settings[1].qtSize);
+    var settings = storage.getSync("settings")
+    profileQTSelect.set(settings[1].qtProfile)
+    proxyQTSelect.set(settings[1].qtProxy)
+    sizeQTSelect.set(settings[1].qtSize)
 
     document.getElementById("settingsIcon").style.opacity = 1.0
     document.getElementById("analyticsIcon").style.opacity = 0.3
@@ -2891,7 +2859,6 @@ function accounts() {
 }
 
 function captchas() {
-    clearHarvesterFields()
     document.getElementById("settingsIcon").style.opacity = 0.3
     document.getElementById("taskIcon").style.opacity = 0.3
     document.getElementById("analyticsIcon").style.opacity = 0.3

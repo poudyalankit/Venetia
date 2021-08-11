@@ -1,17 +1,31 @@
-const { app, BrowserWindow, ipcMain, BrowserView, dialog, protocol, session } = require('electron')
-const { autoUpdater } = require("electron-updater")
 const electron = require('electron');
-const client = require('discord-rich-presence')('768276915651739678');
-const fs = require('fs')
+
+const { app, BrowserWindow, ipcMain, BrowserView, dialog, session } = require('electron')
 var path = require('path')
 const configDir = (electron.app).getPath('userData');
+const isDev = require('electron-is-dev');
+const storage = require('electron-json-storage');
+storage.setDataPath(configDir + "/userdata")
+
+app.commandLine.appendSwitch('disable-site-isolation-trials')
+
+
+const { autoUpdater } = require("electron-updater")
+const client = require('discord-rich-presence')('768276915651739678');
+const fs = require('fs')
+const fse = require('fs-extra')
+
+const { exec } = require("child_process");
+
+
 const express = require('express');
 const captchaSharing = express();
 captchaSharing.use(express.json())
+
 async function checkMultipleInstances() {
     const got = require('got');
     try {
-        let response = await got('http://localhost:4444/toastyaio/datadome')
+        let response = await got('http://localhost:4444/test')
         app.quit()
     } catch (error) {
         captchaSharing.listen(process.env.PORT || 4444, function() {
@@ -24,11 +38,7 @@ async function checkMultipleInstances() {
 checkMultipleInstances()
 
 
-var cookieBank = []
-
 var captchaQueue = []
-var solvedCaptchas = []
-
 var proxyUsername;
 var proxyPassword;
 
@@ -78,19 +88,8 @@ autoUpdater.on('error', message => {
 })
 
 
-captchaSharing.post("/venetia/addtoQueue", async(req, res) => {
-    var id = makeid(5)
-    req.body.sessionCookies = req.body.sessionCookies.cookies
-    captchaQueue.push({
-        "captchaType": req.body.captchaType,
-        "siteURL": req.body.siteURL,
-        "sessionCookies": req.body.sessionCookies,
-        "id": id,
-        "taskProxy": req.body.taskProxy
-    })
-    res.json({
-        "id": id
-    })
+captchaSharing.get("/test", async(req, res) => {
+    res.send("test")
 });
 
 captchaSharing.get("/quicktask", async(req, res) => {
@@ -139,102 +138,12 @@ captchaSharing.get("/quicktask", async(req, res) => {
         res.send("Site not available for quick tasks")
 });
 
-captchaSharing.get("/venetia/solvedCaptchas", async(req, res) => {
-    if (typeof req.query.id != 'undefined') {
-        for (var i = 0; i < solvedCaptchas.length; i++) {
-            if (solvedCaptchas[i].id === req.query.id) {
-                res.json(solvedCaptchas[i])
-                solvedCaptchas.splice(i, 1)
-            }
-        }
-    }
-    res.json({
-        "completed": false
-    })
-});
-
-captchaSharing.post("/venetia/addToSolvedCaptchas", async(req, res) => {
-    solvedCaptchas.push({
-        "captchaResponse": req.body.captchaResponse,
-        "completed": true,
-        "id": req.body.id,
-        "cookies": req.body.cookies
-    })
-    for (var i = 0; i < captchaQueue.length; i++) {
-        if (captchaQueue[i].id === req.body.id) {
-            captchaQueue.splice(i, 1)
-            break;
-        }
-    }
-    res.send("done")
-});
-
-captchaSharing.get("/venetia/viewCaptchaQueue", async(req, res) => {
-    var alreadyTaken = []
-    for (var j = 0; j < captchaQueue.length; j++) {
-        if (typeof captchaQueue[j].windowid != 'undefined') {
-            alreadyTaken.push(captchaQueue[j].windowid)
-        }
-    }
-    for (var i = 0; i < captchaQueue.length; i++) {
-        if (typeof captchaQueue[i].windowid === 'undefined') {
-            captchaQueue[i].windowid = req.query.windowid
-            res.json(captchaQueue[i])
-            break;
-        }
-    }
-
-    res.json({
-        "message": "No captchas available to solve"
-    })
-});
-
-captchaSharing.get("/venetia/searchByWindowID", async(req, res) => {
-    for (var i = 0; i < captchaQueue.length; i++) {
-        if (typeof captchaQueue[i].windowid != 'undefined' && captchaQueue[i].windowid === req.query.windowid) {
-            res.json(captchaQueue[i])
-        }
-    }
-    res.json([])
-});
-
-
-captchaSharing.get("/toastyaio/datadome", async(req, res) => {
-    res.json(cookieBank)
-});
-
-
-captchaSharing.get("/toastyaio/addCookie", async(req, res) => {
-    cookieBank.push({ cookie: req.query.cookie, uses: 0 })
-    res.send("added")
-});
-
-captchaSharing.get("/toastyaio/addUse", async(req, res) => {
-    for (var i = 0; i < cookieBank.length; i++) {
-        if (cookieBank[i].cookie === req.query.cookie) {
-            cookieBank[i].uses = cookieBank[i].uses + 1;
-        }
-    }
-    res.send("added")
-});
-
-
-setInterval(function() {
-    for (var i = 0; i < cookieBank.length; i++) {
-        if (cookieBank[i].uses > 20)
-            cookieBank.splice(i, 1);
-    }
-}, 5000);
-
-
-
-let taskArray = []
 
 
 let win;
 
 client.updatePresence({
-    details: 'v0.4.17',
+    details: 'v0.5.0',
     startTimestamp: Date.now(),
     largeImageKey: "venetia",
     largeImageText: "Venetia",
@@ -246,13 +155,13 @@ function keyAuth() {
         width: 682,
         height: 366,
         backgroundColor: '#181a26',
-
         icon: path.join(__dirname, 'images/logo.png'),
         frame: false,
         webPreferences: {
             nodeIntegration: true,
             enableRemoteModule: true,
-            devTools: false
+            devTools: false,
+            spellcheck: false
         }
     })
     keyAuthWindow.openDevTools(true)
@@ -274,54 +183,96 @@ function createWindow() {
         webPreferences: {
             nodeIntegration: true,
             enableRemoteModule: true,
+            spellcheck: false,
             devTools: false
         }
     })
     win.openDevTools(true)
     win.loadFile('index.html');
     win.setMenuBarVisibility(false);
-    //win.setResizable(false);
+    fse.emptyDir(path.join(configDir, "logs"), err => {
+        if (err) return console.error(err)
+    })
+    var captchas = storage.getSync("captchas")
+    var uuids = []
+    for (var i = 0; i < captchas.length; i++) {
+        uuids.push(Object.keys(captchas[i])[0])
+    }
+    fs.readdirSync(path.join(configDir, "Partitions")).forEach(file => {
+        if (uuids.includes(file) == false) {
+            fse.remove(path.join(configDir, "Partitions", file), err => {
+                if (err) return console.error(err)
+            })
+        }
+    });
+
+
     win.on('closed', () => app.quit());
+    exec("node taskRunner.js", (error) => {});
 
-    backendA = new BrowserWindow({
-        width: 200,
-        height: 50,
-        backgroundColor: '#181a26',
-        icon: path.join(__dirname, 'images/logo.png'),
-        frame: false,
-        show: false,
-        webPreferences: {
-            nodeIntegration: true,
-            enableRemoteModule: true,
-            devTools: false
+    setInterval(function() {
+        for (var i = 0; i < BrowserWindow.getAllWindows().length; i++) {
+            if (BrowserWindow.getAllWindows()[i].readyToSolve != 'undefined' && BrowserWindow.getAllWindows()[i].readyToSolve && captchaQueue.length != 0) {
+                BrowserWindow.getAllWindows()[i].webContents.send("message", {
+                    event: "newCaptcha",
+                    data: captchaQueue[0]
+                })
+                BrowserWindow.getAllWindows()[i].readyToSolve = false;
+                captchaQueue.shift()
+            }
         }
-    })
-    backendA.openDevTools(true)
-    backendA.loadFile('backend.html');
-    backendA.setMenuBarVisibility(false);
-    backendA.setResizable(false);
-
-
-    backendB = new BrowserWindow({
-        width: 200,
-        height: 50,
-        backgroundColor: '#181a26',
-        icon: path.join(__dirname, 'images/logo.png'),
-        frame: false,
-        show: false,
-        webPreferences: {
-            nodeIntegration: true,
-            enableRemoteModule: true,
-            devTools: false
-        }
-    })
-    backendB.openDevTools(true)
-    backendB.loadFile('backend.html');
-    backendB.setMenuBarVisibility(false);
-    backendB.setResizable(false);
+    }, 100);
 }
 
-var backendArray = ['backendA', 'backendB']
+
+const WebSocket = require("ws");
+const backend = new WebSocket.Server({ port: 4443 })
+let backendConnection;
+
+function send(message) {
+    backendConnection.send(JSON.stringify(message))
+}
+
+backend.on('connection', function(backend) {
+    backendConnection = backend
+    send({
+        event: "setConfigDir",
+        data: {
+            configDir: configDir,
+            isDev: isDev
+        }
+    })
+    backend.on('message', function(message) {
+        message = JSON.parse(message)
+        if (message.event === "connected") {
+            if (message.data.status == true)
+                win.webContents.send('backendConnection', "Connected")
+        }
+
+        if (message.event === "taskStatus") {
+            win.webContents.send('updateStatus', message.data.taskID, message.data.newStatus)
+        }
+
+        if (message.event === "taskProductTitle") {
+            win.webContents.send('updateProductTitle', message.data.taskID, message.data.newTitle)
+        }
+
+        if (message.event === "sendCaptcha") {
+            captchaQueue.push({
+                "captchaType": message.data.captchaType,
+                "captchaURL": message.data.captchaURL,
+                "sessionCookies": message.data.sessionCookies,
+                "taskID": message.data.taskID,
+                "taskProxy": message.data.taskProxy,
+                "siteURL": message.data.siteURL
+            })
+        }
+    });
+    backend.on('close', function() {
+        win.webContents.send('backendConnection', "Disconnected")
+    });
+});
+
 
 app.whenReady(() => {
     app.allowRendererProcessReuse = false;
@@ -362,6 +313,148 @@ ipcMain.on('updateProductTitle1', (event, taskID, title) => {
     win.webContents.send('updateProductTitle', taskID, title)
 });
 
+ipcMain.on('message', (event, message) => {
+    if (message.event === "restartBackend") {
+        send({
+            event: "killBackend"
+        })
+        setTimeout(function() {
+            exec("node taskRunner.js", (error) => {});
+        }, 1500);
+    }
+
+    if (message.event === "finishedCaptcha") {
+        send({
+            event: "finishedCaptcha",
+            data: {
+                taskID: message.data.taskID,
+                captchaInfo: message.data.captchaInfo
+            }
+        })
+    }
+
+    if (message.event === "transferCaptcha") {
+        captchaQueue.push({
+            "captchaType": message.data.captchaType,
+            "captchaURL": message.data.captchaURL,
+            "sessionCookies": message.data.sessionCookies,
+            "taskID": message.data.taskID,
+            "taskProxy": message.data.taskProxy,
+            "siteURL": message.data.siteURL
+        })
+    }
+
+    if (message.event === "deleteHarvester") {
+        for (var i = 0; i < BrowserWindow.getAllWindows().length; i++) {
+            if (typeof BrowserWindow.getAllWindows()[i].uuid != 'undefined' && BrowserWindow.getAllWindows()[i].uuid === message.data.uuid)
+                BrowserWindow.getAllWindows()[i].close()
+        }
+    }
+
+    if (message.event === "signInHarvester") {
+        console.log(message.data.harvesterProxy)
+        var sess2 = session.fromPartition('persist:' + message.data.uuid);
+        if (message.data.harvesterProxy != "") {
+            var x = message.data.harvesterProxy.split(":")
+            if (x.length == 2)
+                sess2.setProxy({ proxyRules: "http://" + message.data.harvesterProxy })
+            else if (x.length == 4) {
+                proxyUsername = x[2]
+                proxyPassword = x[3]
+                var newProxy = x[0] + ":" + x[1]
+                sess2.setProxy({ proxyRules: "http://" + newProxy })
+            }
+        } else {
+            sess2.setProxy({ proxyRules: null })
+        }
+
+        var harvester = new BrowserWindow({
+            width: 405,
+            height: 600,
+            icon: path.join(__dirname, 'images/logo.png'),
+            webPreferences: {
+                devTools: false
+            }
+        })
+        const view2 = new BrowserView({
+            webPreferences: {
+                session: sess2,
+                devTools: false
+            }
+        })
+        harvester.openDevTools(true)
+        harvester.setResizable(false)
+        harvester.setMenuBarVisibility(false)
+        view2.webContents.openDevTools()
+        view2.setBackgroundColor("#181a26")
+        harvester.setBrowserView(view2)
+        view2.setBounds({ x: 0, y: 0, width: 405, height: 500 })
+        view2.webContents.loadURL('https://accounts.google.com', {
+            userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A356 Safari/604.1'
+        })
+        harvester.uuid = message.data.uuid
+    }
+
+    if (message.event === "launchHarvester") {
+        var isOpen = false;
+        for (var i = 0; i < BrowserWindow.getAllWindows().length; i++) {
+            if (typeof BrowserWindow.getAllWindows()[i].uuid != 'undefined' && BrowserWindow.getAllWindows()[i].uuid === message.data.uuid)
+                isOpen = true;
+        }
+        if (isOpen == false) {
+            var sess = session.fromPartition('persist:' + message.data.uuid);
+            if (message.data.harvesterProxy != "") {
+                var x = message.data.harvesterProxy.split(":")
+                if (x.length == 2)
+                    sess.setProxy({ proxyRules: "http://" + message.data.harvesterProxy })
+                else if (x.length == 4) {
+                    proxyUsername = x[2]
+                    proxyPassword = x[3]
+                    var newProxy = x[0] + ":" + x[1]
+                    sess.setProxy({ proxyRules: "http://" + newProxy })
+                }
+            } else {
+                sess.setProxy({ proxyRules: null })
+            }
+
+            var harvester = new BrowserWindow({
+                frame: false,
+                width: 405,
+                height: 600,
+                backgroundColor: '#181a26',
+                icon: path.join(__dirname, 'images/logo.png'),
+                webPreferences: {
+                    devTools: false,
+                    nodeIntegration: true,
+                    enableRemoteModule: true
+                }
+            })
+            const view2 = new BrowserView({
+                webPreferences: {
+                    enableRemoteModule: true,
+                    webSecurity: false,
+                    session: sess,
+                    devTools: false
+                }
+            })
+            harvester.loadFile("captchaHandler.html")
+            harvester.openDevTools(true)
+            harvester.setMenuBarVisibility(false)
+            harvester.setResizable(false)
+            view2.webContents.openDevTools()
+            view2.setBackgroundColor("#181a26")
+            harvester.setBrowserView(view2)
+            view2.setBounds({ x: 0, y: 80, width: 405, height: 520 })
+            harvester.harvesterName = message.data.harvesterName;
+            harvester.harvesterType = message.data.harvesterType
+            harvester.readyToSolve = false;
+            harvester.uuid = message.data.uuid
+            harvester.taskID = ""
+        }
+    }
+});
+
+
 ipcMain.on('taskinfo', (event, taskInfo) => {
     var groups = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/tasks.json'), { encoding: 'utf8', flag: 'r' }));
     taskInfo = {
@@ -379,29 +472,40 @@ ipcMain.on('taskinfo', (event, taskInfo) => {
             "second": groups[taskInfo.groupIndex][taskInfo.groupName][taskInfo.taskIndex][taskInfo.taskID]['schedule']['second']
         }
     }
-    var x = backendArray.sample()
-    console.log(x)
-    if (x === 'backendA')
-        backendA.webContents.send('taskinfo1', taskInfo)
-    else if (x === 'backendB')
-        backendB.webContents.send('taskinfo1', taskInfo)
+    if (taskInfo.size.includes(",")) {
+        taskInfo.size = taskInfo.size.split(",").sample().trim()
+    }
+
+    send({
+        event: "taskInfo",
+        taskInfo: taskInfo
+    })
 });
 
 ipcMain.on('startQT', (event, taskInfo) => {
-    var x = backendArray.sample()
-    if (x === 'backendA')
-        backendA.webContents.send('taskinfo1', taskInfo)
-    else if (x === 'backendB')
-        backendB.webContents.send('taskinfo1', taskInfo)
+    send({
+        event: "taskInfo",
+        taskInfo: taskInfo
+    })
 });
 
 
-
-ipcMain.on('stopTask', (event, taskNumber) => {
-    backendA.webContents.send('stopTask1', taskNumber)
-    backendB.webContents.send('stopTask1', taskNumber)
+ipcMain.on('stopTask', (event, taskID) => {
+    for (var i = 0; i < BrowserWindow.getAllWindows().length; i++) {
+        if (BrowserWindow.getAllWindows()[i].taskID === taskID.taskID)
+            BrowserWindow.getAllWindows()[i].getBrowserView(0).webContents.loadFile("harvester.html")
+    }
+    for (var i = 0; i < captchaQueue.length; i++) {
+        if (captchaQueue[i].taskID === taskID.taskID)
+            captchaQueue.splice(i, 1)
+    }
+    send({
+        event: "stopTask",
+        data: {
+            taskID: taskID.taskID
+        }
+    })
 });
-
 
 
 ipcMain.on('reverify', (event, key) => {
@@ -409,6 +513,9 @@ ipcMain.on('reverify', (event, key) => {
     got({
         method: 'get',
         url: "https://venetiabots.com/api/activate?key=" + key,
+        headers: {
+            version: "0.5.0"
+        },
         responseType: 'json'
     }).then(response => {
         if (response.body.exists === "false") {
@@ -430,6 +537,9 @@ ipcMain.on('verify', (event, key) => {
     got({
         method: 'get',
         url: "https://venetiabots.com/api/activate?key=" + key,
+        headers: {
+            version: "0.5.0"
+        },
         responseType: 'json'
     }).then(response => {
         if (response.body.activated === "true" && response.body.ipMatch === "true") {
@@ -449,88 +559,6 @@ ipcMain.on('verify', (event, key) => {
     })
 });
 
-
-ipcMain.on('launchHarvester', function(event, harvesterName, harvesterProxy) {
-    var sess = session.fromPartition('persist:' + harvesterName);
-    if (harvesterProxy != "") {
-        var x = harvesterProxy.split(":")
-        if (x.length == 2)
-            sess.setProxy({ proxyRules: "http://" + harvesterProxy })
-        else if (x.length == 4) {
-            proxyUsername = x[2]
-            proxyPassword = x[3]
-            var newProxy = x[0] + ":" + x[1]
-            sess.setProxy({ proxyRules: "http://" + newProxy })
-        }
-    } else {
-        sess.setProxy({ proxyRules: "" })
-    }
-
-    var harvester = new BrowserWindow({
-        frame: false,
-        width: 405,
-        height: 600,
-        backgroundColor: '#181a26',
-        icon: path.join(__dirname, 'images/logo.png'),
-        webPreferences: {
-            devTools: false,
-            nodeIntegration: true,
-            enableRemoteModule: true
-
-        }
-    })
-    const view2 = new BrowserView({
-        webPreferences: {
-            enableRemoteModule: true,
-            webSecurity: false,
-            session: sess,
-            devTools: false
-        }
-    })
-    harvester.loadFile("harvesterBackScreen2.html")
-    harvester.openDevTools(true)
-    harvester.setMenuBarVisibility(false)
-    harvester.setResizable(false)
-    view2.webContents.openDevTools()
-    view2.setBackgroundColor("#181a26")
-    harvester.setBrowserView(view2)
-    view2.setBounds({ x: 0, y: 25, width: 405, height: 500 })
-    view2.webContents.loadFile('harvester.html')
-});
-
-ipcMain.on('googleSignIn', function(event, harvesterName, harvesterProxy) {
-    var sess2 = session.fromPartition('persist:' + harvesterName);
-    if (harvesterProxy != "") {
-        var x = harvesterProxy.split(":")
-        if (x.length == 2)
-            sess2.setProxy({ proxyRules: "http://" + harvesterProxy })
-        else if (x.length == 4) {
-            proxyUsername = x[2]
-            proxyPassword = x[3]
-            var newProxy = x[0] + ":" + x[1]
-            sess2.setProxy({ proxyRules: "http://" + newProxy })
-        }
-    } else {
-        sess2.setProxy({ proxyRules: "" })
-    }
-    var harvester = new BrowserWindow({
-        width: 405,
-        height: 600,
-        icon: path.join(__dirname, 'images/logo.png'),
-        webPreferences: {
-            nodeIntegration: true,
-            enableRemoteModule: true,
-            webSecurity: false,
-            session: sess2,
-            devTools: false
-        }
-    })
-
-    harvester.setMenuBarVisibility(false)
-    harvester.setResizable(false)
-    harvester.loadURL('https://accounts.google.com', { userAgent: 'Chrome' })
-
-});
 Array.prototype.sample = function() {
     return this[Math.floor(Math.random() * this.length)];
 }

@@ -2,12 +2,13 @@
 <html>
 
 <head>
-    <link href="src/css/select2.min.css" rel="stylesheet">
+    <link href="src/css/slimselect.min.css" rel="stylesheet"></link>
     <link rel="stylesheet" href="src/css/styles.css">
     <link rel="preconnect" href="https://fonts.gstatic.com">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins" rel="stylesheet">
     <script src="src/js/script.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+
 </head>
 
 <body>
@@ -15,6 +16,11 @@
         <li data-action="first" class="menuText">New Group</li>
         <li data-action="second" class="menuText">Delete Selected</li>
     </ul>
+
+    <div id="backendStatusText" class="backendStatusText">
+        Disconnected
+    </div>
+    <img id="backendStatusIcon" onclick="restartBackend()" class="backendStatusIcon" draggable="false" src="./images/x.png">
 
     <ul class='custom-menu-tasks'>
         <li data-action="first" class="menuText">Start Selected</li>
@@ -163,7 +169,7 @@
 
     <div id="taskView" style="display: none">
 
-        <input type="text" id="filterGroups" onkeyup="filterGroups()" class="groupFilter" spellcheck="false" placeholder="Search groups">
+        <input type="text" id="filterGroups" onkeyup="filterGroups()" class="groupFilter" placeholder="Search groups">
         <button class="createGroup" onclick="addGroup()">New Group</button>
 
         <img draggable="false" class="taskController" src="./images/popout.png">
@@ -179,7 +185,7 @@
             </div>
             <img id="delaysButton" src="images/delays.png" style="display: none" class="delaysButton" onclick="delayModal()">
 
-            <input type="text" id="filterInput" onkeyup="filterTable()" class="taskFilter" spellcheck="false" placeholder="Search tasks"><br>
+            <input type="text" id="filterInput" onkeyup="filterTable()" class="taskFilter" placeholder="Search tasks"><br>
             <button id="createButton" disabled class="createTask" onclick="taskCreator()">
                         Create
                     </button>
@@ -225,9 +231,9 @@
                         <div class="storeNameTitle">
                             Monitor Delay
                         </div>
-                        <input class="storeNameEntry" id="monitorDelay" style="width: 270px;" spellcheck="false" placeholder="3000" type="text">
+                        <input class="storeNameEntry" id="monitorDelay" style="width: 270px;" placeholder="3000" type="text">
                         <div class="baseLinkTitle">Error Delay</div>
-                        <input class="baseLinkEntry" id="errorDelay" spellcheck="false" style="width: 270px;" placeholder="3000" type="text">
+                        <input class="baseLinkEntry" id="errorDelay" style="width: 270px;" placeholder="3000" type="text">
                         <button class="addStoreConfirmButton" style="left: 210px;" onclick="saveDelays(); closeDelayModal(event);">Save</button>
                     </div>
                 </div>
@@ -240,10 +246,7 @@
                     <div class="modalHeader">Task Creator</div>
                 </div>
 
-                <input type="checkbox" id="captchaLess" style="position: absolute; top: 510px; left:440px; display: none" class='selectCheckbox' onclick='changeColor(this, event)'>
-                <div id="captchaLessLabel" style="position: absolute; top: 515px; font-size: 12px; width: 200px; left: 480px; display: none; color: white;font-family: Poppins;">
-                    Captchaless
-                </div>
+
                 <div class="closeModal">
                     <a onclick="closeModal(event)" href="#" draggable="false">
                         <img draggable="false" src="./images/x.png">
@@ -253,18 +256,30 @@
                     Site
                 </div>
                 <div class="siteTaskEntry">
-                    <select id="siteTask" class="select2" style="width: 169px" onchange="modeChoices()">
-                            <option value=""></option>
+                    <select id="siteTask" onchange="modeChoices()">
+                            <option value="" data-placeholder="true"></option>
+                            <optgroup label="Footsites">
                             <option value="ChampsSports">ChampsSports</option>
                             <option value="EastBay">EastBay</option>
-                            <option value="Federal Premium">Federal Premium</option>
                             <option value="FootAction">FootAction</option>
                             <option value="FootLocker">FootLocker</option>
                             <option value="FootLockerCA">FootLockerCA</option>
                             <option value="KidsFootLocker">KidsFootLocker</option>
+                            </optgroup>
+                                                    <optgroup label="Shopify" id="shopify">
+                            
+                        </optgroup>
+                         <optgroup label="Custom Shopify" id="customShopify">
+
+                         </optgroup>         
+                            <optgroup label="Supreme">
+                            <option disabled value="Supreme US">Supreme US</option>
+                             </optgroup>
+                             <optgroup label="Other">    
+                            <option value="Federal Premium">Federal Premium</option>
                             <option value="Shiekh">Shiekh</option>
                             <option value="SSENSE">SSENSE</option>
-                            <option value="Supreme">Supreme</option>
+                        </optgroup>
                           </select>
                 </div>
                 <div class="sizeTaskTitle">
@@ -274,20 +289,24 @@
                     Mode
                 </div>
                 <div class="modeTaskEntry">
-                    <select disabled="true" style="width: 169px" class="select2" id="modeTask">
-                            <option value=""></option>
-                          </select>
+                    <select id="modeTask">
+  <option data-placeholder="true"></option>
+                        </select>
                 </div>
                 <div class="sizeTaskEntry">
-                    <select disabled="true" class="select2" style="width: 169px" id="sizeTask">
-                            <option value=""></option>
+                    <select multiple id="sizeTask">
+                            <optgroup label="General">
                             <option value="RS">Random</option>
+                            </optgroup>
+                            <optgroup label="Clothing">
                             <option value="XXS">XXS</option>
             <option value="XS">XS</option>
             <option value="S">S</option>
             <option value="M">M</option>
             <option value="L">L</option>
             <option value="XL">XL</option>
+            </optgroup>
+            <optgroup label="Shoes">
             <option value="3">3</option>
             <option value="3.5">3.5</option>
             <option value="4">4</option>
@@ -309,46 +328,39 @@
             <option value="12">12</option>
             <option value="12.5">12.5</option>
             <option value="13">13</option>
+            </optgroup>
           </select>
                 </div>
                 <div class="linkTaskTitle">
-                    Link
+                    Monitor Input
                 </div>
-                <input disabled="true" spellcheck="false" type="text" placeholder="URL/PID" id="linkTask" class="linkTaskEntry"><br>
+                <input type="text" placeholder="Keywords, URL, or variant" id="linkTask" class="linkTaskEntry"><br>
                 <div class="profileTaskTitle">
                     Profile
                 </div>
                 <div class="profileTaskEntry">
-                    <select disabled="true" class="select2" style="width: 169px" id="profileTask">
+                    <select multiple id="profileTask">
+                      <option value="" data-placeholder="true"></option>
                           </select>
                 </div>
                 <div class="proxyTaskTitle">
                     Proxies
                 </div>
                 <div class="proxyTaskEntry">
-                    <select disabled="true" class="select2" style="width: 169px" id="proxyTask">
+                    <select id="proxyTask">
+  <option data-placeholder="true"></option>
                          </select>
                 </div>
                 <div class="accountTaskTitle">
                     Accounts
                 </div>
                 <div class="accountTaskEntry">
-                    <select disabled="true" class="select2" id="accountTask" style="width: 169px">
+                    <select id="accountTask">
+                          <option data-placeholder="true"></option>
           </select>
                 </div>
-                <div class="quantityTaskTitle">
-                    Quantity of Tasks
-                </div>
-                <input disabled="true" spellcheck="false" type="text" id="quantityTask" value="1" placeholder="1" class="quantityTaskEntry"><br>
-                <div id="scheduleFeature" style="display: none">
-                    <div class="scheduleTaskTitle">
-                        Schedule
-                    </div>
-                    <input type="text" id="hourTaskEntry" maxlength="2" placeholder="09" class="hourTaskEntry"><br>
-                    <input type="text" id="minuteTaskEntry" maxlength="2" placeholder="59" class="minuteTaskEntry"><br>
-                    <input type="text" id="secondTaskEntry" maxlength="2" placeholder="45" class="secondTaskEntry"><br>
-                </div>
-                <button class="addTaskButton" onclick="addTask()">Add</button>
+                <input type="text" id="quantityTask" value="1" placeholder="1" class="quantityTaskEntry"><br>
+                <button class="addTaskButton" onclick="addTask()">Create</button>
             </div>
 
         </div>
@@ -359,10 +371,6 @@
                     <div class="modalHeader">Task Editor</div>
                 </div>
 
-                <input type="checkbox" id="captchaLess2" style="position: absolute; top: 510px; left:440px; display: none" class='selectCheckbox' onclick='changeColor(this, event)'>
-                <div id="captchaLessLabel2" style="position: absolute; top: 515px; font-size: 12px; width: 200px; left: 480px; display: none; color: white;font-family: Poppins;">
-                    Captchaless
-                </div>
                 <div class="closeModal">
                     <a onclick="closeEditor(event)" href="#" draggable="false">
                         <img draggable="false" src="./images/x.png">
@@ -372,19 +380,30 @@
                     Site
                 </div>
                 <div class="siteTaskEntry">
-                    <select id="siteTask2" class="select2" style="width: 169px" onchange="modeChoices2()">
-                             <option value=""></option>
+                    <select id="siteTask2" onchange="modeChoices2()">
+                           <option value="" data-placeholder="true"></option>
+                            <optgroup label="Footsites">
                             <option value="ChampsSports">ChampsSports</option>
                             <option value="EastBay">EastBay</option>
-                            <option value="Federal Premium">Federal Premium</option>
                             <option value="FootAction">FootAction</option>
                             <option value="FootLocker">FootLocker</option>
                             <option value="FootLockerCA">FootLockerCA</option>
                             <option value="KidsFootLocker">KidsFootLocker</option>
-                            <option value="LadyFootLocker">LadyFootLocker</option>
+                            </optgroup>
+                                                    <optgroup label="Shopify" id="shopify2">
+                            
+                        </optgroup>
+                         <optgroup label="Custom Shopify" id="customShopify2">
+
+                         </optgroup>         
+                            <optgroup label="Supreme">
+                            <option disabled value="Supreme US">Supreme US</option>
+                             </optgroup>
+                             <optgroup label="Other">    
+                            <option value="Federal Premium">Federal Premium</option>
                             <option value="Shiekh">Shiekh</option>
                             <option value="SSENSE">SSENSE</option>
-                            <option value="Supreme">Supreme</option>
+                        </optgroup>
                           </select>
                 </div>
                 <div class="sizeTaskTitle">
@@ -394,21 +413,24 @@
                     Mode
                 </div>
                 <div class="modeTaskEntry">
-                    <select style="width: 169px" class="select2" id="modeTask2">
-                            <option value=""></option>
+                    <select id="modeTask2">
+                            <option data-placeholder="true" value=""></option>
                           </select>
                 </div>
                 <div class="sizeTaskEntry">
-                    <select class="select2" style="width: 169px" id="sizeTask2">
-                            <option value=""></option>
+                    <select multiple id="sizeTask2">
+                            <optgroup label="General">
                             <option value="RS">Random</option>
-                            <option value="" disabled>Clothing</option>
+                            </optgroup>
+                            <optgroup label="Clothing">
                             <option value="XXS">XXS</option>
             <option value="XS">XS</option>
             <option value="S">S</option>
             <option value="M">M</option>
             <option value="L">L</option>
             <option value="XL">XL</option>
+            </optgroup>
+            <optgroup label="Shoes">
             <option value="3">3</option>
             <option value="3.5">3.5</option>
             <option value="4">4</option>
@@ -430,46 +452,42 @@
             <option value="12">12</option>
             <option value="12.5">12.5</option>
             <option value="13">13</option>
+            </optgroup>
           </select>
                 </div>
                 <div class="linkTaskTitle">
-                    Link
+                    Monitor Input
                 </div>
-                <input type="text" placeholder="URL/PID" id="linkTask2" class="linkTaskEntry"><br>
+                <input type="text" placeholder="Keywords, URL, or variant" id="linkTask2" class="linkTaskEntry"><br>
                 <div class="profileTaskTitle">
                     Profile
                 </div>
                 <div class="profileTaskEntry">
-                    <select class="select2" style="width: 169px" id="profileTask2">
+                    <select id="profileTask2">
+                                                    <option data-placeholder="true" value=""></option>
+
                           </select>
                 </div>
                 <div class="proxyTaskTitle">
                     Proxies
                 </div>
                 <div class="proxyTaskEntry">
-                    <select class="select2" style="width: 169px" id="proxyTask2">
+                    <select id="proxyTask2">
+                                                                            <option data-placeholder="true" value=""></option>
+
                          </select>
                 </div>
                 <div class="accountTaskTitle">
                     Accounts
                 </div>
                 <div class="accountTaskEntry">
-                    <select class="select2" id="accountTask2" style="width: 169px">
-          </select>
+                    <select id="accountTask2">
+                                                                            <option data-placeholder="true" value=""></option>
+
+                    </select>
                 </div>
-                <div class="quantityTaskTitle">
-                    Quantity of Tasks
-                </div>
-                <input disabled="true" type="text" id="quantityTask2" value="1" placeholder="1" class="quantityTaskEntry"><br>
-                <div id="scheduleFeature2" style="display: none">
-                    <div class="scheduleTaskTitle2">
-                        Schedule
-                    </div>
-                    <input type="text" id="hourTaskEntry2" maxlength="2" placeholder="09" class="hourTaskEntry"><br>
-                    <input type="text" id="minuteTaskEntry2" maxlength="2" placeholder="59" class="minuteTaskEntry"><br>
-                    <input type="text" id="secondTaskEntry2" maxlength="2" placeholder="45" class="secondTaskEntry"><br>
-                </div>
-                <button class="addTaskButton" onclick="editSelected()">Save</button>
+
+                <button class="addTaskButton" onclick="editSelected()">Edit</button>
             </div>
 
         </div>
@@ -493,7 +511,7 @@
         <div class="notificationBox">
             <div class="notificationsTitle">Notifications</div>
             <div class="discordWebhookTitle">Discord Webhook</div>
-            <input class="webhookEntry" spellcheck="false" id="webhookLink" onblur="saveWebhook()">
+            <input class="webhookEntry" id="webhookLink" onblur="saveWebhook()">
             <button class="validateWebhook" onclick="testWebhook()">Validate</button>
         </div>
         <div class="preferencesBox">
@@ -527,16 +545,15 @@
         <div class="updateBox">
             <div class="updateBoxTitle">Software Information</div>
             <div class="currentVersionTitle">Current Version</div>
-            <div class="currentVersionText">0.4.17</div>
+            <div class="currentVersionText">0.5.0</div>
             <button class="updateButton" onclick="update()">Update</button>
         </div>
         <div class="customSites">
             <div class="customSitesTitle">Custom Sites</div>
             <div class="customSitesSubtitle">Add a custom Shopify store</div>
             <div class="shopifySites">
-                <select id="shopifyStores" class="select2" style="width: 254px">
-                <option value=""></option>
-
+                <select id="shopifyStores">
+                <option value="" data-placeholder="true"></option>
                 </select>
             </div>
             <button class="addStoreButton" onclick="addStore()">Add</button>
@@ -544,10 +561,10 @@
             <div id="darkenBackground2" class="darkenBackground"></div>
 
             <div id="storeAdder" onclick="closeStoreModal(event)" class="modal animate__animated animate__zoomIn animate__faster" style='display: none'>
-                <div class="modal-content" style="height: 262px; margin: 21% auto">
-                    <div class="modalHeaderBackground">
+                <div class="modal-content" style="height: 262px;  width: 500px; margin: 21% auto">
+                    <div class="modalHeaderBackground" style="width: 500px;">
                         <div class="modalHeader">Custom Store</div>
-                        <div class="closeModal" style="top:10px; left: 458px;">
+                        <div class="closeModal" style="top:10px; left: 475px;">
                             <a onclick="closeStoreModal(event)" href="#" draggable="false">
                                 <img draggable="false" src="./images/x.png">
                             </a>
@@ -555,9 +572,9 @@
                         <div class="storeNameTitle">
                             Store Name
                         </div>
-                        <input class="storeNameEntry" id="storeNameEntry" spellcheck="false" placeholder="Kith" type="text">
+                        <input class="storeNameEntry" id="storeNameEntry" placeholder="Kith" type="text">
                         <div class="baseLinkTitle">Base Link</div>
-                        <input class="baseLinkEntry" id="baseLinkEntry" spellcheck="false" placeholder="https://kith.com" type="text">
+                        <input class="baseLinkEntry" id="baseLinkEntry" placeholder="https://kith.com" type="text">
                         <button class="addStoreConfirmButton" onclick="addStoreConfirm(); closeStoreModal(event);">Add</button>
                     </div>
                 </div>
@@ -565,33 +582,36 @@
         </div>
         <div class="quickTasks">
             <div class="customSitesTitle">Quick Tasks</div>
-            <div class="customSitesSubtitle">Settings for quick tasks</div>
-
             <div class="profileQTTitle">Profile</div>
             <div class="profileQTSelect">
-                <select id="profileQTSelect" class="select2" style="width: 129px" onchange="saveQT()">
-                      
+                <select id="profileQTSelect" onchange="saveQT()">
+                        <option value="" data-placeholder="true"></option>
                           </select>
             </div>
 
             <div class="proxyQTTitle">Proxies</div>
             <div class="proxyQTSelect">
-                <select id="proxyQTSelect" class="select2" style="width: 129px" onchange="saveQT()">
-                      
+                <select id="proxyQTSelect" onchange="saveQT()">
+                        <option value="" data-placeholder="true"></option>
                           </select>
             </div>
 
             <div class="sizeQTTitle">Size</div>
             <div class="sizeQTSelect">
-                <select id="sizeQTSelect" class="select2" style="width: 129px" onchange="saveQT()">
-            <option value=""></option>
-            <option value="RS">Random</option>
-            <option value="XXS">XXS</option>
+                <select id="sizeQTSelect" onchange="saveQT()">
+                      <option value="" data-placeholder="true"></option>
+                         <optgroup label="General">
+                            <option value="RS">Random</option>
+                            </optgroup>
+                            <optgroup label="Clothing">
+                            <option value="XXS">XXS</option>
             <option value="XS">XS</option>
             <option value="S">S</option>
             <option value="M">M</option>
             <option value="L">L</option>
             <option value="XL">XL</option>
+            </optgroup>
+            <optgroup label="Shoes">
             <option value="3">3</option>
             <option value="3.5">3.5</option>
             <option value="4">4</option>
@@ -613,6 +633,7 @@
             <option value="12">12</option>
             <option value="12.5">12.5</option>
             <option value="13">13</option>
+            </optgroup>
                           </select>
             </div>
         </div>
@@ -739,51 +760,12 @@
     </div>
 
     <div style="display: none" id="captchas">
-        <div class="harvesterNameTitle">
-            Harvester Name
-        </div>
-        <input type="text" id="harvesterName" class="harvesterNameEntry"><br>
-        <div class="proxyTitle">
-            Harvester Proxy
-        </div>
-        <div class="typeTitle">
-            Harvester Type
-        </div>
-        <select id="harvesterTypeSelection" class="harvesterTypeSelection" style="width: 169px">
-                <option value="Supreme">Supreme</option>
-                <option value="Shopify Checkpoint">Shopify Checkpoint</option>
-                <option value="Shopify Checkpoint">Shopify Checkout</option>
-                 <option value="Footsites">Footsites</option>
-                  </select>
-        <div class="capMonster">
-            API Key
-        </div>
-        <select id="apiSelection" class="apiSelection" style="width: 169px">
-                    <option value="CapMonster">CapMonster</option>
-                    <option value="2Captcha">2Captcha</option>
-                  </select>
-        <div class="solvingService">
-            Solving Service
-        </div>
-        <input type="text" id="capMonsterKey" class="capMonsterEntry"><br>
-        <input type="text" id="harvesterProxy" class="proxyEntry"><br>
-        <button class="saveToken" onclick="saveToken()">Save Token</button>
-        <button class="clearFields" onclick="clearHarvesterFields()">Clear Fields</button>
-        <button class="saveProxies" onclick="saveHarvester()">Save Harvester</button>
-        <button class="deleteHarvester" onclick="deleteHarvester()">Delete Harvester</button>
-        <button class="launchHarvester" onclick="launchHarvester()">Launch Harvester</button>
-        <button class="googleSignIn" onclick="googleSignIn()">Youtube Login</button>
+        <button class="createHarvester" onclick="createHarvester()">Create</button>
+        <div class="harvesterContainer" id="harvesterContainer">
 
-
-        <div class="proxiesTable" style="width: 385px;">
-            <table id="captchas2" rules=none>
-
-                <th class="profile2">Harvester Name</th>
-
-            </table>
         </div>
-
     </div>
+
 
 
     <div class="dragBar"></div>

@@ -1,17 +1,55 @@
+.saveToken {
+    position: absolute;
+    width: 169px;
+    left: 1018px;
+    top: 485px;
+    height: 26px;
+    font-family: 'Poppins';
+    color: #4fcf91;
+    background: transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    outline: 0;
+    border: 1px solid #4fcf91;
+}
+
+.backendStatusIcon {
+    position: fixed;
+    bottom: 1.2%;
+    z-index: 1000;
+    cursor: pointer;
+    right: 3%
+}
+
+.backendStatusText {
+    color: #ADA1A1;
+    font-family: 'Poppins';
+    font-size: 12px;
+    bottom: 1%;
+    right: 4.9%;
+    z-index: 1000;
+    position: fixed;
+}
+
+.harvesterTypeSelection {
+    position: absolute;
+    width: 169px;
+    height: 23px;
+    left: 245px;
+    top: 158px;
+    border-radius: 8px;
+    background: #1e202f;
+    color: white;
+    font-family: 'Poppins';
+    font-size: 12px;
+    border: 0;
+    outline: 0;
+}
+
 .menuText {
     color: white;
     font-family: Poppins;
     font-size: 12px;
-}
-
-.quickTasks {
-    position: absolute;
-    width: 503px;
-    height: 120px;
-    left: 104px;
-    top: 639px;
-    background: #222233;
-    border-radius: 8px;
 }
 
 .profileQTTitle {
@@ -19,7 +57,7 @@
     width: 44px;
     height: 21px;
     left: 22px;
-    top: 63px;
+    top: 50px;
     font-family: Poppins;
     font-style: normal;
     font-weight: 500;
@@ -33,7 +71,7 @@
     width: 44px;
     height: 21px;
     left: 180px;
-    top: 63px;
+    top: 50px;
     font-family: Poppins;
     font-style: normal;
     font-weight: 500;
@@ -46,7 +84,8 @@
     position: absolute;
     height: 21px;
     left: 180px;
-    top: 85px;
+    width: 135px;
+    top: 75px;
     font-family: Poppins;
     font-style: normal;
     font-weight: 500;
@@ -60,7 +99,7 @@
     width: 44px;
     height: 21px;
     left: 338px;
-    top: 63px;
+    top: 50px;
     font-family: Poppins;
     font-style: normal;
     font-weight: 500;
@@ -73,11 +112,12 @@
     position: absolute;
     height: 21px;
     left: 338px;
-    top: 85px;
+    top: 75px;
     font-family: Poppins;
+    width: 135px;
     font-style: normal;
     font-weight: 500;
-    font-size: 14px;
+    font-size: 13px;
     line-height: 21px;
     color: #FFFFFF;
 }
@@ -86,11 +126,12 @@
     position: absolute;
     height: 21px;
     left: 22px;
-    top: 85px;
+    top: 75px;
+    width: 135px;
     font-family: Poppins;
     font-style: normal;
     font-weight: 500;
-    font-size: 14px;
+    font-size: 13px;
     line-height: 21px;
     color: #FFFFFF;
 }
@@ -113,7 +154,7 @@
     top: 14px;
     font-family: Poppins;
     font-style: normal;
-    font-weight: 600;
+    font-weight: 500;
     font-size: 16px;
     line-height: 24px;
     color: #FFFFFF;
@@ -122,10 +163,9 @@
 .shopifySites {
     position: absolute;
     width: 254px;
-    height: 10px;
     left: 20px;
-    top: 70px;
-    background: #292C3F;
+    top: 65px;
+    font-family: Poppins;
     border-radius: 8px;
 }
 
@@ -159,7 +199,7 @@
     left: 0px;
     top: 130px;
     background: #292C3F;
-    border-radius: 8px;
+    border-radius: 0px 0px 8px 8px;
 }
 
 .expirationTitle {
@@ -218,7 +258,7 @@
     top: 13px;
     font-family: Poppins;
     font-style: normal;
-    font-weight: 600;
+    font-weight: 500;
     font-size: 16px;
     line-height: 24px;
     color: #FFFFFF;
@@ -232,7 +272,7 @@
     top: 17px;
     font-family: Poppins;
     font-style: normal;
-    font-weight: 600;
+    font-weight: 500;
     font-size: 16px;
     line-height: 24px;
     color: #FFFFFF;
@@ -306,8 +346,8 @@
 
 .addStoreButton {
     position: absolute;
-    width: 72px;
-    height: 23px;
+    width: 78px;
+    height: 32px;
     left: 295px;
     top: 70px;
     border: 1px solid #4fcf91;
@@ -349,6 +389,18 @@
     border: none;
     outline: none;
     color: white;
+    transition-property: box-shadow;
+    transition-duration: 0.4s;
+}
+
+.storeNameEntry:focus {
+    border-color: #e06767;
+    box-shadow: 0 0 0 1pt #e06767;
+}
+
+.storeNameEntry:hover {
+    border-color: #e06767;
+    box-shadow: 0 0 0 1pt #e06767;
 }
 
 .baseLinkEntry {
@@ -364,6 +416,18 @@
     color: white;
     left: 32px;
     top: 165px;
+    transition-property: box-shadow;
+    transition-duration: 0.4s;
+}
+
+.baseLinkEntry:focus {
+    border-color: #e06767;
+    box-shadow: 0 0 0 1pt #e06767;
+}
+
+.baseLinkEntry:hover {
+    border-color: #e06767;
+    box-shadow: 0 0 0 1pt #e06767;
 }
 
 .baseLinkTitle {
@@ -382,8 +446,8 @@
 .addStoreConfirmButton {
     position: absolute;
     width: 101px;
-    height: 29px;
-    left: 353px;
+    height: 32px;
+    left: 360px;
     top: 220px;
     border: 1px solid #4fcf91;
     box-sizing: border-box;
@@ -408,9 +472,9 @@
 
 .removeStoreButton {
     position: absolute;
-    width: 72px;
-    height: 23px;
-    left: 377px;
+    width: 78px;
+    height: 32px;
+    left: 385px;
     top: 70px;
     border: 1px solid #e06767;
     box-sizing: border-box;
@@ -520,51 +584,6 @@
     border: 1px solid #e06767;
 }
 
-.deleteHarvester {
-    position: absolute;
-    width: 170px;
-    height: 25px;
-    left: 550px;
-    top: 485px;
-    font-family: 'Poppins';
-    color: #e06767;
-    background: transparent;
-    border-radius: 8px;
-    cursor: pointer;
-    outline: 0;
-    border: 1px solid #e06767;
-}
-
-.launchHarvester {
-    position: absolute;
-    width: 170px;
-    height: 25px;
-    left: 758px;
-    top: 485px;
-    font-family: 'Poppins';
-    color: #4fcf91;
-    background: transparent;
-    border-radius: 8px;
-    cursor: pointer;
-    outline: 0;
-    border: 1px solid #4fcf91;
-}
-
-.googleSignIn {
-    position: absolute;
-    width: 170px;
-    height: 25px;
-    left: 758px;
-    top: 530px;
-    font-family: 'Poppins';
-    color: #5DA9FF;
-    background: transparent;
-    border-radius: 8px;
-    cursor: pointer;
-    outline: 0;
-    border: 1px solid #5DA9FF;
-}
-
 .analytics {
     position: absolute;
     width: 24px;
@@ -650,8 +669,18 @@
 
 .updateBox {
     position: absolute;
+    width: 503px;
+    height: 120px;
+    left: 104px;
+    top: 639px;
+    background: #222233;
+    border-radius: 8px;
+}
+
+.quickTasks {
+    position: absolute;
     width: 608px;
-    height: 115px;
+    height: 130px;
     left: 623px;
     top: 550px;
     background: #222233;
@@ -680,7 +709,7 @@
     top: 19px;
     font-family: Poppins;
     font-style: normal;
-    font-weight: 600;
+    font-weight: 500;
     font-size: 16px;
     line-height: 24px;
     color: #FFFFFF;
@@ -718,7 +747,7 @@
     position: absolute;
     width: 95px;
     height: 32px;
-    left: 470px;
+    left: 370px;
     top: 57px;
     outline: none;
     border: 1px solid #5DA9FF;
@@ -757,7 +786,7 @@
     top: 12px;
     font-family: Poppins;
     font-style: normal;
-    font-weight: 600;
+    font-weight: 500;
     font-size: 16px;
     line-height: 24px;
     color: #FFFFFF;
@@ -1327,10 +1356,6 @@ th.profile2 {
     position: sticky;
 }
 
-.nameEntry:focus {
-    outline: none;
-}
-
 .emailTitle {
     position: absolute;
     width: 69px;
@@ -1354,36 +1379,6 @@ th.profile2 {
     -webkit-app-region: no-drag;
     -webkit-user-select: none;
     transition: 0.3s;
-}
-
-.harvesterNameTitle {
-    position: absolute;
-    width: 120px;
-    font-weight: 600;
-    height: 21px;
-    left: 125px;
-    top: 100px;
-    font-family: 'Poppins';
-    font-style: normal;
-    font-weight: 600;
-    font-size: 13px;
-    line-height: 19px;
-    color: #FFFFFF;
-}
-
-.harvesterNameEntry {
-    position: absolute;
-    width: 169px;
-    height: 17px;
-    left: 245px;
-    top: 102px;
-    border-radius: 8px;
-    background: #1e202f;
-    color: white;
-    font-family: 'Poppins';
-    font-size: 12px;
-    border: 0;
-    outline: 0;
 }
 
 .proxyTitle {
@@ -1487,21 +1482,6 @@ th.profile2 {
     outline: 0;
 }
 
-.harvesterTypeSelection {
-    position: absolute;
-    width: 169px;
-    height: 23px;
-    left: 245px;
-    top: 158px;
-    border-radius: 8px;
-    background: #1e202f;
-    color: white;
-    font-family: 'Poppins';
-    font-size: 12px;
-    border: 0;
-    outline: 0;
-}
-
 .captcha {
     position: absolute;
     width: 24px;
@@ -1573,21 +1553,13 @@ a {
     -webkit-app-region: drag
 }
 
-.modalHeaderBackground {
-    position: absolute;
-    width: 485px;
-    height: 60px;
-    background: #1e202f;
-}
-
 .modalHeader {
     position: absolute;
-    width: 252px;
     -webkit-user-select: none;
     height: 36px;
     font-family: 'Poppins';
     font-style: normal;
-    font-weight: bold;
+    font-weight: 500;
     font-size: 20px;
     line-height: 39px;
     color: #FFFFFF;
@@ -1706,7 +1678,8 @@ body {
 
 ::-webkit-input-placeholder {
     font-family: 'Poppins';
-    font-weight: 600;
+    font-weight: 500;
+    color: #ADA1A1
 }
 
 .createTask {
@@ -2056,6 +2029,12 @@ th.size {
     max-width: 40px;
 }
 
+td.size {
+    width: 40px;
+    max-width: 40px;
+    white-space: nowrap;
+}
+
 th.profile3 {
     width: 70px;
     max-width: 70px;
@@ -2082,88 +2061,22 @@ td.link {
     position: absolute;
     width: 34px;
     height: 21px;
-    left: 440px;
-    top: 260px;
+    left: 370px;
+    top: 210px;
     font-family: 'Poppins';
     font-style: normal;
     font-weight: normal;
-    font-size: 12px;
+    font-size: 16px;
     line-height: 19px;
     color: #FFFFFF;
 }
 
-.select2-search {
-    background-color: #1e202f !important;
-    font-family: 'Poppins';
-    color: white;
-    font-style: normal;
-    font-weight: normal;
-    outline: none;
-    font-size: 14px;
-}
-
-.select2-search input {
-    background-color: #1e202f !important;
-    font-family: 'Poppins';
-    color: white;
-    border: 0;
-    font-style: normal;
-    border-radius: 8px;
-    font-weight: normal;
-    outline: none;
-    font-size: 12px;
-}
-
-.select2-results {
-    background-color: #1e202f !important;
-    color: white;
-    font-family: 'Poppins';
-    font-style: normal;
-    font-weight: normal;
-    font-size: 12px;
-}
-
-.select2-results__option[aria-selected=true] {
-    color: white;
-    font-family: 'Poppins';
-    font-style: normal;
-    font-weight: normal;
-    font-size: 12px;
-}
-
-.select2-selection__rendered {
-    color: white;
-}
-
-.select2-choice {
-    background-color: #1e202f !important;
-    font-family: 'Poppins';
-    color: white;
-    font-style: normal;
-    font-weight: normal;
-    font-family: 'Poppins';
-    outline: none;
-    font-size: 13px;
-}
-
-.select2-container--default .select2-selection--single {
-    background-color: #1e202f !important;
-    font-family: 'Poppins';
-    color: white;
-    font-style: normal;
-    font-family: 'Poppins';
-    font-weight: normal;
-    outline: none;
-    font-size: 13px;
-    border-radius: 8px;
-}
-
 .siteTaskEntry {
     position: absolute;
-    width: 169px;
-    height: 32px;
-    left: 440px;
-    top: 285px;
+    width: 244px;
+    height: 40px;
+    left: 370px;
+    top: 240px;
     border-radius: 8px;
     color: white;
     font-family: 'Poppins';
@@ -2177,24 +2090,23 @@ td.link {
     position: absolute;
     width: 34px;
     height: 21px;
-    left: 650px;
-    top: 440px;
+    left: 370px;
+    top: 470px;
     font-family: 'Poppins';
     font-style: normal;
     font-weight: normal;
-    font-size: 13px;
+    font-size: 16px;
     line-height: 19px;
     color: #FFFFFF;
 }
 
 .sizeTaskEntry {
     position: absolute;
-    width: 169px;
+    width: 244px;
     height: 23px;
-    left: 650px;
+    left: 370px;
     border-radius: 5px;
-    top: 465px;
-    background: #292c3f;
+    top: 500px;
     color: white;
     font-family: 'Poppins';
     font-size: 12px;
@@ -2205,86 +2117,66 @@ td.link {
 
 .linkTaskTitle {
     position: absolute;
-    width: 34px;
     height: 21px;
-    left: 440px;
-    top: 320px;
+    left: 370px;
+    top: 295px;
     font-family: 'Poppins';
     font-style: normal;
     font-weight: normal;
-    font-size: 13px;
+    font-size: 16px;
     line-height: 19px;
     color: #FFFFFF;
 }
 
 .linkTaskEntry {
     position: absolute;
-    height: 23px;
-    left: 440px;
-    width: 158px;
-    padding-left: 8px;
-    top: 345px;
+    height: 40px;
+    left: 370px;
     background: #1e202f;
+    width: 500px;
+    padding-left: 8px;
+    top: 325px;
     color: white;
     font-family: 'Poppins';
     border-radius: 8px;
     font-size: 12px;
     border: 0;
     outline: 0;
+    transition-property: box-shadow;
+    transition-duration: 0.4s;
+}
+
+.linkTaskEntry:focus {
+    border-color: #e06767;
+    box-shadow: 0 0 0 1pt #e06767;
+}
+
+.linkTaskEntry:hover {
+    border-color: #e06767;
+    box-shadow: 0 0 0 1pt #e06767;
 }
 
 .modeTaskTitle {
     position: absolute;
     width: 45px;
     height: 21px;
-    left: 650px;
-    top: 260px;
+    left: 640px;
+    top: 210px;
     font-family: 'Poppins';
     font-style: normal;
     font-weight: normal;
-    font-size: 13px;
+    font-size: 16px;
     line-height: 19px;
     color: #FFFFFF;
 }
 
 .modeTaskEntry {
     position: absolute;
-    left: 650px;
+    left: 640px;
     border-radius: 5px;
-    width: 169px;
+    width: 244px;
     border-radius: 8px;
-    top: 285px;
-    background: #292c3f;
-    color: white;
-    font-family: 'Poppins';
-    font-size: 12px;
-    border: 0;
-    outline: 0;
-}
-
-.profileTaskTitle {
-    position: absolute;
-    width: 53px;
-    height: 23px;
-    left: 440px;
-    top: 380px;
-    font-family: 'Poppins';
-    font-style: normal;
-    font-weight: normal;
-    font-size: 13px;
-    line-height: 19px;
-    color: #FFFFFF;
-}
-
-.profileTaskEntry {
-    position: absolute;
-    width: 169px;
-    height: 23px;
-    border-radius: 5px;
-    left: 440px;
-    border-radius: 8px;
-    top: 405px;
-    background: #292c3f;
+    top: 240px;
     color: white;
     font-family: 'Poppins';
     font-size: 12px;
@@ -2296,24 +2188,54 @@ td.link {
     position: absolute;
     width: 53px;
     height: 21px;
-    left: 440px;
-    top: 440px;
+    left: 640px;
+    top: 380px;
     font-family: 'Poppins';
     font-style: normal;
     font-weight: normal;
-    font-size: 13px;
+    font-size: 16px;
     line-height: 19px;
     color: #FFFFFF;
 }
 
+.profileTaskTitle {
+    position: absolute;
+    width: 53px;
+    height: 23px;
+    left: 370px;
+    top: 380px;
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: normal;
+    font-size: 16px;
+    line-height: 19px;
+    color: #FFFFFF;
+}
+
+.awgionag {
+    height: 32px !important;
+}
+
+.profileTaskEntry {
+    position: absolute;
+    width: 244px;
+    height: 40px !important;
+    left: 370px;
+    top: 410px;
+    color: white;
+    font-family: 'Poppins';
+    font-size: 12px;
+    border: 0;
+    border-radius: 8px;
+    outline: 0;
+}
+
 .proxyTaskEntry {
     position: absolute;
-    border-radius: 5px;
-    width: 169px;
-    height: 23px;
-    left: 440px;
-    top: 465px;
-    background: #292c3f;
+    width: 244px;
+    height: 40px;
+    left: 640px;
+    top: 410px;
     color: white;
     border-radius: 8px;
     font-family: 'Poppins';
@@ -2341,24 +2263,22 @@ td.link {
     position: absolute;
     width: 65px;
     height: 21px;
-    left: 650px;
-    top: 380px;
+    left: 640px;
+    top: 470px;
     font-family: 'Poppins';
     font-style: normal;
     font-weight: normal;
-    font-size: 13px;
+    font-size: 16px;
     line-height: 19px;
     color: #FFFFFF;
 }
 
 .accountTaskEntry {
     position: absolute;
-    width: 169px;
-    height: 23px;
-    left: 650px;
-    top: 405px;
-    border-radius: 5px;
-    background: #292c3f;
+    width: 244px;
+    height: 40px;
+    left: 640px;
+    top: 500px;
     color: white;
     border-radius: 8px;
     font-family: 'Poppins';
@@ -2372,7 +2292,7 @@ td.link {
     width: 138px;
     height: 21px;
     left: 650px;
-    top: 320px;
+    top: 720px;
     font-family: 'Poppins';
     font-style: normal;
     font-weight: normal;
@@ -2454,18 +2374,30 @@ td.link {
 
 .quantityTaskEntry {
     position: absolute;
-    width: 158px;
-    padding-left: 8px;
+    width: 50px;
     height: 23px;
-    left: 650px;
+    left: 720px;
     border-radius: 8px;
-    top: 345px;
+    top: 600px;
     background: #1e202f;
     color: white;
     font-family: 'Poppins';
     font-size: 12px;
     border: 0;
+    text-align: center;
     outline: 0;
+    transition-property: box-shadow;
+    transition-duration: 0.4s;
+}
+
+.quantityTaskEntry:focus {
+    border-color: #e06767;
+    box-shadow: 0 0 0 1pt #e06767;
+}
+
+.quantityTaskEntry:hover {
+    border-color: #e06767;
+    box-shadow: 0 0 0 1pt #e06767;
 }
 
 button {
@@ -2476,8 +2408,8 @@ button {
     position: absolute;
     width: 83px;
     height: 32px;
-    left: 735px;
-    top: 560px;
+    left: 795px;
+    top: 595px;
     font-family: 'Poppins';
     color: white;
     background: transparent;
@@ -2523,11 +2455,18 @@ button {
     display: none;
 }
 
+.modalHeaderBackground {
+    position: absolute;
+    width: 570px;
+    height: 60px;
+    background: #1e202f;
+}
+
 .modal-content {
     background-color: #181a26;
-    margin: 15% auto;
-    width: 485px;
-    height: 420px;
+    margin: 10% auto;
+    width: 570px;
+    height: 520px;
     -webkit-user-select: none;
 }
 
@@ -2535,8 +2474,8 @@ button {
     position: absolute;
     width: 24px;
     height: 24px;
-    left: 850px;
-    top: 198px;
+    left: 890px;
+    top: 140px;
 }
 
 table.tasks td:first-child {
@@ -2565,11 +2504,6 @@ td {
     padding-bottom: 10px;
 }
 
-td.checkouts {
-    padding-top: 20px;
-    padding-bottom: 20px;
-}
-
 .groupNameInput {
     background: transparent;
     outline: none;
@@ -2590,16 +2524,6 @@ td.checkouts {
     height: 20px;
 }
 
-th.date {
-    width: 15%;
-}
-
-.fixed {
-    position: fixed;
-    top: 0;
-    left: 0;
-}
-
 th {
     text-align: center;
     position: sticky;
@@ -2610,6 +2534,7 @@ th {
 
 ::-webkit-scrollbar {
     width: 4px;
+    height: 4px;
 }
 
 ::-webkit-scrollbar-track {
@@ -2880,6 +2805,190 @@ a {
     color: #FFFFFF;
 }
 
+.createHarvester {
+    position: absolute;
+    width: 83px;
+    height: 32px;
+    right: 4.5%;
+    top: 5%;
+    background: transparent;
+    border-radius: 8px;
+    outline: none;
+    border: 1px solid #4fcf91;
+    color: white;
+    font-family: 'Poppins';
+    cursor: pointer;
+    transition-property: background;
+    transition-duration: 0.4s;
+}
+
+.createHarvester:hover {
+    background: #4fcf91;
+}
+
+.harvesterContainer {
+    position: fixed;
+    width: 88%;
+    height: 85%;
+    top: 10%;
+    left: 9%;
+    overflow-x: hidden;
+    padding-right: 20px;
+    overflow-y: auto;
+    background: transparent;
+}
+
+.harvester {
+    position: relative;
+    width: 252px;
+    margin: 1%;
+    height: 37%;
+    float: left;
+    background-color: #222233;
+    border-radius: 8px;
+}
+
+.harvesterName {
+    position: absolute;
+    height: 11%;
+    background-color: #292C3F;
+    width: 99%;
+    outline: none;
+    font-family: 'Poppins';
+    border-radius: 8px 8px 0px 0px;
+    font-size: 16px;
+    font-weight: 500;
+    border: none;
+    color: white;
+    text-align: center;
+}
+
+.harvesterTypeSelection {
+    position: absolute;
+    top: 26%;
+    font-family: Poppins;
+    left: 8%;
+    width: 210px;
+    height: 32px !important;
+}
+
+.harvesterTypeSelection .ss-main .ss-single-selected {
+    height: 32px !important;
+}
+
+.harvesterTypeSelection .ss-main .ss-single-selected .placeholder,
+.ss-main .ss-single-selected .placeholder * {
+    margin-left: 1px !important;
+}
+
+.harvesterTypeTitle {
+    width: 100%;
+    top: 16%;
+    position: absolute;
+    background-color: transparent;
+    font-size: 14px;
+    font-family: 'Poppins';
+    text-align: center;
+    color: white;
+}
+
+.harvesterProxyTitle {
+    width: 100%;
+    top: 41%;
+    position: absolute;
+    background-color: transparent;
+    font-size: 14px;
+    font-family: 'Poppins';
+    text-align: center;
+    color: white;
+}
+
+.harvesterProxyEntry {
+    position: absolute;
+    height: 32px;
+    left: 8%;
+    background-color: #1e202f;
+    width: 200px;
+    outline: none;
+    font-family: 'Poppins';
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    padding-left: 8px;
+    border: none;
+    color: white;
+    top: 51%;
+    transition-property: box-shadow;
+    transition-duration: 0.4s;
+}
+
+.launchHarvester {
+    position: absolute;
+    background: transparent;
+    top: 74%;
+    left: 14%;
+    outline: none;
+    color: white;
+    border: 1px solid #4fcf91;
+    font-family: 'Poppins';
+    transition-property: background;
+    border-radius: 8px;
+    transition-duration: 0.4s;
+    cursor: pointer;
+}
+
+.launchHarvester:hover {
+    background: #4fcf91;
+}
+
+.signInHarvester {
+    position: absolute;
+    background: transparent;
+    top: 74%;
+    left: 41%;
+    outline: none;
+    color: white;
+    border: 1px solid #5DA9FF;
+    font-family: 'Poppins';
+    transition-property: background;
+    border-radius: 8px;
+    transition-duration: 0.4s;
+    cursor: pointer;
+}
+
+.signInHarvester:hover {
+    background: #5DA9FF;
+}
+
+.deleteHarvester {
+    position: absolute;
+    background: transparent;
+    top: 74%;
+    right: 14%;
+    outline: none;
+    color: white;
+    border: 1px solid #E06767;
+    font-family: 'Poppins';
+    transition-property: background;
+    border-radius: 8px;
+    transition-duration: 0.4s;
+    cursor: pointer;
+}
+
+.deleteHarvester:hover {
+    background: #E06767;
+}
+
+.harvesterProxyEntry:hover {
+    border-color: #e06767;
+    box-shadow: 0 0 0 1pt #e06767;
+}
+
+.harvesterProxyEntry:focus {
+    border-color: #e06767;
+    box-shadow: 0 0 0 1pt #e06767;
+}
+
 .checkoutsRowDate {
     position: absolute;
     width: 85px;
@@ -2892,12 +3001,12 @@ a {
 
 .dragBar {
     background-color: transparent;
-    width: 1214px;
+    width: 98%;
     height: 40px;
     z-index: 1;
     -webkit-app-region: drag;
     top: 0px;
-    left: 40px;
+    left: 5%;
     position: absolute;
 }
 
