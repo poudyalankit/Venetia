@@ -1116,11 +1116,6 @@ module.exports = class ShopifyTask {
                     throw "Waiting for restock"
                 } else if (this.stopped === "false") {
                     this.checkoutURL = response.url
-                    if (this.stopped === "false")
-                        await this.sendCaptchaCheckpoint()
-
-                    if (this.stopped === "false")
-                        await this.retrieveCaptchaResponse()
                     var HTMLParser = require('node-html-parser');
                     var root = HTMLParser.parse(response.body);
                     this.authToken = root.querySelector('[name="authenticity_token"]').getAttribute('value')

@@ -140,9 +140,25 @@ function modeChoices() {
         var select = document.getElementById("modeTask")
         document.getElementById("accountTask").disabled = false;
         select.options.length = 0;
-        select.options[select.options.length] = new Option("Safe", "Safe");
-        select.options[select.options.length] = new Option("Preload", "Preload");
+        select.options[select.options.length] = new Option("Card", "Card");
+        select.options[select.options.length] = new Option("PayPal", "PayPal");
     }
+
+
+    if (document.getElementById("siteTask").value === "Walmart") {
+        var select = document.getElementById("modeTask")
+        document.getElementById("accountTask").disabled = false;
+        select.options.length = 0;
+        select.options[select.options.length] = new Option("Safe", "Safe");
+    }
+
+    if (document.getElementById("siteTask").value === "Dicks") {
+        var select = document.getElementById("modeTask")
+        document.getElementById("accountTask").disabled = false;
+        select.options.length = 0;
+        select.options[select.options.length] = new Option("Restock", "Restock");
+    }
+
 
 
     if (document.getElementById("siteTask").value === "Shiekh") {
@@ -192,9 +208,22 @@ function modeChoices2() {
     if (document.getElementById("siteTask2").value === "SSENSE") {
         modeTask2.enable()
         select.options.length = 0;
-        select.options[select.options.length] = new Option("Safe", "Safe");
-        select.options[select.options.length] = new Option("Preload", "Preload");
+        select.options[select.options.length] = new Option("Card", "Card");
+        select.options[select.options.length] = new Option("PayPal", "PayPal");
     }
+
+    if (document.getElementById("siteTask2").value === "Walmart") {
+        modeTask2.enable()
+        select.options.length = 0;
+        select.options[select.options.length] = new Option("Safe", "Safe");
+    }
+
+    if (document.getElementById("siteTask2").value === "Dicks") {
+        modeTask2.enable()
+        select.options.length = 0;
+        select.options[select.options.length] = new Option("Restock", "Restock");
+    }
+
 
     if (document.getElementById("siteTask2").value === "Shiekh") {
         modeTask2.enable()
@@ -502,9 +531,9 @@ window.onload = function() {
     document.addEventListener("click", stopOpen);
 
     document.addEventListener('keydown', function(event) {
-        // if (event.ctrlKey && event.key === 'r') {
-        //   event.preventDefault()
-        //}
+        if (event.ctrlKey && event.key === 'r') {
+            event.preventDefault()
+        }
 
         if (document.getElementById('taskView').style.display === "block") {
             if (event.ctrlKey && event.key === 'f') {
@@ -2322,7 +2351,7 @@ ipcRenderer.on('quicktask', (event, site, input) => {
     else if (site === "KidsFootLocker")
         var mode = "Release"
     else if (site === "SSENSE")
-        var mode = "Safe"
+        var mode = "Card"
     else {
         var mode = "Safe"
     }

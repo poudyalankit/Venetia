@@ -29,127 +29,11 @@ module.exports = class WalmartTask {
         this.proxy = this.proxyArray.sample()
     }
 
-    async sendFailError() {
-        const got = require('got');
-        this.quickTaskLink = "http://localhost:4444/quicktask?storetype=Shopify&input=" + this.baseLink + "/cart/" + this.productVariant + ":1"
-        got({
-                method: 'post',
-                url: 'https://venetiabots.com/api/fail',
-                headers: {
-                    'key': this.key
-                },
-                json: {
-                    "site": this.site,
-                    "mode": this.mode,
-                    "product": this.oglink,
-                    "size": this.size,
-                    "price": Math.trunc(this.cartTotal),
-                    "timestamp": new Date(Date.now()).toISOString(),
-                    "productTitle": this.productTitle,
-                    "image": this.imageURL,
-                    "quicktask": this.quickTaskLink
-                },
-                responseType: 'json'
-            }).then(response => {
-                this.log("Finished")
-            })
-            .catch(error => {
-                this.log(error)
-            })
-
-        var webhooks = this.webhookLink.split(",")
-        for (var i = 0; i < webhooks.length; i++) {
-            got({
-                    method: 'post',
-                    url: webhooks[i].trim(),
-                    json: {
-                        "content": null,
-                        "embeds": [{
-                            "title": "Venetia Failed Checkout (BP) ! :octagonal_sign:",
-                            "color": 14706535,
-                            "fields": [{
-                                    "name": "Site",
-                                    "value": this.site
-                                },
-                                {
-                                    "name": "Mode",
-                                    "value": this.mode
-                                },
-                                {
-                                    "name": "Product",
-                                    "value": this.productTitle,
-                                    "inline": true
-                                },
-                                {
-                                    "name": "Query",
-                                    "value": this.oglink,
-                                    "inline": true
-                                },
-                                {
-                                    "name": "Size",
-                                    "value": this.size
-                                },
-                                {
-                                    "name": "Price",
-                                    "value": Math.trunc(this.cartTotal)
-                                },
-                                {
-                                    "name": "Profile",
-                                    "value": "||" + this.profilename + "||"
-                                },
-                                {
-                                    "name": "Proxy List",
-                                    "value": "||" + this.proxyListName + "||"
-                                }
-                            ],
-                            "footer": {
-                                "text": "Powered by Venetia",
-                                "icon_url": "https://i.imgur.com/6h06tuW.png"
-                            },
-                            "timestamp": new Date(Date.now()).toISOString(),
-                            "thumbnail": {
-                                "url": this.imageURL
-                            }
-                        }],
-                        "username": "Venetia",
-                        "avatar_url": "https://i.imgur.com/6h06tuW.png"
-                    }
-                }).then(response => {
-                    this.log("Finished sending webhook")
-                })
-                .catch(error => {
-                    this.log(error.response.body)
-                })
-        }
-    }
 
     async sendFail() {
         const got = require('got');
-        this.quickTaskLink = "http://localhost:4444/quicktask?storetype=Shopify&input=" + this.baseLink + "/cart/" + this.productVariant + ":1"
-        got({
-                method: 'post',
-                url: 'https://venetiabots.com/api/fail',
-                headers: {
-                    'key': this.key
-                },
-                json: {
-                    "site": this.site,
-                    "mode": this.mode,
-                    "product": this.oglink,
-                    "size": this.size,
-                    "price": Math.trunc(this.cartTotal),
-                    "timestamp": new Date(Date.now()).toISOString(),
-                    "productTitle": this.productTitle,
-                    "image": this.imageURL,
-                    "quicktask": this.quickTaskLink
-                },
-                responseType: 'json'
-            }).then(response => {
-                this.log("Finished")
-            })
-            .catch(error => {
-                this.log(error)
-            })
+        this.quickTaskLink = "http://localhost:4444/quicktask?storetype=Walmart&input=" + this.link
+
 
         var webhooks = this.webhookLink.split(",")
         for (var i = 0; i < webhooks.length; i++) {
@@ -176,7 +60,7 @@ module.exports = class WalmartTask {
                                 },
                                 {
                                     "name": "Query",
-                                    "value": this.oglink,
+                                    "value": this.link,
                                     "inline": true
                                 },
                                 {
@@ -219,7 +103,7 @@ module.exports = class WalmartTask {
 
     async sendSuccess() {
         const got = require('got');
-        this.quickTaskLink = "http://localhost:4444/quicktask?storetype=Shopify&input=" + this.baseLink + "/cart/" + this.productVariant + ":1"
+        this.quickTaskLink = "http://localhost:4444/quicktask?storetype=Walmart&input=" + this.link
         got({
                 method: 'post',
                 url: 'https://venetiabots.com/api/success',
@@ -229,7 +113,7 @@ module.exports = class WalmartTask {
                 json: {
                     "site": this.site,
                     "mode": this.mode,
-                    "product": this.oglink,
+                    "product": this.link,
                     "size": this.size,
                     "productTitle": this.productTitle,
                     "price": Math.trunc(this.cartTotal),
@@ -269,7 +153,7 @@ module.exports = class WalmartTask {
                                 },
                                 {
                                     "name": "Query",
-                                    "value": this.oglink,
+                                    "value": this.link,
                                     "inline": true
                                 },
                                 {
@@ -310,6 +194,113 @@ module.exports = class WalmartTask {
         }
     }
 
+    async login() {
+        const got = require('got');
+        const tunnel = require('tunnel');
+        if (this.stopped === "false") {
+            await this.send("Logging in...")
+            try {
+                this.request = {
+                    method: 'post',
+                    url: 'https://www.walmart.com/account/electrode/api/signin?ref=domain',
+                    cookieJar: this.cookieJar,
+                    headers: {
+                        'sec-ch-ua': '"Chromium";v="92", " Not A;Brand";v="99", "Google Chrome";v="92"',
+                        'Referer': 'https://www.walmart.com/account/login?ref=domain',
+                        'sec-ch-ua-mobile': '?0',
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.131 Safari/537.36',
+                        'content-type': 'application/json',
+                    },
+                    json: {
+                        "username": this.accounts.email,
+                        "password": this.accounts.password,
+                        "rememberme": true,
+                        "showRememberme": "true",
+                    }
+                }
+                if (this.proxy != '-') {
+                    this.request['agent'] = {
+                        https: tunnel.httpsOverHttp({
+                            proxy: this.proxy
+                        })
+                    }
+                }
+                let response = await got(this.request);
+            } catch (error) {
+                await this.setDelays()
+                if (typeof error.response != 'undefined' && this.stopped === "false") {
+                    if (error.response.body.includes("Your password and email do not match.")) {
+                        await this.send("Error: account not found")
+                        await sleep(this.errorDelay)
+                        await this.login()
+                    } else {
+                        this.log(error.response.body)
+                        await this.send("Error logging in: " + error.response.statusCode)
+                        await sleep(this.errorDelay)
+                        await this.login()
+                    }
+                } else if (this.stopped === "false") {
+                    this.log(error)
+                    await this.send("Unexpected error logging in")
+                    await sleep(this.errorDelay)
+                    await this.login()
+                }
+            }
+        }
+    }
+
+    async loadPage() {
+        const got = require('got');
+        const tunnel = require('tunnel');
+        if (this.stopped === "false") {
+            await this.send("Getting cookies...")
+            try {
+                this.request = {
+                    method: 'get',
+                    url: 'https://www.walmart.com',
+                    cookieJar: this.cookieJar,
+                    headers: {
+                        'authority': 'www.walmart.com',
+                        'sec-ch-ua': '"Chromium";v="92", " Not A;Brand";v="99", "Google Chrome";v="92"',
+                        'sec-ch-ua-mobile': '?0',
+                        'upgrade-insecure-requests': '1',
+                        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.131 Safari/537.36',
+                        'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+                        'sec-fetch-site': 'none',
+                        'sec-fetch-mode': 'navigate',
+                        'sec-fetch-user': '?1',
+                        'sec-fetch-dest': 'document',
+                        'accept-language': 'en-US,en;q=0.9'
+                    }
+                }
+                if (this.proxy != '-') {
+                    this.request['agent'] = {
+                        https: tunnel.httpsOverHttp({
+                            proxy: this.proxy
+                        })
+                    }
+                }
+                let response = await got(this.request);
+            } catch (error) {
+                await this.setDelays()
+                if (error.toString().includes("Cookie not in this host's domain.")) {
+                    return;
+                } else
+                if (typeof error.response != 'undefined' && this.stopped === "false") {
+                    this.log(error.response.body)
+                    await this.send("Error getting cookies: " + error.response.statusCode)
+                    await sleep(this.errorDelay)
+                    await this.loadPage()
+                } else if (this.stopped === "false") {
+                    this.log(error)
+                    await this.send("Unexpected error getting cookies")
+                    await sleep(this.errorDelay)
+                    await this.loadPage()
+                }
+            }
+        }
+    }
+
     async addToCart() {
         const got = require('got');
         const tunnel = require('tunnel');
@@ -331,14 +322,13 @@ module.exports = class WalmartTask {
                         'sec-fetch-site': 'same-origin',
                         'sec-fetch-mode': 'cors',
                         'sec-fetch-dest': 'empty',
-                        'referer': 'https://www.walmart.com/ip/ELOQUII-Elements-Women-s-Plus-Size-Shibori-Print-Balloon-Sleeve-Blouse/358134612',
+                        'referer': 'https://www.walmart.com/ip/Sofia-Jeans-by-Sofia-Vergara-Women-s-Maxi-Dress-with-Empire-Waist/818689255',
                         'accept-language': 'en-US,en;q=0.9'
                     },
                     json: {
-                        "offerId": "F777A4FD34424C38B7ABBD72A13A6CF1",
+                        "offerId": this.link,
                         "quantity": 1,
-                    },
-                    responseType: 'json'
+                    }
                 }
                 if (this.proxy != '-') {
                     this.request['agent'] = {
@@ -348,18 +338,26 @@ module.exports = class WalmartTask {
                     }
                 }
                 let response = await got(this.request);
+                response.body = JSON.parse(response.body)
                 this.cartID = response.body.items[0].id
-                console.log(this.cartID)
+                this.productTitle = response.body.items[0].name
+                this.cartTotal = response.body.cart.totals.subTotal
             } catch (error) {
                 await this.setDelays()
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
-                    this.log(error.response.body)
-                    await this.send("Error carting: " + error.response.statusCode)
-                    await sleep(this.errorDelay)
-                    await this.addToCart()
+                    if (error.response.body.includes("'canAddToCart' flag is false")) {
+                        await this.send("OOS, retrying (ATC)")
+                        await sleep(this.errorDelay)
+                        await this.addToCart()
+                    } else {
+                        this.log(error.response.body)
+                        await this.send("Error carting: " + error.response.statusCode)
+                        await sleep(this.errorDelay)
+                        await this.addToCart()
+                    }
                 } else if (this.stopped === "false") {
                     this.log(error)
-                    await this.send("Unexpected error loading product")
+                    await this.send("Unexpected error carting")
                     await sleep(this.errorDelay)
                     await this.addToCart()
                 }
@@ -372,7 +370,7 @@ module.exports = class WalmartTask {
         const got = require('got');
         const tunnel = require('tunnel');
         if (this.stopped === "false") {
-            await this.send("Getting checkout info...")
+            await this.send("Loading checkout...")
             try {
                 this.request = {
                     method: 'post',
@@ -381,18 +379,29 @@ module.exports = class WalmartTask {
                     headers: {
                         'authority': 'www.walmart.com',
                         'sec-ch-ua': '"Chromium";v="92", " Not A;Brand";v="99", "Google Chrome";v="92"',
-                        'accept': 'application/json',
+                        'accept': 'application/json, text/javascript, */*; q=0.01',
+                        'wm_cvv_in_session': 'true',
                         'sec-ch-ua-mobile': '?0',
                         'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.131 Safari/537.36',
+                        'wm_vertical_id': '0',
                         'content-type': 'application/json',
                         'origin': 'https://www.walmart.com',
                         'sec-fetch-site': 'same-origin',
                         'sec-fetch-mode': 'cors',
                         'sec-fetch-dest': 'empty',
-                        'referer': 'https://www.walmart.com/ip/ELOQUII-Elements-Women-s-Plus-Size-Shibori-Print-Balloon-Sleeve-Blouse/358134612',
+                        'referer': 'https://www.walmart.com/checkout/',
                         'accept-language': 'en-US,en;q=0.9'
                     },
-                    json: { "storeList": [{ "id": "91672" }, { "id": "5936" }, { "id": "2038" }, { "id": "5969" }, { "id": "5880" }, { "id": "2015" }, { "id": "3639" }, { "id": "5227" }, { "id": "1904" }, { "id": "3573" }], "postalCode": "20190", "city": "Reston", "state": "VA", "isZipLocated": true, "crt:CRT": "", "customerId:CID": "", "customerType:type": "", "affiliateInfo:com.wm.reflector": "" },
+                    json: {
+                        "postalCode": this.profile.zipcode,
+                        "city": this.profile.city,
+                        "state": abbrRegion(this.profile.state, 'abbr'),
+                        "isZipLocated": true,
+                        "crt:CRT": "",
+                        "customerId:CID": "",
+                        "customerType:type": "",
+                        "affiliateInfo:com.wm.reflector": ""
+                    },
                     responseType: 'json'
                 }
                 if (this.proxy != '-') {
@@ -408,12 +417,12 @@ module.exports = class WalmartTask {
                 await this.setDelays()
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
                     this.log(error.response.body)
-                    await this.send("Error getting checkout info: " + error.response.statusCode)
+                    await this.send("Error loading checkout: " + error.response.statusCode)
                     await sleep(this.errorDelay)
                     await this.checkoutView()
                 } else if (this.stopped === "false") {
                     this.log(error)
-                    await this.send("Unexpected error loading product")
+                    await this.send("Unexpected loading checkout")
                     await sleep(this.errorDelay)
                     await this.checkoutView()
                 }
@@ -437,15 +446,18 @@ module.exports = class WalmartTask {
                     headers: {
                         'authority': 'www.walmart.com',
                         'sec-ch-ua': '"Chromium";v="92", " Not A;Brand";v="99", "Google Chrome";v="92"',
-                        'accept': 'application/json',
+                        'inkiru_precedence': 'false',
                         'sec-ch-ua-mobile': '?0',
                         'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.131 Safari/537.36',
                         'content-type': 'application/json',
+                        'accept': 'application/json, text/javascript, */*; q=0.01',
+                        'wm_cvv_in_session': 'true',
+                        'wm_vertical_id': '0',
                         'origin': 'https://www.walmart.com',
                         'sec-fetch-site': 'same-origin',
                         'sec-fetch-mode': 'cors',
                         'sec-fetch-dest': 'empty',
-                        'referer': 'https://www.walmart.com/ip/ELOQUII-Elements-Women-s-Plus-Size-Shibori-Print-Balloon-Sleeve-Blouse/358134612',
+                        'referer': 'https://www.walmart.com/checkout/',
                         'accept-language': 'en-US,en;q=0.9'
                     },
                     json: {
@@ -454,7 +466,7 @@ module.exports = class WalmartTask {
                             "itemIds": [
                                 this.cartid
                             ],
-                            "shipMethod": "STANDARD"
+                            "shipMethod": "RUSH"
                         }]
                     },
                     responseType: 'json'
@@ -476,7 +488,7 @@ module.exports = class WalmartTask {
                     await this.submitDelivery()
                 } else if (this.stopped === "false") {
                     this.log(error)
-                    await this.send("Unexpected error loading product")
+                    await this.send("Unexpected error submitting delivery")
                     await sleep(this.errorDelay)
                     await this.submitDelivery()
                 }
@@ -498,30 +510,33 @@ module.exports = class WalmartTask {
                     headers: {
                         'authority': 'www.walmart.com',
                         'sec-ch-ua': '"Chromium";v="92", " Not A;Brand";v="99", "Google Chrome";v="92"',
-                        'accept': 'application/json',
+                        'inkiru_precedence': 'false',
                         'sec-ch-ua-mobile': '?0',
                         'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.131 Safari/537.36',
                         'content-type': 'application/json',
+                        'accept': 'application/json, text/javascript, */*; q=0.01',
+                        'wm_cvv_in_session': 'true',
+                        'wm_vertical_id': '0',
                         'origin': 'https://www.walmart.com',
                         'sec-fetch-site': 'same-origin',
                         'sec-fetch-mode': 'cors',
                         'sec-fetch-dest': 'empty',
-                        'referer': 'https://www.walmart.com/ip/ELOQUII-Elements-Women-s-Plus-Size-Shibori-Print-Balloon-Sleeve-Blouse/358134612',
+                        'referer': 'https://www.walmart.com/checkout/',
                         'accept-language': 'en-US,en;q=0.9'
                     },
                     json: {
-                        "addressLineOne": "2167 Mager Dr",
-                        "city": "Herndon",
-                        "firstName": "JOHN",
-                        "lastName": "SMITH",
-                        "phone": "9136365489",
-                        "email": "test@ANKITPOUDYAL.COM",
+                        "addressLineOne": this.profile.address1,
+                        "city": this.profile.city,
+                        "firstName": this.profile.firstName,
+                        "lastName": this.profile.lastName,
+                        "phone": this.profile.phone,
+                        "email": this.profile.email,
                         "marketingEmailPref": false,
-                        "postalCode": "20170",
-                        "state": "VA",
+                        "postalCode": this.profile.zipcode,
+                        "state": abbrRegion(this.profile.state, 'abbr'),
                         "countryCode": "USA",
                         "addressType": "RESIDENTIAL",
-                        "changedFields": [],
+                        "changedFields": []
                     },
                     responseType: 'json'
                 }
@@ -542,7 +557,7 @@ module.exports = class WalmartTask {
                     await this.submitShipping()
                 } else if (this.stopped === "false") {
                     this.log(error)
-                    await this.send("Unexpected error loading product")
+                    await this.send("Unexpected error submitting shipping")
                     await sleep(this.errorDelay)
                     await this.submitShipping()
                 }
@@ -554,24 +569,23 @@ module.exports = class WalmartTask {
         const got = require('got');
         const tunnel = require('tunnel');
         if (this.stopped === "false") {
-            await this.send("Getting encryption...")
+            await this.send("Encrypting card...")
             try {
                 this.request = {
                     method: 'get',
                     url: 'https://securedataweb.walmart.com/pie/v1/wmcom_us_vtg_pie/getkey.js?bust=' + getTimestamp(),
                     cookieJar: this.cookieJar,
                     headers: {
-                        'authority': 'www.walmart.com',
+                        'Connection': 'keep-alive',
                         'sec-ch-ua': '"Chromium";v="92", " Not A;Brand";v="99", "Google Chrome";v="92"',
-                        'accept': 'application/json',
                         'sec-ch-ua-mobile': '?0',
-                        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.131 Safari/537.36',
-                        'content-type': 'application/json',
-                        'origin': 'https://www.walmart.com',
-                        'sec-fetch-site': 'same-origin',
-                        'sec-fetch-mode': 'cors',
-                        'sec-fetch-dest': 'empty',
-                        'accept-language': 'en-US,en;q=0.9'
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.131 Safari/537.36',
+                        'Accept': '*/*',
+                        'Sec-Fetch-Site': 'same-site',
+                        'Sec-Fetch-Mode': 'no-cors',
+                        'Sec-Fetch-Dest': 'script',
+                        'Referer': 'https://www.walmart.com/',
+                        'Accept-Language': 'en-US,en;q=0.9'
                     }
                 }
                 if (this.proxy != '-') {
@@ -592,17 +606,17 @@ module.exports = class WalmartTask {
                 eval(response.body.split("// dynamically-generated PIE settings")[1].trim())
                 this.keyID = PIE['key_id']
                 this.phase = PIE.phase
-                this.encryptedCard = encrypt("4767718285062834", "013", PIE.L, PIE.E, PIE.K, PIE['key_id'], PIE.phase)
+                this.encryptedCard = encrypt(this.profile.cardNumber, this.profile.cvv, PIE.L, PIE.E, PIE.K, PIE['key_id'], PIE.phase)
             } catch (error) {
                 await this.setDelays()
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
                     this.log(error.response.body)
-                    await this.send("Error submitting: " + error.response.statusCode)
+                    await this.send("Error encrypting: " + error.response.statusCode)
                     await sleep(this.errorDelay)
                     await this.getEncryption()
                 } else if (this.stopped === "false") {
                     this.log(error)
-                    await this.send("Unexpected error loading product")
+                    await this.send("Unexpected error encrypting")
                     await sleep(this.errorDelay)
                     await this.getEncryption()
                 }
@@ -631,6 +645,7 @@ module.exports = class WalmartTask {
                         'sec-fetch-site': 'same-origin',
                         'sec-fetch-mode': 'cors',
                         'sec-fetch-dest': 'empty',
+                        'referer': 'https://www.walmart.com/checkout/',
                         'accept-language': 'en-US,en;q=0.9'
                     },
                     json: {
@@ -639,16 +654,16 @@ module.exports = class WalmartTask {
                         "integrityCheck": this.encryptedCard[2],
                         "keyId": this.keyID,
                         "phase": this.phase,
-                        "state": "VA",
-                        "postalCode": "20170",
-                        "addressLineOne": "2167 Mager Dr",
+                        "state": abbrRegion(this.profile.state, 'abbr'),
+                        "postalCode": this.profile.zipcode,
+                        "addressLineOne": this.profile.address1,
                         "addressLineTwo": "",
-                        "city": "Herndon",
-                        "firstName": "JOHN",
-                        "lastName": "SMITH",
-                        "expiryMonth": "03",
-                        "expiryYear": "2027",
-                        "phone": "5872930128",
+                        "city": this.profile.city,
+                        "firstName": this.profile.firstName,
+                        "lastName": this.profile.lastName,
+                        "expiryMonth": this.profile.expiryMonth,
+                        "expiryYear": this.profile.expiryYear,
+                        "phone": this.profile.phone,
                         "cardType": "VISA",
                         "isGuest": true
                     },
@@ -672,7 +687,7 @@ module.exports = class WalmartTask {
                     await this.submitCard()
                 } else if (this.stopped === "false") {
                     this.log(error)
-                    await this.send("Unexpected error loading product")
+                    await this.send("Unexpected error submitting card")
                     await sleep(this.errorDelay)
                     await this.submitCard()
                 }
@@ -694,38 +709,43 @@ module.exports = class WalmartTask {
                     headers: {
                         'authority': 'www.walmart.com',
                         'sec-ch-ua': '"Chromium";v="92", " Not A;Brand";v="99", "Google Chrome";v="92"',
-                        'accept': 'application/json',
+                        'inkiru_precedence': 'false',
                         'sec-ch-ua-mobile': '?0',
                         'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.131 Safari/537.36',
                         'content-type': 'application/json',
+                        'accept': 'application/json, text/javascript, */*; q=0.01',
+                        'wm_cvv_in_session': 'true',
+                        'wm_vertical_id': '0',
                         'origin': 'https://www.walmart.com',
                         'sec-fetch-site': 'same-origin',
                         'sec-fetch-mode': 'cors',
                         'sec-fetch-dest': 'empty',
+                        'referer': 'https://www.walmart.com/checkout/',
                         'accept-language': 'en-US,en;q=0.9'
                     },
                     json: {
                         "payments": [{
                             "paymentType": "CREDITCARD",
                             "cardType": "VISA",
-                            "firstName": "JOHN",
-                            "lastName": "SMITH",
-                            "addressLineOne": "2167 Mager Dr",
+                            "firstName": this.profile.firstName,
+                            "lastName": this.profile.lastName,
+                            "addressLineOne": this.profile.address1,
                             "addressLineTwo": "",
-                            "city": "Herndon",
-                            "state": "VA",
-                            "postalCode": "20170",
-                            "expiryMonth": "03",
-                            "expiryYear": "2027",
-                            "email": "TEST@ANKITPOUDYAL.COM",
-                            "phone": "5872930128",
+                            "city": this.profile.city,
+                            "state": abbrRegion(this.profile.state, 'abbr'),
+                            "postalCode": this.profile.zipcode,
+                            "expiryMonth": this.profile.expiryMonth,
+                            "expiryYear": this.profile.expiryYear,
+                            "email": this.profile.email,
+                            "phone": this.profile.phone,
                             "encryptedPan": this.encryptedCard[0],
                             "encryptedCvv": this.encryptedCard[1],
                             "integrityCheck": this.encryptedCard[2],
                             "keyId": this.keyID,
                             "phase": this.phase,
                             "piHash": this.piHash
-                        }]
+                        }],
+                        "cvvInSession": true,
                     }
                 }
                 if (this.proxy != '-') {
@@ -745,7 +765,7 @@ module.exports = class WalmartTask {
                     await this.submitPayment()
                 } else if (this.stopped === "false") {
                     this.log(error)
-                    await this.send("Unexpected error loading product")
+                    await this.send("Unexpected error submitting payment")
                     await sleep(this.errorDelay)
                     await this.submitPayment()
                 }
@@ -764,15 +784,32 @@ module.exports = class WalmartTask {
                     url: 'https://www.walmart.com/api/checkout/v3/contract/:PCID/order',
                     cookieJar: this.cookieJar,
                     headers: {
-                        "accept": "application/json, text/javascript, */*; q=0.01",
-                        "accept-encoding": "gzip, deflate, br",
-                        "accept-language": "en-US,en;q=0.9,zh-CN;q=0.8,zh;q=0.7",
-                        "content-type": "application/json",
-                        "inkiru_precedence": "false",
-                        "origin": "https://www.walmart.com",
-                        "referer": "https://www.walmart.com/checkout/",
-                        "wm_vertical_id": "0",
-                        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.131 Safari/537.36'
+                        'authority': 'www.walmart.com',
+                        'sec-ch-ua': '"Chromium";v="92", " Not A;Brand";v="99", "Google Chrome";v="92"',
+                        'inkiru_precedence': 'false',
+                        'sec-ch-ua-mobile': '?0',
+                        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.131 Safari/537.36',
+                        'content-type': 'application/json',
+                        'accept': 'application/json, text/javascript, */*; q=0.01',
+                        'wm_cvv_in_session': 'true',
+                        'wm_vertical_id': '0',
+                        'origin': 'https://www.walmart.com',
+                        'sec-fetch-site': 'same-origin',
+                        'sec-fetch-mode': 'cors',
+                        'sec-fetch-dest': 'empty',
+                        'referer': 'https://www.walmart.com/checkout/',
+                        'accept-language': 'en-US,en;q=0.9'
+                    },
+                    json: {
+                        "cvvInSession": true,
+                        "voltagePayments": [{
+                            "paymentType": "CREDITCARD",
+                            "encryptedCvv": this.encryptedCard[1],
+                            "encryptedPan": this.encryptedCard[0],
+                            "integrityCheck": this.encryptedCard[2],
+                            "keyId": this.keyID,
+                            "phase": this.phase
+                        }]
                     }
                 }
                 if (this.proxy != '-') {
@@ -784,16 +821,23 @@ module.exports = class WalmartTask {
                 }
                 let response = await got(this.request);
                 console.log(response.body)
+                await this.send("Check email")
+                await this.sendSuccess()
             } catch (error) {
                 await this.setDelays()
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
-                    this.log(error.response.body)
-                    await this.send("Error submitting order: " + error.response.statusCode)
-                    await sleep(this.errorDelay)
-                    await this.submitOrder()
+                    if (error.response.statusCode == 400) {
+                        await this.send("Checkout failed")
+                        await this.sendFail()
+                    } else {
+                        this.log(error.response.body)
+                        await this.send("Error submitting order: " + error.response.statusCode)
+                        await sleep(this.errorDelay)
+                        await this.submitOrder()
+                    }
                 } else if (this.stopped === "false") {
                     this.log(error)
-                    await this.send("Unexpected error loading product")
+                    await this.send("Unexpected error submitting payment")
                     await sleep(this.errorDelay)
                     await this.submitOrder()
                 }
@@ -885,43 +929,40 @@ module.exports = class WalmartTask {
 
 
     async initialize() {
-        this.cookieJar.setCookie('com.wm.reflector="reflectorid:0000000000000000000000@lastupd:1628638889868@firstcreate:1628638867463"; Max-Age=315360000; Expires=Fri, 08 Aug 2031 23:41:29 GMT; SameSite=Strict; Domain=.walmart.com; Path=/', "https://www.walmart.com")
-        this.cookieJar.setCookie('TBV=7;', "https://www.walmart.com")
-        this.cookieJar.setCookie('pxcts=7450d330-fa4a-11eb-8a14-6b455972302a; _pxvid=73b3f6f1-fa4a-11eb-bc75-d534e1f3036a;', "https://www.walmart.com")
-        this.cookieJar.setCookie('_pxff_cfp=1;', "https://www.walmart.com")
-        this.cookieJar.setCookie('_gcl_au=1.1.1462821640.1628648325;', "https://www.walmart.com")
-        this.cookieJar.setCookie('viq=Walmart;', "https://www.walmart.com")
-        this.cookieJar.setCookie('tb_sw_supported=true;', "https://www.walmart.com")
-        this.cookieJar.setCookie('cbp=391266944-1628648333392;', "https://www.walmart.com")
-        this.cookieJar.setCookie('akavpau_p8=1628648934~id=3a8a7e3e8712349990f48ec88689c00e;', "https://www.walmart.com")
-        this.cookieJar.setCookie('athrvi=RVI~h17524280;', "https://www.walmart.com")
-        this.cookieJar.setCookie('_sp_ses.ad94=*;', "https://www.walmart.com")
-        this.cookieJar.setCookie('cart-item-count=1', "https://www.walmart.com")
-        this.cookieJar.setCookie('s_sess_2=c32_v%3DS2H%2Cnull%3B%20prop32%3Dnull', "https://www.walmart.com")
-        this.cookieJar.setCookie('_sp_id.ad94=319ebc78-2fb3-4e14-9adc-f0d6532a2da1.1628648335.1.1628648340.1628648335.fad35af1-fb88-40f5-a0e2-01b1b2369664', "https://www.walmart.com")
-        this.cookieJar.setCookie('akavpau_p1=1628648940~id=8b3d380dd38e01221d3c66534a3b85df', "https://www.walmart.com")
-        this.cookieJar.setCookie('xpbun=1', "https://www.walmart.com")
-        this.cookieJar.setCookie('xpvoe=1', "https://www.walmart.com")
-        this.cookieJar.setCookie('_pxff_fp=1', "https://www.walmart.com")
-        this.cookieJar.setCookie('_uetsid=7464f3c0fa4a11eb9ccc31aeb4e11555', "https://www.walmart.com")
-        this.cookieJar.setCookie('_uetvid=74652a80fa4a11eb9a63858a191afcbf', "https://www.walmart.com")
-        this.cookieJar.setCookie('_abck=eixx2e4v63d70ysitg2r_1799', "https://www.walmart.com")
-        this.cookieJar.setCookie('next-day=null|true|true|null|1628648372', "https://www.walmart.com")
-        this.cookieJar.setCookie('location-data=20170%3AHerndon%3AVA%3A%3A8%3A1|1km%3B%3B3.76%2C4lt%3B%3B7.09%2C2t3%3B%3B8.11%2C4kw%3B%3B8.26%2C1jz%3B%3B8.78%2C4jc%3B%3B9.48%2C1gw%3B%3B11.9%2C417%3B%3B14%2C1ep%3B%3B15.91%2C2r9%3B%3B16.13||7|1|1y91%3B16%3B0%3B1.86%2C1xvn%3B16%3B1%3B2.09%2C1yqg%3B16%3B2%3B3.4%2C1yqj%3B16%3B7%3B8.42%2C1yb5%3B16%3B10%3B10.7|false|', "https://www.walmart.com")
-        this.cookieJar.setCookie('DL=20170%2C%2C%2Cip%2C20170%2C%2C', "https://www.walmart.com")
-        this.cookieJar.setCookie('t-loc-zip=1628648372724|20170', "https://www.walmart.com")
-        this.cookieJar.setCookie('_px3=acd62172a80a3637f41d44e21cb23a52757811138dedec9609e7d4e94e35cb36:CawLwTqvHRFEAiSsmUqjahgypIq7LC0z/mNcr21QfbO5mJk8zR6LxNYs4mcAHbugRQTY1GD4hpbGTxBNkjhhIA==:1000:AR9wtgZdUe2clt9svXLqY07Jc8NP4FIUvEajpcMPJk8EuMDFFQ/6XFPsy9db+6n1LQruTyhg9LTi5IiCNmL2lucokjwzjxpfFzHEty0aG2StEDNhhh0/wUB//yXOefXx+xjrTTxRkmnDEP/gNlWE7mbmNyIAZw8xvGhAeruZuFDUUg0fMK2h/1R2o314t0wIVw3AyNsChgYNQOW5+gwVMQ==', "https://www.walmart.com")
-        this.cookieJar.setCookie('_pxde=548bd5a0c13b8becb957d0941489a20785afc2f3b41d9e02ca67310cdec78d18:eyJ0aW1lc3RhbXAiOjE2Mjg2NDgzOTcyMTgsImZfa2IiOjAsImlwY19pZCI6W119', "https://www.walmart.com")
+        if (this.stopped === "false")
+            await this.send("Started")
 
+        await this.send("Error: module locked")
+            /*
+            if (this.stopped === "false")
+                await this.loadPage()
 
-        await this.addToCart()
-        await this.checkoutView()
-        await this.submitDelivery()
-        await this.submitShipping()
-        await this.getEncryption()
-        await this.submitCard()
-        await this.submitPayment()
-        await this.submitOrder()
+            if (this.stopped === "false" && this.accounts != "-")
+                await this.login()
+
+            if (this.stopped === "false")
+                await this.addToCart()
+
+            if (this.stopped === "false")
+                await this.checkoutView()
+
+            if (this.stopped === "false")
+                await this.submitDelivery()
+
+            if (this.stopped === "false")
+                await this.submitShipping()
+
+            if (this.stopped === "false")
+                await this.getEncryption()
+
+            if (this.stopped === "false")
+                await this.submitCard()
+
+            if (this.stopped === "false")
+                await this.submitPayment()
+
+            if (this.stopped === "false")
+                await this.submitOrder()*/
     }
 
 }
@@ -1267,4 +1308,105 @@ function encrypt(e, t, PIE_L, PIE_E, PIE_K, PIE_key_id, PIE_phase) {
 
 function getTimestamp() {
     return new Date().getTime();
+}
+
+
+function abbrRegion(input, to) {
+    var states = [
+        ['Alabama', 'AL'],
+        ['Alaska', 'AK'],
+        ['American Samoa', 'AS'],
+        ['Arizona', 'AZ'],
+        ['Arkansas', 'AR'],
+        ['Armed Forces Americas', 'AA'],
+        ['Armed Forces Europe', 'AE'],
+        ['Armed Forces Pacific', 'AP'],
+        ['California', 'CA'],
+        ['Colorado', 'CO'],
+        ['Connecticut', 'CT'],
+        ['Delaware', 'DE'],
+        ['District Of Columbia', 'DC'],
+        ['Florida', 'FL'],
+        ['Georgia', 'GA'],
+        ['Guam', 'GU'],
+        ['Hawaii', 'HI'],
+        ['Idaho', 'ID'],
+        ['Illinois', 'IL'],
+        ['Indiana', 'IN'],
+        ['Iowa', 'IA'],
+        ['Kansas', 'KS'],
+        ['Kentucky', 'KY'],
+        ['Louisiana', 'LA'],
+        ['Maine', 'ME'],
+        ['Marshall Islands', 'MH'],
+        ['Maryland', 'MD'],
+        ['Massachusetts', 'MA'],
+        ['Michigan', 'MI'],
+        ['Minnesota', 'MN'],
+        ['Mississippi', 'MS'],
+        ['Missouri', 'MO'],
+        ['Montana', 'MT'],
+        ['Nebraska', 'NE'],
+        ['Nevada', 'NV'],
+        ['New Hampshire', 'NH'],
+        ['New Jersey', 'NJ'],
+        ['New Mexico', 'NM'],
+        ['New York', 'NY'],
+        ['North Carolina', 'NC'],
+        ['North Dakota', 'ND'],
+        ['Northern Mariana Islands', 'NP'],
+        ['Ohio', 'OH'],
+        ['Oklahoma', 'OK'],
+        ['Oregon', 'OR'],
+        ['Pennsylvania', 'PA'],
+        ['Puerto Rico', 'PR'],
+        ['Rhode Island', 'RI'],
+        ['South Carolina', 'SC'],
+        ['South Dakota', 'SD'],
+        ['Tennessee', 'TN'],
+        ['Texas', 'TX'],
+        ['US Virgin Islands', 'VI'],
+        ['Utah', 'UT'],
+        ['Vermont', 'VT'],
+        ['Virginia', 'VA'],
+        ['Washington', 'WA'],
+        ['West Virginia', 'WV'],
+        ['Wisconsin', 'WI'],
+        ['Wyoming', 'WY'],
+    ];
+
+    var provinces = [
+        ['Alberta', 'AB'],
+        ['British Columbia', 'BC'],
+        ['Manitoba', 'MB'],
+        ['New Brunswick', 'NB'],
+        ['Newfoundland', 'NF'],
+        ['Northwest Territory', 'NT'],
+        ['Nova Scotia', 'NS'],
+        ['Nunavut', 'NU'],
+        ['Ontario', 'ON'],
+        ['Prince Edward Island', 'PE'],
+        ['Quebec', 'QC'],
+        ['Saskatchewan', 'SK'],
+        ['Yukon', 'YT'],
+    ];
+
+    var regions = states.concat(provinces);
+
+    var i;
+    if (to == 'abbr') {
+        input = input.replace(/\w\S*/g, function(txt) { return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase(); });
+        for (i = 0; i < regions.length; i++) {
+            if (regions[i][0] == input) {
+                return (regions[i][1]);
+            }
+        }
+    } else if (to == 'name') {
+        input = input.toUpperCase();
+        for (i = 0; i < regions.length; i++) {
+            if (regions[i][1] == input) {
+                return (regions[i][0]);
+            }
+        }
+    }
 }

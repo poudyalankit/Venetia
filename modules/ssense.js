@@ -36,7 +36,6 @@ module.exports = class SSENSETask {
         this.proxyArray = getProxyInfo(taskInfo.proxies, this.configDir)
         this.proxy = this.proxyArray.sample();
         this.oglink = this.link
-
         if (this.link.length == 15) {
             this.sku = this.link
             this.productTitle = this.sku
@@ -336,10 +335,10 @@ module.exports = class SSENSETask {
         }
     }
 
-    async login() {
+
+    async authenticateEmail() {
         const got = require('got');
         const tunnel = require('tunnel');
-
         if (this.stopped === "false") {
             await this.send("Authenticating...")
             try {
@@ -361,8 +360,7 @@ module.exports = class SSENSETask {
                     },
                     json: {
                         'email': this.profile.email
-                    },
-                    responseType: 'json'
+                    }
                 }
                 if (this.proxy != '-') {
                     this.request['agent'] = {
@@ -377,12 +375,74 @@ module.exports = class SSENSETask {
                     return;
                 }
             } catch (error) {
-                this.log(error)
                 await this.setDelays()
-                if (this.stopped === "false") {
-                    this.send("Error authenticating, retrying")
-                    await this.cookieJar.setCookie("auth=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjdXN0b21lciI6eyJpZCI6NjU1MTE3MjEsImVtYWlsIjoiaXVnYmFpdWF3ZWl1Z2l1QGdtYWlsLmNvbSIsInJvbGUiOiJndWVzdCJ9LCJleHBpcmVfYXQiOiIyMDIxLTctMjMgMDQ6MDk6MjciLCJpYXQiOjE2MjQ1OTQxNjcsImV4cCI6MTYyNzAxMzM2N30.mWwJerl-58tGxAMmUSYM8mVLCGRdehhw-G5_9O6MiT0; Path=/; Expires=Fri, 23 Jul 2021 04:09:27 GMT", "https://www.ssense.com")
+                if (typeof error.response != 'undefined' && this.stopped === "false") {
+                    this.log(error.response.body)
+                    await this.send("Error authenticating: " + error.response.statusCode)
                     await sleep(this.errorDelay)
+                    await this.authenticateEmail()
+                } else if (this.stopped === "false") {
+                    this.log(error)
+                    await this.send("Unexpected error authenticating")
+                    await sleep(this.errorDelay)
+                    await this.authenticateEmail()
+                }
+            }
+        }
+    }
+
+    async login() {
+        const got = require('got');
+        const tunnel = require('tunnel');
+
+        if (this.stopped === "false") {
+            await this.send("Logging in...")
+            try {
+                this.request = {
+                    method: 'post',
+                    url: 'https://www.ssense.com/en-us/account/login',
+                    cookieJar: this.cookieJar,
+                    headers: {
+                        'authority': 'www.ssense.com',
+                        'cache-control': 'max-age=0',
+                        'upgrade-insecure-requests': '1',
+                        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36',
+                        'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+                        'sec-fetch-site': 'same-origin',
+                        'sec-fetch-mode': 'navigate',
+                        'sec-fetch-user': '?1',
+                        'sec-fetch-dest': 'document',
+                        'accept-language': 'en-US,en;q=0.9'
+                    },
+                    json: {
+                        'email': this.accounts.email,
+                        'password': this.accounts.password
+                    }
+                }
+                if (this.proxy != '-') {
+                    this.request['agent'] = {
+                        https: tunnel.httpsOverHttp({
+                            proxy: this.proxy
+                        })
+                    }
+                }
+                let response = await got(this.request);
+                if (this.stopped === "false") {
+                    await this.send("Logged in")
+                    return;
+                }
+            } catch (error) {
+                await this.setDelays()
+                if (typeof error.response != 'undefined' && this.stopped === "false") {
+                    this.log(error.response.body)
+                    await this.send("Error logging in: " + error.response.statusCode)
+                    await sleep(this.errorDelay)
+                    await this.login()
+                } else if (this.stopped === "false") {
+                    this.log(error)
+                    await this.send("Unexpected error logging in")
+                    await sleep(this.errorDelay)
+                    await this.login()
                 }
             }
         }
@@ -459,7 +519,7 @@ module.exports = class SSENSETask {
                     if (error.response.statusCode === 403) {
                         await this.send("Error proxy banned")
                         await sleep(this.errorDelay)
-                        await this.addToCart()
+                        await this.loadProductPage()
                     } else {
                         await this.send("Error getting product: " + error.response.statusCode)
                         await sleep(this.errorDelay)
@@ -475,138 +535,6 @@ module.exports = class SSENSETask {
         }
     }
 
-    async addRandomToCart() {
-        const got = require('got');
-        const tunnel = require('tunnel');
-        if (this.stopped === "false") {
-            await this.send("Preloading...")
-            try {
-                this.request = {
-                    method: 'post',
-                    url: 'https://www.ssense.com/en-us/api/shopping-bag/' + "202011M13905901",
-                    cookieJar: this.cookieJar,
-                    headers: {
-                        'authority': 'www.ssense.com',
-                        'cache-control': 'max-age=0',
-                        'upgrade-insecure-requests': '1',
-                        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36',
-                        'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
-                        'sec-fetch-site': 'same-origin',
-                        'sec-fetch-mode': 'navigate',
-                        'sec-fetch-user': '?1',
-                        'sec-fetch-dest': 'document',
-                        'accept-language': 'en-US,en;q=0.9',
-                    },
-                    json: {
-                        'serviceType': "product-details",
-                        'sku': "202011M13905901",
-                        'userId': null
-                    },
-                    responseType: 'json'
-                }
-                if (this.proxy != '-') {
-                    this.request['agent'] = {
-                        https: tunnel.httpsOverHttp({
-                            proxy: this.proxy
-                        })
-                    }
-                }
-                let response = await got(this.request);
-                if (response.statusCode === 200 && this.stopped === "false") {
-                    await this.send("Carted")
-                    return;
-                }
-
-            } catch (error) {
-                await this.setDelays()
-                if (typeof error.response != 'undefined' && this.stopped === "false") {
-                    this.log(error.response.body)
-                    if (error.response.statusCode === 409) {
-                        await this.send("Error preload OOS, retrying")
-                        await sleep(this.errorDelay)
-                        await this.addRandomToCart()
-                    } else
-                    if (error.response.statusCode === 403) {
-                        await this.send("Error proxy banned")
-                        this.proxy = this.proxyArray.sample()
-                        await sleep(this.errorDelay)
-                        await this.addRandomToCart()
-                    } else {
-                        await this.send("Error adding to cart: " + error.response.statusCode)
-                        await sleep(this.errorDelay)
-                        await this.addRandomToCart()
-                    }
-                } else if (this.stopped === "false") {
-                    this.log(error)
-                    await this.send("Unexpected error")
-                    await sleep(this.errorDelay)
-                    await this.addRandomToCart()
-                }
-            }
-        }
-    }
-
-
-    async removeItem() {
-        const got = require('got');
-        const tunnel = require('tunnel');
-        if (this.stopped === "false") {
-            await this.send("Removing from cart...")
-            try {
-                this.request = {
-                    method: 'delete',
-                    url: 'https://www.ssense.com/en-us/api/shopping-bag/' + "202011M13905901",
-                    cookieJar: this.cookieJar,
-                    headers: {
-                        'authority': 'www.ssense.com',
-                        'cache-control': 'max-age=0',
-                        'upgrade-insecure-requests': '1',
-                        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36',
-                        'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
-                        'sec-fetch-site': 'same-origin',
-                        'sec-fetch-mode': 'navigate',
-                        'sec-fetch-user': '?1',
-                        'sec-fetch-dest': 'document',
-                        'accept-language': 'en-US,en;q=0.9',
-                    },
-                    responseType: 'json'
-                }
-                if (this.proxy != '-') {
-                    this.request['agent'] = {
-                        https: tunnel.httpsOverHttp({
-                            proxy: this.proxy
-                        })
-                    }
-                }
-                let response = await got(this.request);
-                if (response.statusCode === 200 && this.stopped === "false") {
-                    await this.send("Carted")
-                    return;
-                }
-
-            } catch (error) {
-                await this.setDelays()
-                if (typeof error.response != 'undefined' && this.stopped === "false") {
-                    this.log(error.response.body)
-                    if (error.response.statusCode === 403) {
-                        await this.send("Error proxy banned")
-                        this.proxy = this.proxyArray.sample()
-                        await sleep(this.errorDelay)
-                        await this.removeItem()
-                    } else {
-                        await this.send("Error removing item: " + error.response.statusCode)
-                        await sleep(this.errorDelay)
-                        await this.removeItem()
-                    }
-                } else if (this.stopped === "false") {
-                    this.log(error)
-                    await this.send("Unexpected error")
-                    await sleep(this.errorDelay)
-                    await this.removeItem()
-                }
-            }
-        }
-    }
 
     async addToCart() {
         const got = require('got');
@@ -635,8 +563,7 @@ module.exports = class SSENSETask {
                         'serviceType': "product-details",
                         'sku': this.sku,
                         'userId': null
-                    },
-                    responseType: 'json'
+                    }
                 }
                 if (this.proxy != '-') {
                     this.request['agent'] = {
@@ -646,7 +573,7 @@ module.exports = class SSENSETask {
                     }
                 }
                 let response = await got(this.request);
-                if (response.statusCode === 200 && this.stopped === "false") {
+                if (this.stopped === "false") {
                     await this.send("Carted")
                     return;
                 }
@@ -1167,64 +1094,34 @@ module.exports = class SSENSETask {
     async initialize() {
         await this.send("Started")
 
-        if (this.stopped === "false" && this.mode === "Preload") {
+        if (this.stopped === "false" && this.sku === 'none')
+            await this.loadProductPage()
+
+        if (this.stopped === "false")
+            await this.addToCart()
+
+        if (this.accounts != "-") {
             if (this.stopped === "false")
-                await this.addRandomToCart()
-            if (this.stopped === "false")
-                await this.login()
-
-            if (this.stopped === "false")
-                await this.getCheckoutSession()
-
-            if (this.stopped === "false")
-                await this.getShipping()
-
-            if (this.stopped === "false")
-                await this.getTaxes()
-
-            if (this.stopped === "false")
-                await this.removeItem()
-
-            if (this.stopped === "false" && this.sku === 'none')
-                await this.loadProductPage()
-
-            if (this.stopped === "false")
-                await this.addToCart()
-
-            if (this.stopped === "false")
-                await this.getCheckoutSession()
-
-            if (this.stopped === "false" && this.mode.includes("-C"))
-                await this.submitOrder()
-            else if (this.stopped === "false")
-                await this.submitOrderPayPal()
-
-        } else {
-            if (this.stopped === "false" && this.sku === 'none')
-                await this.loadProductPage()
-
-            if (this.stopped === "false")
-                await this.addToCart()
-
+                await this.actualLogin()
+        } else if (this.accounts === "-") {
             if (this.stopped === "false")
                 await this.login()
-
-            if (this.stopped === "false")
-                await this.getCheckoutSession()
-
-            if (this.stopped === "false")
-                await this.getShipping()
-
-            if (this.stopped === "false")
-                await this.getTaxes()
-
-            if (this.stopped === "false" && this.mode.includes("-C"))
-                await this.submitOrder()
-            else if (this.stopped === "false")
-                await this.submitOrderPayPal()
-
         }
 
+        if (this.stopped === "false")
+            await this.getCheckoutSession()
+
+        if (this.stopped === "false")
+            await this.getShipping()
+
+        if (this.stopped === "false")
+            await this.getTaxes()
+
+        if (this.stopped === "false" && this.mode === "Card")
+            await this.submitOrder()
+
+        else if (this.stopped === "false" && this.mode === "PayPal")
+            await this.submitOrderPayPal()
     }
 
 }

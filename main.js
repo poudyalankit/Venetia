@@ -15,7 +15,7 @@ const client = require('discord-rich-presence')('768276915651739678');
 const fs = require('fs')
 const fse = require('fs-extra')
 
-const { exec } = require("child_process");
+const { fork } = require("child_process");
 
 
 const express = require('express');
@@ -208,7 +208,7 @@ function createWindow() {
 
 
     win.on('closed', () => app.quit());
-    exec("node taskRunner.js", (error) => {});
+    fork(path.join(__dirname, 'taskRunner.js'), { env: { ATOM_SHELL_INTERNAL_RUN_AS_NODE: 0 } }, (error) => { console.log(error) });
 
     setInterval(function() {
         for (var i = 0; i < BrowserWindow.getAllWindows().length; i++) {
@@ -319,7 +319,7 @@ ipcMain.on('message', (event, message) => {
             event: "killBackend"
         })
         setTimeout(function() {
-            exec("node taskRunner.js", (error) => {});
+            fork(path.join(__dirname, 'taskRunner.js'), { env: { ATOM_SHELL_INTERNAL_RUN_AS_NODE: 0 } }, (error) => { console.log(error) });
         }, 1500);
     }
 
