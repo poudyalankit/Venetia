@@ -33,7 +33,29 @@ module.exports = class WalmartTask {
     async sendFail() {
         const got = require('got');
         this.quickTaskLink = "http://localhost:4444/quicktask?storetype=Walmart&input=" + this.link
-
+        got({
+                method: 'post',
+                url: 'https://venetiabots.com/api/fail',
+                headers: {
+                    'key': this.key
+                },
+                json: {
+                    "site": this.site,
+                    "mode": this.mode,
+                    "product": this.link,
+                    "size": this.size,
+                    "productTitle": this.productTitle,
+                    "price": Math.trunc(this.cartTotal),
+                    "timestamp": new Date(Date.now()).toISOString(),
+                    "image": this.imageURL,
+                    "quicktask": this.quickTaskLink
+                }
+            }).then(response => {
+                this.log("Finished")
+            })
+            .catch(error => {
+                this.log(error)
+            })
 
         var webhooks = this.webhookLink.split(",")
         for (var i = 0; i < webhooks.length; i++) {
@@ -257,7 +279,7 @@ module.exports = class WalmartTask {
             try {
                 this.request = {
                     method: 'get',
-                    url: 'https://www.walmart.com',
+                    url: 'https://www.walmart.com/pac?id=' + this.cartID + '&quantity=1&cv=2',
                     cookieJar: this.cookieJar,
                     headers: {
                         'authority': 'www.walmart.com',
@@ -281,6 +303,7 @@ module.exports = class WalmartTask {
                     }
                 }
                 let response = await got(this.request);
+                console.log(response.headers)
             } catch (error) {
                 await this.setDelays()
                 if (error.toString().includes("Cookie not in this host's domain.")) {
@@ -412,7 +435,8 @@ module.exports = class WalmartTask {
                     }
                 }
                 let response = await got(this.request);
-                this.cartid = response.body.items[0].id
+                this.itemID = response.body.items[0].id
+                this.shippingTier = response.body.items[0].fulfillmentSelection.shipMethod
             } catch (error) {
                 await this.setDelays()
                 if (typeof error.response != 'undefined' && this.stopped === "false") {
@@ -464,9 +488,9 @@ module.exports = class WalmartTask {
                         "groups": [{
                             "fulfillmentOption": "S2H",
                             "itemIds": [
-                                this.cartid
+                                this.itemID
                             ],
-                            "shipMethod": "RUSH"
+                            "shipMethod": this.shippingTier
                         }]
                     },
                     responseType: 'json'
@@ -932,37 +956,39 @@ module.exports = class WalmartTask {
         if (this.stopped === "false")
             await this.send("Started")
 
-        await this.send("Error: module locked")
-            /*
-            if (this.stopped === "false")
-                await this.loadPage()
+        //await this.send("Error: module locked")
 
-            if (this.stopped === "false" && this.accounts != "-")
-                await this.login()
 
-            if (this.stopped === "false")
-                await this.addToCart()
+        if (this.stopped === "false" && this.accounts != "-")
+            await this.login()
 
-            if (this.stopped === "false")
-                await this.checkoutView()
+        if (this.stopped === "false")
+            await this.addToCart()
 
-            if (this.stopped === "false")
-                await this.submitDelivery()
 
-            if (this.stopped === "false")
-                await this.submitShipping()
+        if (this.stopped === "false")
+            await this.loadPage()
 
-            if (this.stopped === "false")
-                await this.getEncryption()
+        if (this.stopped === "false")
+            await this.checkoutView()
 
-            if (this.stopped === "false")
-                await this.submitCard()
+        if (this.stopped === "false")
+            await this.submitDelivery()
 
-            if (this.stopped === "false")
-                await this.submitPayment()
+        if (this.stopped === "false")
+            await this.submitShipping()
 
-            if (this.stopped === "false")
-                await this.submitOrder()*/
+        if (this.stopped === "false")
+            await this.getEncryption()
+
+        if (this.stopped === "false")
+            await this.submitCard()
+
+        if (this.stopped === "false")
+            await this.submitPayment()
+
+        if (this.stopped === "false")
+            await this.submitOrder()
     }
 
 }

@@ -1,5 +1,5 @@
 const WebSocket = require("ws");
-const frontend = new WebSocket("ws://localhost:4443");
+const frontend = new WebSocket("ws://localhost:4445");
 const path = require('path')
 
 let configDir;
@@ -45,6 +45,24 @@ function requireFromString(src, filename) {
 frontend.on('message', function(message) {
     message = JSON.parse(message)
 
+    if (message.event === "linkChange") {
+        for (var i = 0; i < taskArray.length; i++) {
+            if (taskArray[i].baseLink === message.data.baseLink) {
+                taskArray[i].editTask({
+                    "link": message.data.newLink
+                })
+            }
+        }
+    }
+
+
+    if (message.event === "editTasks") {
+        for (var i = 0; i < taskArray.length; i++) {
+            if (message.data.changedTasks.includes(taskArray[i].returnID()))
+                taskArray[i].editTask(message.data.changedFields)
+        }
+    }
+
     if (message.event === "finishedCaptcha") {
         for (var i = 0; i < taskArray.length; i++) {
             if (taskArray[i].returnID() === message.data.taskID)
@@ -68,66 +86,66 @@ frontend.on('message', function(message) {
         const fs = require('fs')
         let key = fs.readFileSync(path.join(configDir, '/userdata/key.txt'), 'utf8');
         const got = require('got')
-            /* if (message.data.isDev == true) {
-                 ShopifyTask = require(path.join(__dirname, '../', "Backend", "shopify.js"));
-                 SSENSETask = require(path.join(__dirname, '../', "Backend", "ssense.js"));
-                 FootsitesTask = require(path.join(__dirname, '../', "Backend", "footsites.js"));
-                 ShiekhTask = require(path.join(__dirname, '../', "Backend", "shiekh.js"));
-                 FederalPremiumTask = require(path.join(__dirname, '../', "Backend", "federalpremium.js"));
-                 WalmartTask = require(path.join(__dirname, '../', "Backend", "walmart.js"));
-                 DSGTask = require(path.join(__dirname, '../', "Backend", "dsg.js"));
-             } else {*/
-        got({
-            method: 'get',
-            url: "https://venetiabots.com/api/loadShop?key=" + key,
-            headers: { 'user-agent': "Venetia Dont Crack" }
-        }).then(response => {
-            ShopifyTask = requireFromString(response.body, "shop")
-        })
-        got({
-            method: 'get',
-            url: "https://venetiabots.com/api/loadSS?key=" + key,
-            headers: { 'user-agent': "Venetia Dont Crack" }
-        }).then(response => {
-            SSENSETask = requireFromString(response.body, "ssense")
-        })
-        got({
-            method: 'get',
-            url: "https://venetiabots.com/api/loadDSG?key=" + key,
-            headers: { 'user-agent': "Venetia Dont Crack" }
-        }).then(response => {
-            DSGTask = requireFromString(response.body, "dsg")
-        })
-        got({
-            method: 'get',
-            url: "https://venetiabots.com/api/loadFoo?key=" + key,
-            headers: { 'user-agent': "Venetia Dont Crack" }
-        }).then(response => {
-            FootsitesTask = requireFromString(response.body, "foots")
-        })
-        got({
-            method: 'get',
-            url: "https://venetiabots.com/api/loadShi?key=" + key,
-            headers: { 'user-agent': "Venetia Dont Crack" }
-        }).then(response => {
-            ShiekhTask = requireFromString(response.body, "shi")
-        })
-        got({
-            method: 'get',
-            url: "https://venetiabots.com/api/loadFP?key=" + key,
-            headers: { 'user-agent': "Venetia Dont Crack" }
-        }).then(response => {
-            FederalPremiumTask = requireFromString(response.body, "fp")
-        })
-        got({
-            method: 'get',
-            url: "https://venetiabots.com/api/loadWM?key=" + key,
-            headers: { 'user-agent': "Venetia Dont Crack" }
-        }).then(response => {
-            WalmartTask = requireFromString(response.body, "walm")
-        })
+        if (message.data.isDev == true) {
+            ShopifyTask = require(path.join(__dirname, '../', "Backend", "shopify.js"));
+            SSENSETask = require(path.join(__dirname, '../', "Backend", "ssense.js"));
+            FootsitesTask = require(path.join(__dirname, '../', "Backend", "footsites.js"));
+            ShiekhTask = require(path.join(__dirname, '../', "Backend", "shiekh.js"));
+            FederalPremiumTask = require(path.join(__dirname, '../', "Backend", "federalpremium.js"));
+            WalmartTask = require(path.join(__dirname, '../', "Backend", "walmart.js"));
+            DSGTask = require(path.join(__dirname, '../', "Backend", "dsg.js"));
+        } else {
+            got({
+                method: 'get',
+                url: "https://venetiabots.com/api/loadShop?key=" + key,
+                headers: { 'user-agent': "Venetia Dont Crack" }
+            }).then(response => {
+                ShopifyTask = requireFromString(response.body, "shop")
+            })
+            got({
+                method: 'get',
+                url: "https://venetiabots.com/api/loadSS?key=" + key,
+                headers: { 'user-agent': "Venetia Dont Crack" }
+            }).then(response => {
+                SSENSETask = requireFromString(response.body, "ssense")
+            })
+            got({
+                method: 'get',
+                url: "https://venetiabots.com/api/loadDSG?key=" + key,
+                headers: { 'user-agent': "Venetia Dont Crack" }
+            }).then(response => {
+                DSGTask = requireFromString(response.body, "dsg")
+            })
+            got({
+                method: 'get',
+                url: "https://venetiabots.com/api/loadFoo?key=" + key,
+                headers: { 'user-agent': "Venetia Dont Crack" }
+            }).then(response => {
+                FootsitesTask = requireFromString(response.body, "foots")
+            })
+            got({
+                method: 'get',
+                url: "https://venetiabots.com/api/loadShi?key=" + key,
+                headers: { 'user-agent': "Venetia Dont Crack" }
+            }).then(response => {
+                ShiekhTask = requireFromString(response.body, "shi")
+            })
+            got({
+                method: 'get',
+                url: "https://venetiabots.com/api/loadFP?key=" + key,
+                headers: { 'user-agent': "Venetia Dont Crack" }
+            }).then(response => {
+                FederalPremiumTask = requireFromString(response.body, "fp")
+            })
+            got({
+                method: 'get',
+                url: "https://venetiabots.com/api/loadWM?key=" + key,
+                headers: { 'user-agent': "Venetia Dont Crack" }
+            }).then(response => {
+                WalmartTask = requireFromString(response.body, "walm")
+            })
 
-        // }
+        }
     }
 
     if (message.event === "stopTask") {
@@ -168,16 +186,13 @@ frontend.on('message', function(message) {
             task = new SSENSETask(taskInfo)
         }
 
-
         if (taskInfo.site === "Dicks") {
             task = new DSGTask(taskInfo)
         }
 
-
         if (taskInfo.site === "Walmart") {
             task = new WalmartTask(taskInfo)
         }
-
 
         if (taskInfo.site === "Shiekh") {
             task = new ShiekhTask(taskInfo)
@@ -186,7 +201,6 @@ frontend.on('message', function(message) {
         if (taskInfo.site === "Pacsun") {
             task = new PacsunTask(taskInfo)
         }
-
 
         if (taskInfo.site === "Federal Premium") {
             task = new FederalPremiumTask(taskInfo)

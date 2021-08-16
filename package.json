@@ -1,6 +1,6 @@
 {
     "name": "Venetia",
-    "version": "0.5.0",
+    "version": "0.5.1",
     "author": "Venetia",
     "description": "AIO Automation Software",
     "main": "main.js",
@@ -50,12 +50,10 @@
         "mac": {
             "category": "Venetia.AIO.Automation.Software"
         },
-        "publish": [
-            {
-                "provider": "github",
-                "owner": "poudyalankit",
-                "repo": "venetia-update"
-            }
-        ]
+        "publish": [{
+            "provider": "github",
+            "owner": "poudyalankit",
+            "repo": "venetia-update"
+        }]
     }
 }

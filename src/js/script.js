@@ -191,6 +191,7 @@ function modeChoices() {
             select.options.length = 0;
             select.options[select.options.length] = new Option("Safe", "Safe");
             select.options[select.options.length] = new Option("Preload", "Preload");
+            select.options[select.options.length] = new Option("Prestock", "Prestock");
             select.options[select.options.length] = new Option("Fast", "Fast");
             break;
         }
@@ -253,6 +254,7 @@ function modeChoices2() {
             select.options.length = 0;
             select.options[select.options.length] = new Option("Safe", "Safe");
             select.options[select.options.length] = new Option("Preload", "Preload");
+            select.options[select.options.length] = new Option("Prestock", "Prestock");
             select.options[select.options.length] = new Option("Fast", "Fast");
             break;
         }
@@ -271,14 +273,6 @@ function closeIt() {
     const remote = require('electron').remote;
     var window = remote.getCurrentWindow();
     window.close();
-}
-
-function removeNulls(obj) {
-    var isArray = obj instanceof Array;
-    for (var k in obj) {
-        if (obj[k] === null) isArray ? obj.splice(k, 1) : delete obj[k];
-        else if (typeof obj[k] == "object") removeNulls(obj[k]);
-    }
 }
 
 function deleteSelected() {
@@ -316,6 +310,13 @@ function deleteSelected() {
 
 function taskEditor() {
     if (document.getElementById('groups').rows.length > 0) {
+        siteTask2.set()
+        modeTask2.set()
+        document.getElementById("linkTask2").value = ""
+        profileTask2.set([])
+        proxyTask2.set()
+        accountTask2.set()
+        sizeTask2.set([])
         document.getElementById("darkenBackground").style.display = "block";
         document.getElementById("taskEditor").style.display = "block";
     }
@@ -519,6 +520,9 @@ var siteTask2;
 var sizeTask;
 var sizeTask2;
 var profileTask;
+var profileTask2;
+var proxyTask2;
+var accountTask2;
 var modeTask2;
 var proxyQTSelect;
 var sizeQTSelect;
@@ -853,7 +857,7 @@ window.onload = function() {
         showSearch: false,
     })
 
-    new SlimSelect({
+    accountTask2 = new SlimSelect({
         select: '#accountTask2',
         placeholder: 'Select accounts',
         closeOnSelect: true,
@@ -882,13 +886,13 @@ window.onload = function() {
         }
     })
 
-    new SlimSelect({
+    profileTask2 = new SlimSelect({
         select: '#profileTask2',
         placeholder: 'Select profile',
         closeOnSelect: true
     })
 
-    new SlimSelect({
+    proxyTask2 = new SlimSelect({
         select: '#proxyTask2',
         placeholder: 'Select proxies',
         closeOnSelect: true
@@ -1868,16 +1872,21 @@ function deleteGroup() {
 
 
 function editSelected() {
-    stopSelected()
     var groups = storage.getSync("tasks")
     var gname;
     var gindex;
+    var changedTasks = []
+    var changedFields = {}
     for (var i = 0; i < document.getElementById('groups').rows.length; i++) {
         if (document.getElementById('groups').rows[i].cells[0].style['border-left'] === "1px solid rgb(224, 103, 103)") {
             gname = document.getElementById('groups').rows[i].cells[0].children[0].value
             gindex = i
             break;
         }
+    }
+    for (var i = 0; i < document.getElementById('tasks').rows.length; i++) {
+        if (document.getElementById('tasks').rows[i].classList.contains("rowClicked"))
+            changedTasks.push(document.getElementById('tasks').rows[i].cells[0].textContent)
     }
     var site = document.getElementById("siteTask2").value;
     var mode = document.getElementById("modeTask2").value;
@@ -1897,25 +1906,31 @@ function editSelected() {
                 document.getElementById("tasks").rows[i].cells[2].textContent = mode;
                 groups[gindex][gname][i - 1][document.getElementById('tasks').rows[i].cells[0].textContent]['mode'] = mode
             }
+
             if (link != "") {
                 document.getElementById("tasks").rows[i].cells[3].textContent = link;
                 groups[gindex][gname][i - 1][document.getElementById('tasks').rows[i].cells[0].textContent]['product'] = link
+                changedFields.link = link
             }
             if (profile != "") {
                 document.getElementById("tasks").rows[i].cells[5].textContent = profile;
                 groups[gindex][gname][i - 1][document.getElementById('tasks').rows[i].cells[0].textContent]['profile'] = profile
+                changedFields.profile = profile
             }
             if (size != "") {
                 document.getElementById("tasks").rows[i].cells[4].textContent = size;
                 groups[gindex][gname][i - 1][document.getElementById('tasks').rows[i].cells[0].textContent]['size'] = size
+                changedFields.size = sizeTask2.selected()
             }
             if (accounts != "") {
                 groups[gindex][gname][i - 1][document.getElementById('tasks').rows[i].cells[0].textContent]['accounts'] = accounts
+                changedFields.accounts = accounts
             }
 
             if (proxies != "") {
                 document.getElementById("tasks").rows[i].cells[6].textContent = proxies;
                 groups[gindex][gname][i - 1][document.getElementById('tasks').rows[i].cells[0].textContent]['proxies'] = proxies
+                changedFields.proxies = proxies
             }
 
         }
@@ -1924,6 +1939,14 @@ function editSelected() {
     storage.set('tasks', groups, function(error) {
         if (error) throw error;
     });
+
+    ipcRenderer.send('message', {
+        event: "editTasks",
+        data: {
+            changedTasks: changedTasks,
+            changedFields: changedFields
+        }
+    })
 
     closeEditor(event)
 }
@@ -2326,7 +2349,7 @@ ipcRenderer.on('quicktask', (event, site, input) => {
     tasks()
     if (document.getElementById('groups').rows.length == 0)
         addGroup()
-    var tasks2 = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/tasks.json'), { encoding: 'utf8', flag: 'r' }));
+    var tasks2 = storage.getSync("tasks")
     var gname = document.getElementById('groups').rows[0].cells[0].children[0].value
     var gindex = 0
     document.getElementById("groups").rows[0].cells[0].click()
@@ -2360,18 +2383,18 @@ ipcRenderer.on('quicktask', (event, site, input) => {
         "<td>" + id + "</td>" +
         "<td>" + site + "</td>" +
         "<td>" + mode + "</td>" + "<td class='link'>" + input + "</td>" +
-        "<td class='size'>" + document.getElementById("sizeQTSelect").value + "</td>" +
-        "<td>" + document.getElementById("profileQTSelect").value + "</td>" +
-        "<td>" + document.getElementById("proxyQTSelect").value + "</td>" +
+        "<td class='size'>" + storage.getSync("settings")[1].qtSize + "</td>" +
+        "<td>" + storage.getSync("settings")[1].qtProfile + "</td>" +
+        "<td>" + storage.getSync("settings")[1].qtProxy + "</td>" +
         "<td>" + 'Stopped' + "</td>"
     var task = {
         [id]: {
             "site": site,
             "mode": mode,
             "product": input,
-            "size": document.getElementById("sizeQTSelect").value,
-            "profile": document.getElementById("profileQTSelect").value,
-            "proxies": document.getElementById("proxyQTSelect").value,
+            "size": storage.getSync("settings")[1].qtSize,
+            "profile": storage.getSync("settings")[1].qtProfile,
+            "proxies": storage.getSync("settings")[1].qtProxy,
             "accounts": "-",
             "schedule": {
                 "hour": "",
@@ -2382,10 +2405,10 @@ ipcRenderer.on('quicktask', (event, site, input) => {
     }
     tasks2[gindex][gname].push(task)
 
-    fs.writeFile(path.join(configDir, '/userdata/tasks.json'), JSON.stringify(tasks2), function(err) {
-        if (err) throw err;
-        console.log('Tasks saved!');
+    storage.set('tasks', tasks2, function(error) {
+        if (error) throw error;
     });
+
     document.getElementById('groups').rows[gindex].cells[0].children[1].textContent = (document.getElementById('tasks').rows.length - 1).toString() + " tasks"
 
     var task3 = {
@@ -2393,9 +2416,9 @@ ipcRenderer.on('quicktask', (event, site, input) => {
         "site": site,
         "mode": mode,
         "product": input,
-        "size": document.getElementById("sizeQTSelect").value,
-        "profile": document.getElementById("profileQTSelect").value,
-        "proxies": document.getElementById("proxyQTSelect").value,
+        "size": storage.getSync("settings")[1].qtSize,
+        "profile": storage.getSync("settings")[1].qtProfile,
+        "proxies": storage.getSync("settings")[1].qtProxy,
         "accounts": "-",
         "schedule": {
             "hour": "",

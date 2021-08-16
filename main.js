@@ -87,15 +87,18 @@ autoUpdater.on('error', message => {
     console.error(message)
 })
 
-
 captchaSharing.get("/test", async(req, res) => {
     res.send("test")
 });
 
-captchaSharing.get("/quicktask", async(req, res) => {
+captchaSharing.get("/linkchange", async(req, res) => {
     if (req.query.storetype.toLowerCase() === "shopify") {
-        var shopify = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/shopifyStores2.json'), { encoding: 'utf8', flag: 'r' }));
-        var customshopify = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/shopifyStores.json'), { encoding: 'utf8', flag: 'r' }));
+        var pathArray = req.query.input.split('/');
+        var protocol = pathArray[0];
+        var host = pathArray[2];
+        var url = protocol + '//' + host;
+        var shopify = storage.getSync("shopifyStores2")
+        var customshopify = storage.getSync("shopifyStores")
         for (var i = 0; i < customshopify.length; i++) {
             shopify.push({
                 site: customshopify[i].site,
@@ -103,12 +106,50 @@ captchaSharing.get("/quicktask", async(req, res) => {
             })
         }
         for (var i = 0; i < shopify.length; i++) {
-            if (req.query.input.split("/cart")[0].toLowerCase() === shopify[i].baseLink.toLowerCase()) {
+            var pathArray = req.query.input.split('/');
+            var protocol = pathArray[0];
+            var host = pathArray[2];
+            var url = protocol + '//' + host;
+            if (url.toLowerCase() === shopify[i].baseLink.toLowerCase()) {
+                win.focus()
+                send({
+                    event: "linkChange",
+                    data: {
+                        storeType: "Shopify",
+                        newLink: req.query.input,
+                        baseLink: url.toLowerCase()
+                    }
+                })
+                res.send("Link change sent")
+                break;
+            }
+        }
+        res.send("Shopify store not found")
+    }
+});
+
+captchaSharing.get("/quicktask", async(req, res) => {
+    if (req.query.storetype.toLowerCase() === "shopify") {
+        var shopify = storage.getSync("shopifyStores2")
+        var customshopify = storage.getSync("shopifyStores")
+        for (var i = 0; i < customshopify.length; i++) {
+            shopify.push({
+                site: customshopify[i].site,
+                baseLink: customshopify[i].baseLink
+            })
+        }
+        for (var i = 0; i < shopify.length; i++) {
+            var pathArray = req.query.input.split('/');
+            var protocol = pathArray[0];
+            var host = pathArray[2];
+            var url = protocol + '//' + host;
+            if (url.toLowerCase() === shopify[i].baseLink.toLowerCase()) {
                 win.webContents.send('quicktask', shopify[i].site, req.query.input)
                 res.send("Task created successfully")
                 break;
             }
         }
+        res.send("Shopify store not found")
     } else if (req.query.storetype.toLowerCase() === "shiekh") {
         win.webContents.send('quicktask', "Shiekh", req.query.input)
         res.send("Task created successfully")
@@ -143,7 +184,7 @@ captchaSharing.get("/quicktask", async(req, res) => {
 let win;
 
 client.updatePresence({
-    details: 'v0.5.0',
+    details: 'v0.5.1',
     startTimestamp: Date.now(),
     largeImageKey: "venetia",
     largeImageText: "Venetia",
@@ -226,7 +267,7 @@ function createWindow() {
 
 
 const WebSocket = require("ws");
-const backend = new WebSocket.Server({ port: 4443 })
+const backend = new WebSocket.Server({ port: 4445 })
 let backendConnection;
 
 function send(message) {
@@ -314,6 +355,17 @@ ipcMain.on('updateProductTitle1', (event, taskID, title) => {
 });
 
 ipcMain.on('message', (event, message) => {
+    if (message.event === "editTasks") {
+        send({
+            event: "editTasks",
+            data: {
+                changedTasks: message.data.changedTasks,
+                changedFields: message.data.changedFields
+            }
+        })
+    }
+
+
     if (message.event === "restartBackend") {
         send({
             event: "killBackend"
@@ -456,7 +508,7 @@ ipcMain.on('message', (event, message) => {
 
 
 ipcMain.on('taskinfo', (event, taskInfo) => {
-    var groups = JSON.parse(fs.readFileSync(path.join(configDir, '/userdata/tasks.json'), { encoding: 'utf8', flag: 'r' }));
+    var groups = storage.getSync('tasks')
     taskInfo = {
         "id": taskInfo.taskID,
         "site": groups[taskInfo.groupIndex][taskInfo.groupName][taskInfo.taskIndex][taskInfo.taskID]['site'],
@@ -514,7 +566,7 @@ ipcMain.on('reverify', (event, key) => {
         method: 'get',
         url: "https://venetiabots.com/api/activate?key=" + key,
         headers: {
-            version: "0.5.0"
+            version: "0.5.1"
         },
         responseType: 'json'
     }).then(response => {
@@ -538,7 +590,7 @@ ipcMain.on('verify', (event, key) => {
         method: 'get',
         url: "https://venetiabots.com/api/activate?key=" + key,
         headers: {
-            version: "0.5.0"
+            version: "0.5.1"
         },
         responseType: 'json'
     }).then(response => {

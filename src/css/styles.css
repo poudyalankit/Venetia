@@ -1699,12 +1699,12 @@ body {
     transition-duration: 0.4s;
 }
 
-.delaysButton:hover {
-    background: #5DA9FF;
-}
-
 .createTask:hover {
     background: #4fcf91;
+}
+
+.delaysButton:hover {
+    background: #5DA9FF;
 }
 
 .createTask:disabled {
