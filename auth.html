@@ -6,33 +6,33 @@
     <style>
         .keyAuthHeaderBackground {
             position: absolute;
-            width: 700px;
-            height: 70px;
+            width: 100%;
+            height: 60px;
             right: 0px;
             top: 0px;
-            background: #1E202F;
+            background: #1e202f;
             -webkit-app-region: drag;
         }
         
         .licenseKeyText {
             position: absolute;
             height: 27px;
-            left: 52px;
-            top: 133px;
+            left: 30px;
+            top: 80px;
             font-family: Poppins;
             font-style: normal;
             font-weight: 400;
-            font-size: 18px;
+            font-size: 16px;
             line-height: 27px;
             color: #FFFFFF;
         }
         
         .keyEntry {
             position: absolute;
-            width: 578px;
-            height: 45px;
-            left: 52px;
-            top: 163px;
+            width: 370px;
+            height: 36px;
+            left: 30px;
+            top: 115px;
             background: #1E202F;
             border-radius: 8px;
             outline: none;
@@ -43,44 +43,42 @@
             border: none;
             padding-left: 8px;
             font-family: Poppins;
+            transition-property: box-shadow;
+            transition-duration: 0.4s;
+        }
+        
+        .keyEntry:focus {
+            border-color: #e06767;
+            box-shadow: 0 0 0 1pt #e06767;
+        }
+        
+        .keyEntry:hover {
+            border-color: #e06767;
+            box-shadow: 0 0 0 1pt #e06767;
         }
         
         .loginButton {
             position: absolute;
-            width: 578px;
-            height: 52px;
-            left: 52px;
-            top: 237px;
-            background: #E06767;
-            border: 1px solid #000000;
-            box-sizing: border-box;
+            width: 68px;
+            height: 36px;
+            right: 35px;
+            top: 190px;
+            background: transparent;
             font-style: normal;
             font-weight: 400;
             cursor: pointer;
             border-radius: 8px;
+            border: 1px solid #E06767;
             color: white;
             outline: 0;
             font-family: Poppins;
+            transition-property: background;
+            transition-duration: 0.4s;
             font-size: 18px;
         }
         
         .loginButton:hover {
-            position: absolute;
-            width: 578px;
-            height: 52px;
-            left: 52px;
-            top: 237px;
-            background: #e28b8b;
-            border: 1px solid #000000;
-            box-sizing: border-box;
-            font-style: normal;
-            font-weight: 400;
-            cursor: pointer;
-            border-radius: 8px;
-            color: white;
-            outline: 0;
-            font-family: Poppins;
-            font-size: 18px;
+            background: #E06767;
         }
         
         body {
@@ -89,22 +87,21 @@
         }
         
         .lockImg {
-            position: absolute;
-            width: 18px;
-            height: 18px;
-            left: 293px;
-            top: 255px;
+            position: relative;
+            left: 18%;
+            top: 30%;
+            transform: translate(-50%, -50%);
         }
         
         .title {
             position: absolute;
             height: 36px;
-            left: 37px;
-            top: 16px;
+            left: 20px;
+            top: 13px;
             font-family: Poppins;
             font-style: normal;
-            font-weight: bold;
-            font-size: 24px;
+            font-weight: 400;
+            font-size: 20px;
             line-height: 36px;
             color: #FFFFFF;
         }
@@ -113,11 +110,11 @@
 
 <body>
     <div class="keyAuthHeaderBackground"></div>
-    <div class="title">Authentication</div>
-    <div class="licenseKeyText">License Key</div>
-    <input id="key" type="text" maxlength="19" placeholder="XXXX-XXXX-XXXX-XXXX" spellcheck="false" class="keyEntry">
-    <button class="loginButton" onclick="authKey()">Login</button>
-    <img class="lockImg" src="./images/lock.svg">
+    <div class="title">Login</div>
+    <div class="licenseKeyText">Key</div>
+    <input id="key" type="text" maxlength="25" placeholder="V-XXXXXX-XXXXXXXX-XXXXXXX" spellcheck="false" class="keyEntry">
+    <button class="loginButton" onclick="authKey()">    <img class="lockImg" src="./images/lock.svg">
+</button>
     <script>
         const electron = require('electron');
         const ipcRenderer = electron.ipcRenderer;

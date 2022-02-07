@@ -20,7 +20,7 @@
 }
 
 .ss-main .ss-single-selected.ss-disabled {
-    background-color: #dcdee2;
+    background-color: #151622;
     cursor: not-allowed
 }
 
@@ -331,7 +331,7 @@
 }
 
 .ss-content .ss-list {
-    max-height: 180px;
+    max-height: 100px;
     overflow-x: hidden;
     overflow-y: auto;
     text-align: left

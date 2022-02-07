@@ -1,6 +1,6 @@
 {
     "name": "Venetia",
-    "version": "0.5.1",
+    "version": "0.5.2",
     "author": "Venetia",
     "description": "AIO Automation Software",
     "main": "main.js",
@@ -11,30 +11,21 @@
         "publish": "build -p always"
     },
     "dependencies": {
-        "2captcha": "^2.1.5-2",
         "asarmor": "^1.4.1",
         "chart.js": "^2.9.4",
-        "country-state-city": "^3.0.1",
         "discord-rich-presence": "0.0.8",
         "electron-is-dev": "^2.0.0",
         "electron-json-storage": "^4.5.0",
         "electron-updater": "^4.3.5",
+        "ethers": "^5.5.3",
         "express": "^4.17.1",
         "fs-extra": "^9.1.0",
         "got": "^11.8.2",
-        "isomorphic-webcrypto": "^2.3.8",
         "jquery": "^3.5.1",
-        "js-base64": "^2.6.4",
-        "node-adyen-encrypt": "^2.3.1",
-        "node-html-parser": "^2.0.2",
-        "public-ip": "^4.0.3",
-        "querystring": "^0.2.1",
+        "node-machine-id": "^1.1.12",
         "slim-select": "^1.27.0",
-        "tough-cookie": "^4.0.0",
-        "tunnel": "0.0.6",
         "uuidv4": "^6.2.6",
-        "winston": "^3.3.3",
-        "ws": "^7.4.4"
+        "winston": "^3.3.3"
     },
     "devDependencies": {
         "electron": "11.1.1",
@@ -50,10 +41,12 @@
         "mac": {
             "category": "Venetia.AIO.Automation.Software"
         },
-        "publish": [{
-            "provider": "github",
-            "owner": "poudyalankit",
-            "repo": "venetia-update"
-        }]
+        "publish": [
+            {
+                "provider": "github",
+                "owner": "poudyalankit",
+                "repo": "venetia-update"
+            }
+        ]
     }
 }
