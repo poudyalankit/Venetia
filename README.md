@@ -4,7 +4,7 @@
 
 
 # Background
-Venetia was all-in-one ecommerce automation software written using Electron and Node.JS.
+Venetia was all-in-one e-commerce automation software written using Electron and Node.JS.
 The stats throughout the lifetime of the software are shown below: <br> <br>
 <img width="654" alt="image" src="https://user-images.githubusercontent.com/70168633/193431186-77c2567e-76b9-4661-a47f-61d39f143e04.png">
 
