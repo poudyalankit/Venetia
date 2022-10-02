@@ -22,7 +22,7 @@ During its lifetime, Venetia worked on well over 300+ online stores, including:
 
 Below is a test checkout on Kith: <br>
 
-![gif](https://im3.ezgif.com/tmp/ezgif-3-0b1230c3b8.gif)
+![gif](https://i.imgur.com/lL0TIKm.gif)
 
 
 While Venetia is no longer active due to the backend API being turned off, the source code has been made public on GitHub.
