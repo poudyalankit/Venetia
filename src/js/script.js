@@ -1380,7 +1380,7 @@ function setProfilePicture() {
 
 function analytics() {
     document.getElementById("checkoutsTable").innerHTML = ""
-    updateAnalytics()
+    // updateAnalytics() Commented out so analytics tab loads
     setProfilePicture();
     document.getElementById('settingsDiv').style.display = "none";
     document.getElementById("settingsIcon").style.opacity = 0.3

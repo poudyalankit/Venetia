@@ -90,26 +90,7 @@ client.updatePresence({
     instance: true,
 });
 
-function keyAuth() {
-    keyAuthWindow = new BrowserWindow({
-        width: 435,
-        height: 250,
-        backgroundColor: '#181a26',
-        icon: path.join(__dirname, 'images/logo.png'),
-        frame: false,
-        webPreferences: {
-            nodeIntegration: true,
-            enableRemoteModule: true,
-            devTools: false,
-            spellcheck: false
-        }
-    })
-    keyAuthWindow.openDevTools(true)
-    keyAuthWindow.loadFile('auth.html');
-    keyAuthWindow.setMenuBarVisibility(false);
-    keyAuthWindow.setResizable(false);
 
-}
 
 function createWindow() {
     win = new BrowserWindow({
@@ -159,7 +140,7 @@ app.whenReady(() => {
     app.allowRendererProcessReuse = false;
 })
 
-app.whenReady().then(keyAuth)
+app.whenReady().then(createWindow)
 
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
