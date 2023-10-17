@@ -1,28 +1,61 @@
-# Venetia Software
+# Venetia: E-Commerce Automation Software 🛍️
 
-![image](https://user-images.githubusercontent.com/70168633/193430843-27ae5da5-69f7-4c63-8d13-684b7067523a.png)
+![Venetia Banner Logo](https://github.com/poudyalankit/Venetia/assets/70168633/57907949-a4f4-49a9-bae3-13a294bb2e45)
 
+Venetia is a powerful e-commerce automation software crafted to streamline your online shopping experience. Initially supporting prominent online stores, it now boasts advanced capabilities like Ethereum contract minting.
 
-## Background
-Venetia was all-in-one e-commerce automation software written using Electron and Node.JS.
-The stats throughout the lifetime of the software are shown below: <br> <br>
-<img width="654" alt="image" src="https://user-images.githubusercontent.com/70168633/193431186-77c2567e-76b9-4661-a47f-61d39f143e04.png">
+## Demo
 
+https://github.com/poudyalankit/Venetia/assets/70168633/452cfa4c-2bc5-460a-b207-57f8cceb4aa7
 
-## Usage
-During its lifetime, Venetia worked on well over 300+ online stores, including: 
-- Footlocker
-- Supreme
-- SSENSE
-- Shiekh
-- Kith
-- Shoe Palace
-- Fear of God
-- Eric Emanuel
+## Features
 
-Below is a test checkout on Kith: <br>
+- **E-Commerce Automation**: Simplify and accelerate purchases on 300+ online stores including:
+  - Footlocker
+  - Supreme
+  - SSENSE
+  - Shiekh
+  - Kith
+  - Shoe Palace
+  - Fear of God
+  - Eric Emanuel
 
-![gif](https://i.imgur.com/lL0TIKm.gif)
+- **Ethereum Contract Minting**: Seamlessly mint Ethereum contracts with ease, expanding the realm of your e-commerce experience.
 
+- **Real-time Communication**: Uses WebSocket for instantaneous communication between frontend and backend, ensuring a responsive user experience.
 
-While Venetia is no longer active due to the backend API being turned off, the source code has been made public on GitHub.
+## Stats
+
+![Venetia Stats](https://github.com/poudyalankit/Venetia/assets/70168633/feb79bb7-ddb5-4447-892d-abce7a8cdf28)
+
+## Tech Stack
+
+- **Frontend**: Built with Electron for a native desktop experience.
+- **Backend**: Powered by Node.js with Fastify for fast and low overhead web framework, and MongoDB for robust data storage.
+
+## Setup and Running
+
+### Requirements
+
+- [Node.js](https://nodejs.org/)
+- [MongoDB](https://www.mongodb.com/)
+
+### Installation
+
+1. Install the required dependencies:
+   ```bash
+   npm install
+   ```
+
+2. Start the Electron app:
+   ```bash
+   npm start
+   ```
+
+## Contributions
+
+Feel free to fork the project, open a PR or submit an issue for any suggestions, improvements or fixes.
+
+## License
+
+This project is licensed under the MIT License. See `LICENSE` file for details.
